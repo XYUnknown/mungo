@@ -1,0 +1,43 @@
+buildscript {
+	repositories.mavenLocal()
+	repositories.maven {
+		url 'http://jastadd.org/mvn/'
+	}
+	dependencies {
+		classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.5'
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'jastadd'
+
+jastadd {
+	modules 'jastadd_modules' // Loads module specifications from this file.
+
+	// Target module:
+	module = 'extension-base' // TODO Replace with your own module name.
+
+	astPackage = 'org.jastadd.extendj.ast'
+	genDir = 'src/gen/java'
+	buildInfoDir = 'src/gen-res'
+	parser.name = 'JavaParser'
+}
+
+sourceSets.main {
+	java {
+		srcDir 'extendj/src/frontend-main'
+		exclude 'org/jastadd/extendj/PrettyPrintTask.java'
+	}
+	resources {
+		srcDir 'extendj/src/res'
+		srcDir jastadd.buildInfoDir
+	}
+}
+
+mainClassName = 'org.extendj.ExtensionMain'
+jar.manifest.attributes 'Main-Class': mainClassName
+jar.destinationDir = projectDir
+
+// Java -source and -target version.
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
