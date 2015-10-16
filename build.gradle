@@ -34,8 +34,7 @@ sourceSets.main {
 	}
 }
 
-mainClassName = 'org.extendj.ExtensionMain'
-jar.manifest.attributes 'Main-Class': mainClassName
+jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
 jar.destinationDir = projectDir
 
 // Java -source and -target version.

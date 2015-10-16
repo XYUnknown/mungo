@@ -13,8 +13,6 @@ Cloning the Project
 Use these commands to clone the project and build it the first time:
 
     git clone --recursive git@bitbucket.org:extendj/extension-base.git
-    cd extension-base
-    gradle jar
 
 Make sure to include the `--recursive` in the clone command to get the ExtendJ
 submodule.
@@ -22,6 +20,7 @@ submodule.
 If you forgot the `--recursive` flag, don't worry, just go into the newly cloned
 project and run these commands:
 
+    cd extension-base
     git submodule init
     git submodule update --depth 1
 
@@ -64,10 +63,6 @@ additional JastAdd source files are located.
 * `src/java/org/extendj/ExtensionMain.java` - main class for the base extension.
 * `src/jastadd/ExtensionBase.jrag` - simple aspect containing a single inter-type declaration,
   declaring the `CompilationUnit.process()` method.
-
-Explanation of Files
---------------------
-
 
 Gradle Build Walkthrough
 ------------------------
@@ -123,8 +118,7 @@ The next part of the build script has some simpler configuration things, such
 as main class name, source and target Java versions, and the destination
 directory for the Jar file:
 
-    mainClassName = 'org.extendj.ExtensionMain'
-    jar.manifest.attributes 'Main-Class': mainClassName
+    jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
     jar.destinationDir = projectDir
 
     sourceCompatibility = '1.7'
