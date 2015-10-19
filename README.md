@@ -83,7 +83,7 @@ maven repository and a dependency for the JastAdd plugin:
             url 'http://jastadd.org/mvn/'
         }
         dependencies {
-            classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.4'
+            classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.6'
         }
     }
 
