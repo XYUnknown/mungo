@@ -36,10 +36,11 @@ If you have [Gradle][1] installed you can issue the following commands to
 build and test the minimal extension:
 
     gradle jar
-    java -jar extension-base.jar src/java/org/extendj/ExtensionMain.java
+    java -jar extension-base.jar testfiles/Test.java
 
-The last command should print some Java errors in `ExtensionMain.java`, caused
-by the compiler not finding the imports.
+The last command should print
+
+    testfiles/Test.java contained no errors
 
 If you do not have Gradle installed you can use the `gradlew.bat` (on Windows)
 or `gradlew` (Mac/Linux) script instead. For example to build on Windows run the
@@ -66,6 +67,7 @@ additional JastAdd source files are located.
   Java files supplied on the command-line and runs the `process()` method on each parsed AST.
 * `src/jastadd/ExtensionBase.jrag` - simple aspect containing a single inter-type declaration:
   the `CompilationUnit.process()` method.
+* `testfiles/Test.java` - simple Java file to test the generated compiler.
 
 Gradle Build Walkthrough
 ------------------------
