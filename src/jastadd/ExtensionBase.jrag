@@ -1,6 +1,6 @@
 aspect ExtensionBase {
   /** Called by ExtensionMain.processNoErrors() after error-checking a compilation unit. */
   public void CompilationUnit.process() {
-    System.out.println(pathName());
+    System.out.println(pathName() + " contained no errors");
   }
 }
