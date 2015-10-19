@@ -1,68 +1,69 @@
 ExtendJ Extension Base
 ======================
 
-This is a base project for building extensions to ExtendJ.
+This project is a minimal working example of an extension to the extensible
+Java compiler ExtendJ. This should provide a useful base for creating your own
+extensions.
 
-The project is built using [Gradle][1] and the [JastAdd Gradle plugin][2]. A
-short description of the build script is included in this README. Info about
-cloning the project with Git is in the next section.
+Cloning this Project
+--------------------
 
-Cloning the Project
--------------------
+To clone this project you will need [Git][3] installed.
 
-Use these commands to clone the project and build it the first time:
+Use this command to clone the project using Git:
 
     git clone --recursive git@bitbucket.org:extendj/extension-base.git
 
-Make sure to include the `--recursive` in the clone command to get the ExtendJ
-submodule.
+The `--recursive` flag makes Git also clone the ExtendJ submodule while cloning
+the `extension-base` repository.
 
-If you forgot the `--recursive` flag, don't worry, just go into the newly cloned
-project and run these commands:
+If you forgot the `--recursive` flag you can manually clone the ExtendJ
+submodule using these commands:
 
     cd extension-base
     git submodule init
     git submodule update --depth 1
 
-That should download the ExtendJ git repository into the local directory `extendj`.
+This should download the ExtendJ Git repository into a local directory named
+`extendj`. The `--depth 1` flag tells Git to only clone the latest commit from
+the ExtendJ repository. This might be a preferable cloning method if you
+have a slow Internet connection.
 
 Build and Run
 -------------
 
 If you have [Gradle][1] installed you can issue the following commands to
-build and test the extension-base tool:
+build and test the minimal extension:
 
     gradle jar
-    java -jar extension-base.jar Test.java
+    java -jar extension-base.jar src/java/org/extendj/BaseExtension.java
 
 
-If you don't have Gradle installed you can use the `gradlew.bat` (on Windows)
-or `gradlew` (Unix) script instead. For example to build on Windows run the
+If you do not have Gradle installed you can use the `gradlew.bat` (on Windows)
+or `gradlew` (Mac/Linux) script instead. For example to build on Windows run the
 following in a command prompt:
 
     gradlew jar
 
-The `gradlew` scripts are wrapper scripts that will download a specific version
-of Gradle locally and run it.
+The `gradlew` scripts are wrapper scripts that will download Gradle locally and
+run it.
 
 File Overview
 -------------
 
-Here is a short explanation of what each file in the project base directory contains:
+Here is a short explanation of the purpose of each file in the project:
 
-* `build.gradle` - the main Gradle build script. There is more info about this below!
-* `settings.gradle` - only contains the project name, if this did not exist the
-  project name would be the name of the directory containing `build.gradle`.
-The project name affects the generated Jar filename.
+* `build.gradle` - the main Gradle build script. There is more info about this below.
 *  `jastadd_modules` - this file contains module definitions for the JastAdd build tool. This
   defines things such as which ExtendJ modules to include in the build, and where
 additional JastAdd source files are located.
-* `README.md` - this file
-* `gradlew.bat` - windows Gradle wrapper script (explained above)
+* `README.md` - this file.
+* `gradlew.bat` - Windows Gradle wrapper script (explained above)
 * `gradlew` - Unix Gradle wrapper script
-* `src/java/org/extendj/ExtensionMain.java` - main class for the base extension.
-* `src/jastadd/ExtensionBase.jrag` - simple aspect containing a single inter-type declaration,
-  declaring the `CompilationUnit.process()` method.
+* `src/java/org/extendj/ExtensionMain.java` - main class for the base extension. Parses
+  Java files supplied on the command-line and runs the `process()` method on each parsed AST.
+* `src/jastadd/ExtensionBase.jrag` - simple aspect containing a single inter-type declaration:
+  the `CompilationUnit.process()` method.
 
 Gradle Build Walkthrough
 ------------------------
@@ -88,7 +89,7 @@ The next part is a list of Gradle plugins that we will use:
     apply plugin: 'jastadd'
 
 Next comes the `jastadd` configuration. This part provides the JastAdd plugin
-specific settings needed to build the project:
+configuration to build the project:
 
 
     jastadd {
@@ -102,12 +103,12 @@ specific settings needed to build the project:
     }
 
 The `modules 'jastadd_modules'` line tells the JastAdd plugin where to find
-module specification files. The list only contains one item: our own
-`jastadd_modules` file.
+module specification files. This can be a list of filenames, or a single filename.
+In our case it points to the `jastadd_modules` file in the projects base directory.
 
 Each module specification file can define several modules, however our
 `jastadd_modules` file defines only one module named `extension-base`.  The
-`include` construct is used in the module specification to include the ExtendJ
+`include` construct is used in the module specification to include the core ExtendJ
 modules that our module depends on.
 
 The `module = 'extension-base'` line specifies the target module, i.e., the module
@@ -115,7 +116,7 @@ that the JastAdd plugin should build. If the target module is not found in
 the list of module specifications then the build fails with an error message.
 
 The next part of the build script has some simpler configuration things, such
-as main class name, source and target Java versions, and the destination
+as the main class name, source and target Java versions, and the destination
 directory for the Jar file:
 
     jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
@@ -124,12 +125,64 @@ directory for the Jar file:
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
 
+Extension Architecture
+----------------------
+
+This section explains how the module file `jastadd_modules` works, and how the minimal
+extension is structured.
+
+The `jastadd_modules` file starts with an include:
+
+    include("extendj/jastadd_modules") // Include the core ExtendJ modules.
+
+This includes the core ExtendJ modules by loading the file with the path
+`extendj/jastadd_modules`. That file in turn includes modules from
+subdirectories in the `extendj` directory.
+
+Each `jastadd_modules` file can define JastAdd modules. Our file defines one
+module named `extension-base`:
+
+    module "extension-base", { // TODO Replace with your own module name.
+
+        imports "java8 frontend"
+
+        java {
+            basedir "src/java/"
+            include "**/*.java"
+        }
+
+        jastadd {
+            basedir "src/jastadd/"
+            include "**/*.ast"
+            include "**/*.jadd"
+            include "**/*.jrag"
+        }
+    }
+
+The module has some comments to show how to add parser or scanner files, but we
+don't use that and it is likely that you wont need to either if you just want to
+parse Java code.
+
+The module uses an `imports` statement to import all of the JastAdd files from
+the core ExtendJ module `java8 frontend`. Each supported Java version in
+ExtendJ has a frontend and backend module. The frontend module is used if you don't
+need to generate bytecode.
+
+JastAdd only uses `.ast`, `.jadd`, and `.jrag` files to generate Java code, but a
+JastAdd compiler needs some supporting code to run the compiler, so our module has
+a Java class `src/java/org/extendj/ExtensionMain.java` to run the compiler, and
+ExtendJ includes some Java code and scanner/parser code that is not generated by JastAdd.
+
+The Java code generated by JastAdd is output to the `src/gen` directory.
+
 Additional Resources
 --------------------
 
-More examples about how to use the [JastAdd Gradle plugin][2] to build ExtendJ-like projects can be found here:
+More examples on how to build ExtendJ-like projects with the [JastAdd Gradle
+plugin][2] can be found here:
 
 * [JastAdd Example: GradleBuild](http://jastadd.org/web/examples.php?example=GradleBuild)
 
 [1]:https://gradle.org/
 [2]:https://bitbucket.org/joqvist/jastaddgradle/overview
+[3]:https://git-scm.com/
