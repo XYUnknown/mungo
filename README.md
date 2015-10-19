@@ -99,6 +99,7 @@ configuration to build the project:
 
         astPackage = 'AST'
         genDir = 'src/gen/java'
+        buildInfoDir = 'src/gen-res'
         parser.name = 'JavaParser'
     }
 
@@ -115,7 +116,22 @@ The `module = 'extension-base'` line specifies the target module, i.e., the modu
 that the JastAdd plugin should build. If the target module is not found in
 the list of module specifications then the build fails with an error message.
 
-The next part of the build script has some simpler configuration things, such
+The next part of the build script specifies source and resource directories for the build.
+We need to do this here to include a few Java files from ExtendJ that will be used by
+`src/java/org/extendj/ExtensionMain.java':
+
+    sourceSets.main {
+        java {
+            srcDir 'extendj/src/frontend-main'
+            exclude 'org/jastadd/extendj/PrettyPrintTask.java'
+        }
+        resources {
+            srcDir 'extendj/src/res'
+            srcDir jastadd.buildInfoDir
+        }
+    }
+
+The last part of the build script has some simpler configuration things, such
 as the main class name, source and target Java versions, and the destination
 directory for the Jar file:
 
@@ -124,6 +140,38 @@ directory for the Jar file:
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
+
+How this Extension Works
+------------------------
+
+This extension builds a compiler that prints out the filenames of Java files
+you supply to the compiler. This obviously super simple to do, but the compiler
+does error-check each file for semantic errors first before printing the file
+name, so it can be used as a simple Java error checker.
+
+The `src/java/org/extendj/ExtensionMain.java` class is the entry-point for the
+compiler. This is where command-line arguments are processed. The
+`ExtensionMain` class is very small because it extends the
+`org.jastadd.extendj.JavaChecker` class from ExtendJ.
+
+The `processNoErrors` method in `ExtensionMain` is called for each
+`CompilationUnit`, i.e. each Java source file, that contained no semantic
+errors.
+
+    @Override
+    protected void processNoErrors(CompilationUnit unit) {
+      // Called when there were no errors in the compilation unit.
+      unit.process();
+    }
+
+The `process` method is defined in `src/jastadd/ExtensionBase.jrag`:
+
+    aspect ExtensionBase {
+      /** Called by ExtensionMain.processNoErrors() after error-checking a compilation unit. */
+      public void CompilationUnit.process() {
+        System.out.println(pathName());
+      }
+    }
 
 Extension Architecture
 ----------------------
