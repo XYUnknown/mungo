@@ -181,7 +181,7 @@ configuration to build the project:
 
         module = 'extension-base'
 
-        astPackage = 'AST'
+        astPackage = 'org.extendj.ast'
         genDir = 'src/gen/java'
         buildInfoDir = 'src/gen-res'
         parser.name = 'JavaParser'
@@ -207,7 +207,7 @@ We need to do this here to include a few Java files from ExtendJ that will be us
     sourceSets.main {
         java {
             srcDir 'extendj/src/frontend-main'
-            exclude 'org/jastadd/extendj/PrettyPrintTask.java'
+            exclude 'org/extendj/PrettyPrintTask.java'
         }
         resources {
             srcDir 'extendj/src/res'

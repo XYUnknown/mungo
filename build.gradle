@@ -14,7 +14,7 @@ jastadd {
 	// Target module to build:
 	module = 'extension-base' // TODO Replace with your own module name.
 
-	astPackage = 'org.jastadd.extendj.ast'
+	astPackage = 'org.extendj.ast'
 	genDir = 'src/gen/java'
 	buildInfoDir = 'src/gen-res'
 	parser.name = 'JavaParser'
@@ -23,7 +23,7 @@ jastadd {
 sourceSets.main {
 	java {
 		srcDir 'extendj/src/frontend-main'
-		exclude 'org/jastadd/extendj/PrettyPrintTask.java'
+		exclude 'org/extendj/PrettyPrintTask.java'
 	}
 	resources {
 		srcDir 'extendj/src/res'

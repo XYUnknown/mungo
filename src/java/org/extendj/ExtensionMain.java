@@ -29,8 +29,7 @@
  */
 package org.extendj;
 
-import org.jastadd.extendj.JavaChecker;
-import org.jastadd.extendj.ast.CompilationUnit;
+import org.extendj.ast.CompilationUnit;
 
 public class ExtensionMain extends JavaChecker {
 
