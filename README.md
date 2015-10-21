@@ -22,12 +22,10 @@ submodule using these commands:
 
     cd extension-base
     git submodule init
-    git submodule update --depth 1
+    git submodule update
 
 This should download the ExtendJ Git repository into a local directory named
-`extendj`. The `--depth 1` flag tells Git to only clone the latest commit from
-the ExtendJ repository. This might be a preferable cloning method if you
-have a slow Internet connection.
+`extendj`.
 
 Build and Run
 -------------
