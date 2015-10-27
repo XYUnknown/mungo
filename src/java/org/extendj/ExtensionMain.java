@@ -12,8 +12,14 @@ public class ExtensionMain extends JavaChecker {
   }
 
   @Override
+  protected int processCompilationUnit(CompilationUnit unit) throws Error {
+    // Replace the following super call to skip semantic error checking in unit.
+    return super.processCompilationUnit(unit);
+  }
+
+  /** Called by processCompilationUnit when there are no errors in the argument unit.  */
+  @Override
   protected void processNoErrors(CompilationUnit unit) {
-    // Called when there were no errors in the compilation unit.
     unit.process();
   }
 }
