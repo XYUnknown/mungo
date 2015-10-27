@@ -6,3 +6,6 @@ public class Test {
     return x * x;
   }
 }
+
+class X {
+}
