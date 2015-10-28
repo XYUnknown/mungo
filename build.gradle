@@ -37,3 +37,25 @@ jar.destinationDir = projectDir
 // Java -source and -target version.
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
+
+task sourceZip(type: Zip) {
+	destinationDir = projectDir
+	archiveName = "extension-base.zip"
+
+	from (projectDir) {
+		exclude '**/.git'
+		exclude '**/.gitignore'
+		exclude '**/.gitattributes'
+		exclude '**/.gitmodules'
+		exclude 'build'
+		exclude 'bin'
+		exclude '.gradle'
+		exclude '.classpath'
+		exclude '.settings'
+		exclude '.project'
+		exclude 'src/gen'
+		exclude 'src/gen-res'
+		exclude '*.jar'
+		exclude '**/*.swp'
+	}
+}
