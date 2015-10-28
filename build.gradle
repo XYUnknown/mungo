@@ -39,6 +39,7 @@ sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
 task sourceZip(type: Zip) {
+	description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
 	destinationDir = projectDir
 	archiveName = "extension-base.zip"
 
@@ -56,6 +57,9 @@ task sourceZip(type: Zip) {
 		exclude 'src/gen'
 		exclude 'src/gen-res'
 		exclude '*.jar'
+		exclude '*.zip'
 		exclude '**/*.swp'
 	}
+
+	into 'extension-base'
 }

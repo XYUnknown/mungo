@@ -12,6 +12,7 @@
 /src/gen/
 /src/gen-res/
 /*.jar
+/*.zip
 
 # Vim swap files.
 *.swp
