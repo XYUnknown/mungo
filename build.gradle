@@ -8,6 +8,8 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'jastadd'
 
+defaultTasks 'jar'
+
 jastadd {
 	modules 'jastadd_modules' // Load module specifications from this file.
 
