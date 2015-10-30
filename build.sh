@@ -199,7 +199,7 @@ javac -d build/classes/main $(find src/java -name '*.java') \
 mkdir -p src/gen-res
 echo "moduleName: Java SE 8" > src/gen-res/BuildInfo.properties
 echo "moduleVariant: frontend" >> src/gen-res/BuildInfo.properties
-echo "timestamp: 2015-10-30T01:25Z" >> src/gen-res/BuildInfo.properties
+echo "timestamp: 2015-10-30T09:40Z" >> src/gen-res/BuildInfo.properties
 echo "build.date: 2015-10-30" >> src/gen-res/BuildInfo.properties
 jar cef org.extendj.ExtensionMain extension-base.jar -C build/classes/main $(find build/classes/main/ -name '*.class') \
     -C src/gen-res BuildInfo.properties \
