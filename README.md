@@ -12,7 +12,7 @@ To clone this project you will need [Git][3] installed.
 
 Use this command to clone the project using Git:
 
-    git clone --recursive git@bitbucket.org:extendj/extension-base.git
+    git clone --recursive https://bitbucket.org/extendj/extension-base.git
 
 The `--recursive` flag makes Git also clone the ExtendJ submodule while cloning
 the `extension-base` repository.
