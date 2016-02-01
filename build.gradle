@@ -1,7 +1,7 @@
 buildscript {
 	repositories.mavenCentral()
 	dependencies {
-		classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.9'
+		classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.11'
 	}
 }
 
@@ -25,7 +25,7 @@ jastadd {
 sourceSets.main {
 	java {
 		srcDir 'extendj/src/frontend-main'
-		exclude 'org/extendj/PrettyPrintTask.java'
+		exclude 'org/extendj/PrettyPrintTask.java' // Avoid dependency on Apache Ant.
 	}
 	resources {
 		srcDir 'extendj/src/res'
