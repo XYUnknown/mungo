@@ -1,7 +1,8 @@
 buildscript {
 	repositories.mavenCentral()
+	repositories.mavenLocal()
 	dependencies {
-		classpath group: 'org.jastadd', name: 'jastaddgradle', version: '1.9.11'
+		classpath 'org.jastadd:jastaddgradle:1.10.0'
 	}
 }
 
@@ -11,6 +12,8 @@ apply plugin: 'jastadd'
 defaultTasks 'jar'
 
 jastadd {
+	configureModuleBuild()
+
 	modules 'jastadd_modules' // Load module specifications from this file.
 
 	// Target module to build:
