@@ -11,6 +11,10 @@ apply plugin: 'jastadd'
 
 defaultTasks 'jar'
 
+if (!file('extendj/jastadd_modules').exists()) {
+	throw new GradleException('ExtendJ seems to be missing. Please run "git submodule init", then "git submodule update".')
+}
+
 jastadd {
 	configureModuleBuild()
 
