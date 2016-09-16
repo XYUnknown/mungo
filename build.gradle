@@ -2,7 +2,7 @@ buildscript {
 	repositories.mavenCentral()
 	repositories.mavenLocal()
 	dependencies {
-		classpath 'org.jastadd:jastaddgradle:1.10.0'
+		classpath 'org.jastadd:jastaddgradle:1.10.1'
 	}
 }
 
