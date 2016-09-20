@@ -213,6 +213,11 @@ We need to do this here to include a few Java files from ExtendJ that will be us
         }
     }
 
+
+When you modify the `jastadd_modules` file you will need to tell Gradle to rerun
+JastAdd re-generates the Java source files. See below for more info on rebuilding
+with Gradle.
+
 The last part of the build script has some simpler configuration things, such
 as the main class name, source and target Java versions, and the destination
 directory for the Jar file:
@@ -222,6 +227,21 @@ directory for the Jar file:
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
+
+
+Rebuilding
+==========
+
+Although the Gradle plugin can handle some automatic rebuilding when a source file changes,
+it does not handle all cases well, so in some cases you will need to force Gradle to
+rebuild your project. This can be done passing the `--rerun-tasks` option to Gradle:
+
+    $ gradle --rerun-tasks
+
+
+Changes to the `jastadd_modules` file always require a rebuild to ensure that everything
+is generated from the current sources.
+
 
 Additional Resources
 --------------------
