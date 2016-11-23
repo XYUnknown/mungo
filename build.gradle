@@ -27,6 +27,7 @@ jastadd {
 	genDir = 'src/gen/java'
 	buildInfoDir = 'src/gen-res'
 	parser.name = 'JavaParser'
+	parser.genDir = 'src/gen/java/org/extendj/parser'
 }
 
 sourceSets.main {
