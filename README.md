@@ -49,6 +49,51 @@ following in a command prompt:
 The `gradlew` scripts are wrapper scripts that will download Gradle locally and
 run it.
 
+Backend Extensions
+------------------
+
+This project is set up to build a frontend extension, i.e., static analysis tools.
+
+To build a backend extension, i.e., a full compiler, apply the following patch:
+
+    diff --git a/build.gradle b/build.gradle
+    index bd2347a..d8882f5 100644
+    --- a/build.gradle
+    +++ b/build.gradle
+    @@ -36,6 +36,8 @@ sourceSets.main {
+            java {
+                    srcDir 'extendj/src/frontend-main'
+                    exclude 'org/extendj/PrettyPrintTask.java' // Avoid dependency on Apache Ant.
+    +               srcDir 'extendj/src/backend-main'
+    +               exclude 'org/extendj/JastAddJTask.java' // Avoid dependency on Apache Ant.
+            }
+            resources {
+                    srcDir 'extendj/src/res'
+    @@ -43,7 +45,7 @@ sourceSets.main {
+                }
+     }
+     
+    -jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
+    +jar.manifest.attributes 'Main-Class': 'org.extendj.JavaCompiler'
+     jar.destinationDir = projectDir
+     
+     // Java -source and -target version.
+    diff --git a/jastadd_modules b/jastadd_modules
+    index 225d5d5..e5f70a7 100644
+    --- a/jastadd_modules
+    +++ b/jastadd_modules
+    @@ -2,7 +2,7 @@ include("extendj/jastadd_modules") // Include the core ExtendJ modules.
+     
+     module "extension-base", { // TODO Replace with your own module name.
+     
+    -       imports "java8 frontend"
+    +       imports "java8 backend"
+     
+            java {
+                    basedir "src/java/"
+
+
+
 File Overview
 -------------
 
