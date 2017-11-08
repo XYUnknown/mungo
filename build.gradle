@@ -35,7 +35,6 @@ jastadd {
 sourceSets.main {
 	java {
 		srcDir 'extendj/src/frontend-main'
-		exclude 'org/extendj/PrettyPrintTask.java' // Avoid dependency on Apache Ant.
 	}
 	resources {
 		srcDir 'extendj/src/res'

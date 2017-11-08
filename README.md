@@ -56,16 +56,12 @@ This project is set up to build a frontend extension, i.e., static analysis tool
 
 To build a backend extension, i.e., a full compiler, apply the following patch:
 
-    diff --git a/build.gradle b/build.gradle
-    index bd2347a..d8882f5 100644
     --- a/build.gradle
     +++ b/build.gradle
     @@ -36,6 +36,8 @@ sourceSets.main {
             java {
                     srcDir 'extendj/src/frontend-main'
-                    exclude 'org/extendj/PrettyPrintTask.java' // Avoid dependency on Apache Ant.
     +               srcDir 'extendj/src/backend-main'
-    +               exclude 'org/extendj/JastAddJTask.java' // Avoid dependency on Apache Ant.
             }
             resources {
                     srcDir 'extendj/src/res'
@@ -78,8 +74,6 @@ To build a backend extension, i.e., a full compiler, apply the following patch:
      jar.destinationDir = projectDir
      
      // Java -source and -target version.
-    diff --git a/jastadd_modules b/jastadd_modules
-    index 225d5d5..e5f70a7 100644
     --- a/jastadd_modules
     +++ b/jastadd_modules
     @@ -2,7 +2,7 @@ include("extendj/jastadd_modules") // Include the core ExtendJ modules.
@@ -274,8 +268,7 @@ directory for the Jar file:
     targetCompatibility = '1.7'
 
 
-Rebuilding
-==========
+## Rebuilding
 
 Although the Gradle plugin can handle some automatic rebuilding when a source file changes,
 it does not handle all cases well, so in some cases you will need to force Gradle to
@@ -287,6 +280,21 @@ rebuild your project. This can be done passing the `--rerun-tasks` option to Gra
 Changes to the `jastadd_modules` file always require a rebuild to ensure that everything
 is generated from the current sources.
 
+
+## Upgrading ExtendJ
+
+If you want to update to the latest ExtendJ version, you can use these commands:
+
+    cd extendj
+    git fetch origin
+    git reset --hard origin/master
+
+
+This may be necessary if a bugfix that you need was committed to ExtendJ in a version
+later than the version that this repository links to.
+
+It is recommended that you use a test suite to ensure that your extension
+functionality is preserved after upgrading the core ExtendJ compiler.
 
 Additional Resources
 --------------------
