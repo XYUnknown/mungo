@@ -54,38 +54,12 @@ Backend Extensions
 
 This project is set up to build a frontend extension, i.e., static analysis tools.
 
-To build a backend extension, i.e., a full compiler, apply the following patch:
+To build a backend extension, i.e., a full compiler, you should apply the following
+changes:
 
-    --- a/build.gradle
-    +++ b/build.gradle
-    @@ -36,6 +36,8 @@ sourceSets.main {
-            java {
-                    srcDir 'extendj/src/frontend-main'
-    +               srcDir 'extendj/src/backend-main'
-            }
-            resources {
-                    srcDir 'extendj/src/res'
-    @@ -43,7 +45,7 @@ sourceSets.main {
-                }
-     }
-     
-    -jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
-    +jar.manifest.attributes 'Main-Class': 'org.extendj.JavaCompiler'
-     jar.destinationDir = projectDir
-     
-     // Java -source and -target version.
-    --- a/jastadd_modules
-    +++ b/jastadd_modules
-    @@ -2,7 +2,7 @@ include("extendj/jastadd_modules") // Include the core ExtendJ modules.
-     
-     module "extension-base", { // TODO Replace with your own module name.
-     
-    -       imports "java8 frontend"
-    +       imports "java8 backend"
-     
-            java {
-                    basedir "src/java/"
-
+* `build.gradle`: in the java block in sourceSets.main: add a line `srcDir' 'extendj/src/backend-main'`
+* `build.gradle`: change the Main-Class Jar attribute from `org.extendj.ExtensionMain` to `org.extendj.JavaCompiler`
+* `jastadd_modules`: change the line `imports "java8 frontend"` to `imports "java8 backend"`
 
 
 File Overview
