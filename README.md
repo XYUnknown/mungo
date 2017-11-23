@@ -34,7 +34,7 @@ If you have [Gradle][1] installed you can issue the following commands to
 build and test the minimal extension:
 
     gradle jar
-    java -jar extension-base.jar testfiles/Test.java
+    java -jar compiler.jar testfiles/Test.java
 
 The last command should print
 
@@ -79,6 +79,8 @@ additional JastAdd source files are located.
 * `src/jastadd/ExtensionBase.jrag` - simple aspect containing a single inter-type declaration:
   the `CompilationUnit.process()` method.
 * `testfiles/Test.java` - simple Java file to test the generated compiler.
+* `settings.gradle` - configures the Gradle project name.
+* `compiler.jar` - the generated compiler Jar file (based on project name).
 
 How this Extension Works
 ------------------------
