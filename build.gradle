@@ -1,76 +1,95 @@
-buildscript {
-	repositories.mavenCentral()
-	repositories.mavenLocal()
-	dependencies {
-		classpath 'org.jastadd:jastaddgradle:1.10.7'
-	}
+plugins {
+  id 'java'
+  id 'org.jastadd' version '1.12.0'
 }
-
-apply plugin: 'java'
-apply plugin: 'jastadd'
 
 defaultTasks 'jar'
 
 if (!file('extendj/jastadd_modules').exists()) {
-	throw new GradleException('ExtendJ seems to be missing. Please run "git submodule init", then "git submodule update".')
+  throw new GradleException('ExtendJ seems to be missing. Please run "git submodule init", then "git submodule update".')
 }
 
 jastadd {
-	configureModuleBuild()
+  configureModuleBuild()
 
-	modules 'jastadd_modules' // Load module specifications from this file.
+  modules {
+    include("extendj/jastadd_modules") // Includes the core ExtendJ modules.
 
-	// Target module to build:
-	module = 'extension-base' // TODO Replace with your own module name.
+    module "extension-base", {
+      imports "java8 frontend" // This module depends on "java8 frontend" from ExtendJ.
 
-	astPackage = 'org.extendj.ast'
-	genDir = 'src/gen/java'
-	buildInfoDir = 'src/gen-res'
-	parser.name = 'JavaParser'
-	parser.genDir = 'src/gen/java/org/extendj/parser'
-	scanner.name = 'OriginalScanner'
-	scanner.genDir = 'src/gen/java/org/extendj/scanner'
+      java {
+        basedir "src/java/"
+        include "**/*.java"
+      }
+
+      jastadd {
+        basedir "src/jastadd/"
+        include "**/*.ast"
+        include "**/*.jadd"
+        include "**/*.jrag"
+      }
+
+      //scanner {
+      // TODO List your scanner specification additions here.
+      //}
+
+      //parser {
+      // TODO List your parser specification additions here.
+      //}
+    }
+  }
+
+  // Target module to build:
+  module = 'extension-base'
+
+  astPackage = 'org.extendj.ast'
+  genDir = 'src/gen/java'
+  buildInfoDir = 'src/gen-res'
+  parser.name = 'JavaParser'
+  parser.genDir = 'src/gen/java/org/extendj/parser'
+  scanner.name = 'OriginalScanner'
+  scanner.genDir = 'src/gen/java/org/extendj/scanner'
 }
 
 sourceSets.main {
-	java {
-		srcDir 'extendj/src/frontend-main'
-	}
-	resources {
-		srcDir 'extendj/src/res'
-		srcDir jastadd.buildInfoDir
-	}
+  java {
+    srcDir 'extendj/src/frontend-main'
+  }
+  resources {
+    srcDir 'extendj/src/res'
+    srcDir jastadd.buildInfoDir
+  }
 }
 
 jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
 jar.destinationDir = projectDir
 
 // Java -source and -target version.
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = targetCompatibility = '1.7'
 
 task sourceZip(type: Zip) {
-	description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
-	destinationDir = projectDir
-	archiveName = "extension-base.zip"
+  description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
+  destinationDir = projectDir
+  archiveName = "extension-base.zip"
 
-	from (projectDir) {
-		exclude '**/.git'
-		exclude '**/.gitignore'
-		exclude '**/.gitattributes'
-		exclude '**/.gitmodules'
-		exclude 'build'
-		exclude 'bin'
-		exclude '.gradle'
-		exclude '.classpath'
-		exclude '.settings'
-		exclude '.project'
-		exclude 'src/gen'
-		exclude 'src/gen-res'
-		exclude '*.jar'
-		exclude '*.zip'
-		exclude '**/*.swp'
-	}
+  from (projectDir) {
+    exclude '**/.git'
+    exclude '**/.gitignore'
+    exclude '**/.gitattributes'
+    exclude '**/.gitmodules'
+    exclude 'build'
+    exclude 'bin'
+    exclude '.gradle'
+    exclude '.classpath'
+    exclude '.settings'
+    exclude '.project'
+    exclude 'src/gen'
+    exclude 'src/gen-res'
+    exclude '*.jar'
+    exclude '*.zip'
+    exclude '**/*.swp'
+  }
 
-	into 'extension-base'
+  into 'extension-base'
 }
