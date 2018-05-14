@@ -38,8 +38,9 @@ This should download the ExtendJ Git repository into a local directory named
 
 ## Build and Run
 
-This project is set up to be built with [Gradle][1].  Don't worry, you do not
-need to install Gradle. Just run the following commands:
+This project is built with [Gradle][1].  Don't worry, you do not
+need to install Gradle. You just need a Java installation. If you have Java installed,
+run the following commands to build the project:
 
     ./gradlew jar
     java -jar checker.jar testfiles/Test.java
