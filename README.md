@@ -214,12 +214,9 @@ the JastAdd modules that you want to build:
       module = 'extension-base'
 
       astPackage = 'org.extendj.ast'
-      genDir = 'src/gen/java'
       buildInfoDir = 'src/gen-res'
       parser.name = 'JavaParser'
-      parser.genDir = 'src/gen/java/org/extendj/parser'
       scanner.name = 'OriginalScanner'
-      scanner.genDir = 'src/gen/java/org/extendj/scanner'
     }
 
 
