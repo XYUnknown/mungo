@@ -1,0 +1,3 @@
+abstract ABSTypestateAnnotation : Modifier;
+TypestateAnnotation : ABSTypestateAnnotation ::= ContainerType:Access;
+TypestateDefaultAnnotation : ABSTypestateAnnotation;

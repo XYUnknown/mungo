@@ -1,0 +1,89 @@
+aspect TypestateCheck {
+	Access contributes each typestateProblems() to CompilationUnit.problems();
+	syn Collection<Problem> Access.typestateProblems(){
+		if(this.type().isAnnotationDecl()){
+			System.out.println("found typestate annotation in Access");
+		}
+		return new LinkedList<Problem>();
+	}
+
+	Modifiers contributes each typestateProblems() to CompilationUnit.problems();
+	syn Collection<Problem> Modifiers.typestateProblems(){
+		for(Modifier m: getModifierList()){
+			if(m instanceof ABSTypestateAnnotation){
+				System.out.println("found typestate annotation in Modifiers");
+			}
+		}
+		return new LinkedList<Problem>();
+	}
+
+	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
+  	syn Collection<Problem> MethodAccess.typestateProblems(){
+  		System.out.println(this.name() + " is in class " + this.hostType().name());
+  		SimpleSet<MethodDecl> decls = this.decls();
+  		return new LinkedList<Problem>();
+	}
+
+	TypeAccess contributes each typestateProblems() to CompilationUnit.problems();
+  	syn Collection<Problem> TypeAccess.typestateProblems(){
+    	if (this.type().isAnnotationDecl()){
+    		System.out.println("found annotation");
+   		}
+  		if (this.typeName().equals("Typestate")){
+  			TypeDecl td = this.type();
+  			if (td.isUnknown()){
+				System.out.println("Typestate is an unknown type now.");
+				System.out.println("id:" + td.getID());
+				System.out.println("value:" + td.value);
+				System.out.println("is ReferenceType: " + td.isReferenceType());
+				System.out.println("token: " + td.getTokens());
+				System.out.println("num of body decl: " + td.getNumBodyDecl());
+				for (BodyDecl bd: td.getBodyDecls()){
+					System.out.println(bd.value);
+					System.out.println(bd.numChildren());
+				}
+			}
+  		}
+  		return new LinkedList<Problem>();
+	}
+
+	/**
+	refine NameCheck eq TypeAccess.nameProblems(){
+  		//System.out.println("name check test");
+  		if (isQualified() && !qualifier().isTypeAccess() && !qualifier().isPackageAccess()) {
+      		return Collections.singletonList(
+				errorf("the type %s is not accessible in this context", decl().typeName()));
+		}
+    	// Type lookup for an unknown type can result in either an empty set or
+    	// a set containing the unknown type.
+    	// The empty set is returned for an unqualified type lookup, and the
+    	// unknown type is returned for qualified type lookup.
+    	// TODO(joqvist): Make qualified and unqualified type lookup behave the same on failure.
+    	SimpleSet<TypeDecl> decls = decls();
+    	if (decls.isSingleton()) {
+      		if (decls.singletonValue().isUnknown()) { 	
+				return Collections.singletonList(
+        		errorf("no visible type named %s", typeName()));
+        	} else {
+        		return Collections.emptyList();
+      		}
+		} else if (decls.isEmpty()) {
+    		// first we try to make the Typestate annotation pass the name check
+    		if (typeName().equals("Typestate")){
+    			System.out.println("Here we found something:" + typeName()); 
+    			return Collections.emptyList();
+    		}      	
+      		return Collections.singletonList(
+				errorf("no visible type named %s", typeName()));      
+    	} else {
+    		StringBuilder sb = new StringBuilder();
+			sb.append("multiple types named " + name() + " are visible:");
+			for (TypeDecl type : decls) {
+        		sb.append(" " + type.typeName());
+			}
+      		return Collections.singletonList(error(sb.toString()));
+		}
+	}
+	*/
+	
+}

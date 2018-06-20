@@ -1,7 +1,9 @@
 aspect ExtensionBase {
 
   public void CompilationUnit.process() {
-    System.out.println(pathName() + " contained no errors");
+    System.out.println(pathName() + " pass checking");
   }
 
 }
+
+

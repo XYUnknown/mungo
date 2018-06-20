@@ -1,0 +1,5 @@
+Modifier modifier = typestate_annotation;
+ABSTypestateAnnotation typestate_annotation =
+	TYPESTATE LPAREN reference_type RPAREN     {: return new TypestateAnnotation("Typestate()", reference_type); :}
+  | TYPESTATE                                  {: return new TypestateDefaultAnnotation("any"); :}
+;

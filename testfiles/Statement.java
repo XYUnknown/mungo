@@ -9,6 +9,9 @@ class Statement {
   void f(List<X> list) {
     for (X item : list) {
       item.doThing();
+
+      // should be a bug
+      item.doWrongThing();
     }
   }
 }

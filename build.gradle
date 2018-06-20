@@ -15,11 +15,11 @@ jastadd {
   modules {
     include("extendj/jastadd_modules") // Includes the core ExtendJ modules.
 
-    module "extension-base", {
+    module "mungo", {
       imports "java8 frontend" // This module depends on "java8 frontend" from ExtendJ.
 
       java {
-        basedir "src/java/"
+        basedir "src/jastadd/java/"
         include "**/*.java"
       }
 
@@ -30,18 +30,20 @@ jastadd {
         include "**/*.jrag"
       }
 
-      //scanner {
-      // TODO List your scanner specification additions here.
-      //}
+      scanner {
+        basedir "src/jastadd/scanner/"
+        include "**/*.flex"
+      }
 
-      //parser {
-      // TODO List your parser specification additions here.
-      //}
+      parser {
+        basedir "src/jastadd/parser/"
+        include "**/*.parser"
+      }
     }
   }
 
   // Target module to build:
-  module = 'extension-base'
+  module = 'mungo'
 
   astPackage = 'org.extendj.ast'
   buildInfoDir = 'src/gen-res'
@@ -63,12 +65,12 @@ jar.manifest.attributes 'Main-Class': 'org.extendj.ExtensionMain'
 jar.destinationDir = projectDir
 
 // Java -source and -target version.
-sourceCompatibility = targetCompatibility = '1.7'
+sourceCompatibility = targetCompatibility = '1.8'
 
 task sourceZip(type: Zip) {
   description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
   destinationDir = projectDir
-  archiveName = "extension-base.zip"
+  archiveName = "mungo.zip"
 
   from (projectDir) {
     exclude '**/.git'
@@ -88,5 +90,5 @@ task sourceZip(type: Zip) {
     exclude '**/*.swp'
   }
 
-  into 'extension-base'
+  into 'mungo'
 }
