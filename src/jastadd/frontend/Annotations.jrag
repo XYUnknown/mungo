@@ -1,45 +1,14 @@
 aspect Annotations {
-
-        syn Access Modifiers.getTypestateAnnotation() {
-            for (int i = 0; i < getNumModifier(); i++) {
-                if (getModifier(i) instanceof Annotation) {
-                    Annotation a = (Annotation) getModifier(i);
-                    if(a.getAccess().toString().equals("Typestate")){
-                      if(a.getElementValuePair(0).getElementValue() instanceof ElementConstantValue){
-                        ElementConstantValue x = (ElementConstantValue) a.getElementValuePair(0).getElementValue();
-                        return new PrimitiveTypeAccess( x.getExpr().toString().replace("\"", ""));
-
-                      }
-                    }
-                }
-            }
-            return null;
-        }
-
-        syn boolean Modifiers.hasTypestateAnnotation() {
-            return getTypestateAnnotation() != null;
-        }
-        /**
-        rewrite ClassDecl{
-            when (!(this instanceof TypestateClassDecl) && getModifiers().hasTypestateAnnotation()) to TypestateClassDecl {
-              if(hasSuperClass()) {
-                Access a = getSuperClass();
-                if (a.lookupType().isTypestateClassDeclType())
-                  addSemanticError("Class " + this.getID() + " cannot extend a class with a typestate.");
-              }
-              List<BodyDecl> bodydecls = new List<BodyDecl>();
-              List<Access> interfaces = new List<Access>();
-
-              for(int i = 0; i < getNumBodyDecl(); i++){
-                  bodydecls.add(getBodyDecl(i));
-              }
-
-              for(int i = 0; i < getNumImplements(); i++) {
-                interfaces.add(getImplements(i));
-              }
-
-              return new TypestateClassDecl(getModifiers(), getID(), new Opt(), interfaces, bodydecls, getModifiers().getTypestateAnnotation());
+    syn Modifier Modifiers.getTypestateAnnotation() {
+        for (Modifier m: this.getModifierList()) {
+            if (m instanceof TypestateAnnotation) {
+                return m;
             }
         }
-        */
+        return null;
+    }
+
+    syn boolean Modifiers.hasTypestateAnnotation() {
+        return getTypestateAnnotation() != null;
+    }
 }
