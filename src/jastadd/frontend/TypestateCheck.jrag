@@ -10,8 +10,25 @@ aspect TypestateCheck {
 	Modifiers contributes each typestateProblems() to CompilationUnit.problems();
 	syn Collection<Problem> Modifiers.typestateProblems(){
 		for(Modifier m: getModifierList()){
+
+			// Here we would like to test how to access the protocol file according to the typestate annotation
 			if(m instanceof ABSTypestateAnnotation){
 				System.out.println("found typestate annotation in Modifiers");
+				System.out.println("Get protocol name from ID: " + m.getID());
+				String fileName = "testfiles/collection/" + m.getID() + ".protocol";
+				String line = null;
+				try {
+            		FileReader fileReader = new FileReader(fileName);
+            		BufferedReader bufferedReader = new BufferedReader(fileReader);
+            		while((line = bufferedReader.readLine()) != null) {
+                		System.out.println(line);
+            		}   
+            		bufferedReader.close();         
+        		} catch(FileNotFoundException ex) {
+            		System.out.println("Unable to open file '" + fileName + "'");                
+        		} catch(IOException ex) { 
+        			System.out.println("Error reading file '" + fileName + "'");                  
+        		}
 			}
 		}
 		return new LinkedList<Problem>();
@@ -19,7 +36,7 @@ aspect TypestateCheck {
 
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems(){
-  		System.out.println(this.name() + " is in class " + this.hostType().name());
+  		//System.out.println(this.name() + " is in class " + this.hostType().name());
   		SimpleSet<MethodDecl> decls = this.decls();
   		return new LinkedList<Problem>();
 	}

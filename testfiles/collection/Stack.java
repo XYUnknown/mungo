@@ -3,8 +3,8 @@ package examples.collection;
 
 //import mungo.lib.Typestate;
 
-//@Typestate("CollectionProtocol")
-@Typestate
+@Typestate("CollectionProtocol")
+//@Typestate
 public class Stack{
 	private Node head;
 	public Stack () {
