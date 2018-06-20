@@ -1,3 +1,7 @@
+/**
+ * The ABSTypestateAnnotaion could be further extened in the future if  
+ * new typestate annotations are needed.
+ */
+
 abstract ABSTypestateAnnotation : Modifier;
-//TypestateAnnotation : ABSTypestateAnnotation ::= ContainerType:Access;
 TypestateAnnotation : ABSTypestateAnnotation;

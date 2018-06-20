@@ -12,7 +12,7 @@ aspect TypestateCheck {
 		for(Modifier m: getModifierList()){
 
 			// Here we would like to test how to access the protocol file according to the typestate annotation
-			if(m instanceof ABSTypestateAnnotation){
+			if(m instanceof TypestateAnnotation){
 				System.out.println("found typestate annotation in Modifiers");
 				System.out.println("Get protocol name from ID: " + m.getID());
 				String fileName = "testfiles/collection/" + m.getID() + ".protocol";
@@ -36,11 +36,21 @@ aspect TypestateCheck {
 
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems(){
-  		//System.out.println(this.name() + " is in class " + this.hostType().name());
+  		
+  		// Here what we are trying to do is to check whether the typestate annotation can be found during method access.
+  		System.out.println(this.name());
+  		for(Modifier m: this.hostType().getModifiers().getModifierList()){
+  			if(m instanceof TypestateAnnotation){
+  				System.out.println("Typestate modifier found in MethodAccess");
+  			}
+  		}
+
   		SimpleSet<MethodDecl> decls = this.decls();
   		return new LinkedList<Problem>();
 	}
 
+
+	// This method currently is not useful
 	TypeAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> TypeAccess.typestateProblems(){
     	if (this.type().isAnnotationDecl()){
@@ -64,43 +74,4 @@ aspect TypestateCheck {
   		return new LinkedList<Problem>();
 	}
 
-	/**
-	refine NameCheck eq TypeAccess.nameProblems(){
-  		//System.out.println("name check test");
-  		if (isQualified() && !qualifier().isTypeAccess() && !qualifier().isPackageAccess()) {
-      		return Collections.singletonList(
-				errorf("the type %s is not accessible in this context", decl().typeName()));
-		}
-    	// Type lookup for an unknown type can result in either an empty set or
-    	// a set containing the unknown type.
-    	// The empty set is returned for an unqualified type lookup, and the
-    	// unknown type is returned for qualified type lookup.
-    	// TODO(joqvist): Make qualified and unqualified type lookup behave the same on failure.
-    	SimpleSet<TypeDecl> decls = decls();
-    	if (decls.isSingleton()) {
-      		if (decls.singletonValue().isUnknown()) { 	
-				return Collections.singletonList(
-        		errorf("no visible type named %s", typeName()));
-        	} else {
-        		return Collections.emptyList();
-      		}
-		} else if (decls.isEmpty()) {
-    		// first we try to make the Typestate annotation pass the name check
-    		if (typeName().equals("Typestate")){
-    			System.out.println("Here we found something:" + typeName()); 
-    			return Collections.emptyList();
-    		}      	
-      		return Collections.singletonList(
-				errorf("no visible type named %s", typeName()));      
-    	} else {
-    		StringBuilder sb = new StringBuilder();
-			sb.append("multiple types named " + name() + " are visible:");
-			for (TypeDecl type : decls) {
-        		sb.append(" " + type.typeName());
-			}
-      		return Collections.singletonList(error(sb.toString()));
-		}
-	}
-	*/
-	
 }
