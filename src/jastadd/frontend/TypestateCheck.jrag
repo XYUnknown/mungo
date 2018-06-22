@@ -1,11 +1,4 @@
 aspect TypestateCheck {
-	Access contributes each typestateProblems() to CompilationUnit.problems();
-	syn Collection<Problem> Access.typestateProblems(){
-		if(this.type().isAnnotationDecl()){
-			System.out.println("found typestate annotation in Access");
-		}
-		return new LinkedList<Problem>();
-	}
 
 	Modifiers contributes each typestateProblems() to CompilationUnit.problems();
 	syn Collection<Problem> Modifiers.typestateProblems(){
@@ -13,15 +6,15 @@ aspect TypestateCheck {
 
 			// Here we would like to test how to access the protocol file according to the typestate annotation
 			if(m instanceof TypestateAnnotation){
-				System.out.println("found typestate annotation in Modifiers");
-				System.out.println("Get protocol name from ID: " + m.getID());
+				//System.out.println("found typestate annotation in Modifiers");
+				//System.out.println("Get protocol name from ID: " + m.getID());
 				String fileName = "testfiles/collection/" + m.getID() + ".protocol";
 				String line = null;
 				try {
             		FileReader fileReader = new FileReader(fileName);
             		BufferedReader bufferedReader = new BufferedReader(fileReader);
             		while((line = bufferedReader.readLine()) != null) {
-                		System.out.println(line);
+                		//System.out.println(line);
             		}   
             		bufferedReader.close();         
         		} catch(FileNotFoundException ex) {
@@ -38,39 +31,13 @@ aspect TypestateCheck {
   	syn Collection<Problem> MethodAccess.typestateProblems(){
   		
   		// Here what we are trying to do is to check whether the typestate annotation can be found during method access.
-  		System.out.println(this.name());
+  		// System.out.println(this.name());
   		for(Modifier m: this.hostType().getModifiers().getModifierList()){
   			if(m instanceof TypestateAnnotation){
-  				System.out.println("Typestate modifier found in MethodAccess");
+  				//System.out.println("Typestate modifier found in MethodAccess");
   			}
   		}
-
   		SimpleSet<MethodDecl> decls = this.decls();
-  		return new LinkedList<Problem>();
-	}
-
-
-	// This method currently is not useful
-	TypeAccess contributes each typestateProblems() to CompilationUnit.problems();
-  	syn Collection<Problem> TypeAccess.typestateProblems(){
-    	if (this.type().isAnnotationDecl()){
-    		System.out.println("found annotation");
-   		}
-  		if (this.typeName().equals("Typestate")){
-  			TypeDecl td = this.type();
-  			if (td.isUnknown()){
-				System.out.println("Typestate is an unknown type now.");
-				System.out.println("id:" + td.getID());
-				System.out.println("value:" + td.value);
-				System.out.println("is ReferenceType: " + td.isReferenceType());
-				System.out.println("token: " + td.getTokens());
-				System.out.println("num of body decl: " + td.getNumBodyDecl());
-				for (BodyDecl bd: td.getBodyDecls()){
-					System.out.println(bd.value);
-					System.out.println(bd.numChildren());
-				}
-			}
-  		}
   		return new LinkedList<Problem>();
 	}
 

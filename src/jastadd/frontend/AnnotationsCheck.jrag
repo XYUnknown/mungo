@@ -1,0 +1,76 @@
+aspect AnnotationsCheck {
+    coll LinkedList<Modifier> CompilationUnit.collectTypestateAnnotations() root CompilationUnit;
+    // Add problem contributions from the implicit constructor invocation NTA.
+    ConstructorDecl contributes {
+        if (checkImplicitConstructorInvocation()) {
+            getImplicitConstructorInvocation().collectContributions();
+        }
+        super.collectContributions();
+    } to CompilationUnit.collectTypestateAnnotations();
+
+    // Check whether there is a typestate annotation when a method access happens
+    MethodAccess contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
+    syn Collection<Modifier> MethodAccess.typestateAnnotations(){        
+        LinkedList<Modifier> ms = new LinkedList<Modifier>();
+        for(Modifier m: this.hostType().getModifiers().getModifierList()){
+            if(m instanceof TypestateAnnotation){
+                System.out.println("collecting: Typestate modifier found in MethodAccess");
+                ms.add(m);
+            }
+        }
+        return ms;
+    }
+
+    // Check whether there is a typestate annotation at the TypeDecl
+    TypeDecl contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
+    syn Collection<Modifier> TypeDecl.typestateAnnotations(){        
+        LinkedList<Modifier> ms = new LinkedList<Modifier>();
+        for(Modifier m: this.getModifiers().getModifierList()){
+            if(m instanceof TypestateAnnotation){
+                System.out.println("collecting: Typestate modifier found in TypeDecl");
+                ms.add(m);
+            }
+        }
+        return ms;
+    }
+
+    // Check whether there is a typestate annotation at the ClassDecl
+    ClassDecl contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
+    syn Collection<Modifier> ClassDecl.typestateAnnotations(){        
+        LinkedList<Modifier> ms = new LinkedList<Modifier>();
+        for(Modifier m: this.getModifiers().getModifierList()){
+            if(m instanceof TypestateAnnotation){
+                System.out.println("collecting: Typestate modifier found in ClassDecl");
+                ms.add(m);
+            }
+        }
+        return ms;
+    }
+
+    // Check whether there is a typestate annotation in modifiers 
+    Modifiers contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
+    syn Collection<Modifier> Modifiers.typestateAnnotations(){
+        LinkedList<Modifier> ms = new LinkedList<Modifier>();
+        for(Modifier m: getModifierList()){
+            // System.out.println(m.getID());
+            if(m instanceof TypestateAnnotation){
+                System.out.println("collecting: Typestate modifier found in Modifiers");
+                ms.add(m);
+            }
+        }
+        return ms;
+    }
+
+    syn Modifier Modifiers.getTypestateAnnotation() {
+        for (Modifier m: this.getModifierList()) {
+            if (m instanceof TypestateAnnotation) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    syn boolean Modifiers.hasTypestateAnnotation() {
+        return getTypestateAnnotation() != null;
+    }
+}

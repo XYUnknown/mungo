@@ -1,25 +1,93 @@
 package org.extendj;
 
 import org.extendj.ast.CompilationUnit;
+import org.extendj.ast.Modifier;
+import org.extendj.parser.*;
+import java.util.*;
+import java.io.*;
 
 public class ExtensionMain extends JavaChecker {
 
-  public static void main(String args[]) {
-    int exitCode = new ExtensionMain().run(args);
-    if (exitCode != 0) {
-      System.exit(exitCode);
+    public static void main(String args[]) {
+        int exitCode = new ExtensionMain().run(args);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
     }
-  }
 
-  @Override
-  protected int processCompilationUnit(CompilationUnit unit) throws Error {
-    // Replace the following super call to skip semantic error checking in unit.
-    return super.processCompilationUnit(unit);
-  }
+    @Override
+    protected int processCompilationUnit(CompilationUnit unit) throws Error {
+        // Replace the following super call to skip semantic error checking in unit.
+        if (unit != null && unit.fromSource()) {
+            try {
+                LinkedList<Modifier> ms = unit.collectTypestateAnnotations();
+                System.out.println("collected annotations:" + ms.size());
+                if (ms.size() > 0) {
+                    // At this point we can assume that there is only one typestate annotation for one java file.
+                    // TODO Checking duplication OF typestate annotation
+                    String protocolFileName = ms.get(0).getID() + ".protocol";
+                    printProtocolFile(protocolFileName);
+                    // Typestate protocol file is parsed here
+                    CompilationUnit cu = parseProtocol(protocolFileName);
+                    // TODO sematic check of typestate protocol
+                }
+            } catch (Error e) {
+                System.err.println("Encountered error while processing " + unit.pathName());
+                throw e;
+            }
+        }
+        return super.processCompilationUnit(unit);
+    }
 
-  /** Called by processCompilationUnit when there are no errors in the argument unit.  */
-  @Override
-  protected void processNoErrors(CompilationUnit unit) {
-    unit.process();
-  }
+    /** Called by processCompilationUnit when there are no errors in the argument unit.  */  
+    @Override
+    protected void processNoErrors(CompilationUnit unit) {
+        unit.process();
+    }
+
+    /**
+     * Debug only - print protocol file content before processing CompilationUnit checking
+     * Used for looking up the approprate point of parsing typstate protocol
+     */
+    private void printProtocolFile(String protocolFileName){
+        String testPath = "testfiles/collection/";
+        String protocolFile =  testPath + protocolFileName;
+        String line = null;
+        try {
+            FileReader fileReader = new FileReader(protocolFile);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            while((line = bufferedReader.readLine()) != null) {
+                System.out.println(line);
+            }   
+            bufferedReader.close();         
+        } catch(FileNotFoundException ex) {
+            System.out.println("Unable to open file '" + protocolFile + "'");                
+        } catch(IOException ex) { 
+            System.out.println("Error reading file '" + protocolFile + "'");                  
+        }
+    }
+
+    private CompilationUnit parseProtocol(String protocolFileName){
+        String testPath = "testfiles/collection/";
+        String path = testPath + protocolFileName;
+        JavaParser parser = new JavaParser();
+        CompilationUnit u = null;
+        try{
+            FileInputStream fileStream = new FileInputStream(path);
+            u = (CompilationUnit) parser.parse(fileStream, path);
+            System.out.println("Typestate Protocol file is successfully parsed");
+        } catch(FileNotFoundException e) {
+            System.out.println("FileNotFoundException");
+            return null;
+        } catch(IOException e) {
+            System.out.println("IOException");
+            return null;
+        } catch(Exception e){
+            System.out.println("cannot parse");
+            return null;
+        }
+        return u;       
+    }
+
+  
 }
