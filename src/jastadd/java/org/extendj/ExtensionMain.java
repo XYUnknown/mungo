@@ -17,7 +17,7 @@ public class ExtensionMain extends JavaChecker {
 
     @Override
     protected int processCompilationUnit(CompilationUnit unit) throws Error {
-        // Replace the following super call to skip semantic error checking in unit.
+        int typestateSematicCheckCode = 0;
         if (unit != null && unit.fromSource()) {
             try {
                 LinkedList<Modifier> ms = unit.collectTypestateAnnotations();
@@ -29,14 +29,16 @@ public class ExtensionMain extends JavaChecker {
                     printProtocolFile(protocolFileName);
                     // Typestate protocol file is parsed here
                     CompilationUnit cu = parseProtocol(protocolFileName);
-                    // TODO sematic check of typestate protocol
+                    // TODO sematic check of typestate protocol and update typestateSematicCheckCode
                 }
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());
                 throw e;
             }
         }
-        return super.processCompilationUnit(unit);
+        int javaSematicCheckCode = super.processCompilationUnit(unit);
+        int exitCode = javaSematicCheckCode & typestateSematicCheckCode;
+        return exitCode;
     }
 
     /** Called by processCompilationUnit when there are no errors in the argument unit.  */  
