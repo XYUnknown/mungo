@@ -2,6 +2,7 @@ package org.extendj;
 
 import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.Modifier;
+import org.extendj.ast.TypeDecl;
 import org.extendj.parser.*;
 import java.util.*;
 import java.io.*;
@@ -29,7 +30,12 @@ public class ExtensionMain extends JavaChecker {
                     printProtocolFile(protocolFileName);
                     // Typestate protocol file is parsed here
                     CompilationUnit cu = parseProtocol(protocolFileName);
+                    System.out.println(cu.getTypeDecls());
+                    for(TypeDecl td: cu.getTypeDecls()){
+                        System.out.println(td.name());
+                    }
                     // TODO sematic check of typestate protocol and update typestateSematicCheckCode
+                    //typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
                 }
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());

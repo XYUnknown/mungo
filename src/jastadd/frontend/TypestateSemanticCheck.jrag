@@ -1,0 +1,91 @@
+aspect TypestateSemanticCheck {
+	/**
+     * Processes from-source compilation units by error-checking them.
+     * This method only report semantic errors and warnings.
+     *
+     * @return zero on success, non-zero on error
+     */
+    protected int Frontend.processCompilationUnitForTypestate(CompilationUnit unit) throws Error {
+    	System.out.println("start");
+		if (unit != null) {
+			try {
+				System.out.println("processing...");
+				// Currently we do not have warnings of the typestate protocol file.
+				// If there are any thing which is not proper, it will be classified 
+				// as an error.
+				Collection<Problem> errors = unit.parseErrors();
+				Collection<Problem> warnings = EMPTY_PROBLEM_LIST;
+				if (errors.isEmpty()) {
+					long start = System.nanoTime();
+					errors = unit.terrors();
+					warnings = unit.twarnings();
+					program.errorCheckTime += System.nanoTime() - start;
+				} 
+
+				if (!errors.isEmpty()) {
+					return EXIT_ERROR;
+				} else {
+            		if (!warnings.isEmpty() && !program.options().hasOption("-nowarn")) {
+              			processWarnings(warnings, unit);
+            		}
+         		}
+
+			} catch (Error e) {
+				System.err.println("Encountered error while processing " + unit.pathName());
+				throw e;
+			}
+		}
+		return EXIT_SUCCESS;
+    }
+
+    /**
+     * Collect sematic problems of typestate protocol file
+     */
+    coll LinkedList<Problem> CompilationUnit.tproblems() root CompilationUnit;
+
+    syn Collection<Problem> CompilationUnit.terrors() {
+		Collection<Problem> errors = new LinkedList<Problem>();
+		for (Problem problem : tproblems()) {
+			if (problem.severity() == Problem.Severity.ERROR) {
+				errors.add(problem);
+			}
+    	}
+		return errors;
+	}
+
+	syn Collection<Problem> CompilationUnit.twarnings() {
+		Collection<Problem> warnings = new LinkedList<Problem>();
+		for (Problem problem : tproblems()) {
+			if (problem.severity() == Problem.Severity.WARNING) {
+				warnings.add(problem);
+			}
+		}
+		return warnings;
+	}
+
+    // Add problem contributions from the implicit constructor invocation NTA.
+    ConstructorDecl contributes {
+        if (checkImplicitConstructorInvocation()) {
+            getImplicitConstructorInvocation().collectContributions();
+        }
+        super.collectContributions();
+    } to CompilationUnit.tproblems();
+
+    State contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> State.typestateSemanticProblems(){
+    	LinkedList<Problem> problems = new LinkedList<Problem>();
+    	if(isDuplicate()){
+			problems.add(error("Duplicate State: " + getID() + "."));
+    	}
+		if(!isReachable()){
+			problems.add(warning("State not reachable: " + getID() + "."));
+		}
+
+		String path;
+		if((path = getCircularPath()) != null){
+			problems.add(warning("Circular-referenced state definition: " + path + "."));
+		}
+		return problems;
+    }
+
+}
