@@ -4,6 +4,7 @@ import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.Modifier;
 import org.extendj.ast.TypeDecl;
 import org.extendj.parser.*;
+import org.extendj.ast.TypestateDecl;
 import java.util.*;
 import java.io.*;
 
@@ -30,12 +31,17 @@ public class ExtensionMain extends JavaChecker {
                     printProtocolFile(protocolFileName);
                     // Typestate protocol file is parsed here
                     CompilationUnit cu = parseProtocol(protocolFileName);
-                    System.out.println(cu.getTypeDecls());
+                    // Cannot do traversal, which means that the AST of protocol file is broken.
+                    // TODO: fix it
+                    cu.doFullTraversal();
                     for(TypeDecl td: cu.getTypeDecls()){
-                        System.out.println(td.name());
+                        if (td instanceof TypestateDecl){
+                            System.out.println("This is a TypestateDecl " + td.name());
+                        }
                     }
                     // TODO sematic check of typestate protocol and update typestateSematicCheckCode
-                    //typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
+                    typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
+                    //System.out.println(typestateSematicCheckCode);
                 }
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());
