@@ -1,5 +1,71 @@
 aspect TypestateCheck {
 
+    public boolean CompilationUnit.isTypestateCompilationUnit(){
+        for (TypeDecl td: this.getTypeDecls()){
+            if (td instanceof TypestateDecl){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String CompilationUnit.protocolName = "";
+
+    public String CompilationUnit.getProtocolName() {
+        return this.protocolName;
+    }
+    public void CompilationUnit.setProtocolName(String name) {
+        this.protocolName = name;
+    }
+
+    /**
+     * Typestate protocol file is parsed into an CompilationUnit
+     * An arribute pointer of ClassDecl is pointing to this CompilationUnit
+     */
+    syn CompilationUnit ClassDecl.getTypestateCompilationUnit(){
+        TypestateAnnotation ta = getTypestateAnnotation();
+        if (ta != null){
+            ASTNode node = this.getParent();
+            while (! (node instanceof Program)){
+                node = node.getParent();
+            }   
+            Program program = (Program) node;
+            for (CompilationUnit cu: program.getCompilationUnitList()){
+                if(cu.isTypestateCompilationUnit()){
+                    if(cu.getProtocolName().equals(ta.getID())){
+                        return cu;
+                    }
+                }
+            }
+        }       
+        return null;
+    }
+
+    /**
+     * Getting the TypestateAnnotation of a ClassDecl
+     * We need the TypestateAnnotation ID to check which 
+     * typestate protocol CompilationUnit is the corresponding one.
+     */
+    public TypestateAnnotation ClassDecl.getTypestateAnnotation(){
+        for (Modifier m: getModifiers().getModifierList()){
+            if (m instanceof TypestateAnnotation){
+                TypestateAnnotation ta = (TypestateAnnotation) m;
+                return ta;
+            }
+        }
+        return null;
+    }
+
+
+    ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ClassDecl.typestateProblems() {
+        CompilationUnit cu = this.getTypestateCompilationUnit();
+        if(cu != null){
+            System.out.println("Found CU in ClassDecl" + cu.getProtocolName());
+        }        
+        return new LinkedList<Problem>();
+    }
+
 	Modifiers contributes each typestateProblems() to CompilationUnit.problems();
 	syn Collection<Problem> Modifiers.typestateProblems(){
 		for(Modifier m: getModifierList()){
@@ -31,13 +97,11 @@ aspect TypestateCheck {
   	syn Collection<Problem> MethodAccess.typestateProblems(){
   		
   		// Here what we are trying to do is to check whether the typestate annotation can be found during method access.
-  		// System.out.println(this.name());
-  		for(Modifier m: this.hostType().getModifiers().getModifierList()){
-  			if(m instanceof TypestateAnnotation){
-  				//System.out.println("Typestate modifier found in MethodAccess");
-  			}
-  		}
-  		SimpleSet<MethodDecl> decls = this.decls();
+  		// System.out.println("MethodAccess: " + (this.hostType() instanceof ClassDecl));
+  		ClassDecl cd = (ClassDecl) this.hostType();
+        if(cd.getTypestateCompilationUnit() != null){
+            System.out.println("Found CU in MethodAccess" + cd.getTypestateCompilationUnit().getProtocolName());
+        }
   		return new LinkedList<Problem>();
 	}
 

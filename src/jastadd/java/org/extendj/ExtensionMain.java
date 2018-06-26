@@ -31,17 +31,26 @@ public class ExtensionMain extends JavaChecker {
                     printProtocolFile(protocolFileName);
                     // Typestate protocol file is parsed here
                     CompilationUnit cu = parseProtocol(protocolFileName);
+                    cu.setProtocolName(ms.get(0).getID());
                     // Cannot do traversal, which means that the AST of protocol file is broken.
-                    // TODO: fix it
-                    cu.doFullTraversal();
-                    for(TypeDecl td: cu.getTypeDecls()){
+                    for (TypeDecl td: cu.getTypeDecls()){
                         if (td instanceof TypestateDecl){
                             System.out.println("This is a TypestateDecl " + td.name());
+                            TypestateDecl tsd = (TypestateDecl) td;
+                            System.out.println(tsd.getInitState());
                         }
                     }
+                    // TODO: fix it after linked together
+                    // cu.doPrintFullTraversal();
                     // TODO sematic check of typestate protocol and update typestateSematicCheckCode
                     typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
                     //System.out.println(typestateSematicCheckCode);
+                    // Sematic errors found in protocol
+                    if (typestateSematicCheckCode != 0) {
+                        return typestateSematicCheckCode;
+                    }
+                    // pass the sematic checking add new Compilation Unit to program. 
+                    super.program.addCompilationUnit(cu);
                 }
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());
