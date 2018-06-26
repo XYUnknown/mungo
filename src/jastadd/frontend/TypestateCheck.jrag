@@ -19,8 +19,8 @@ aspect TypestateCheck {
     }
 
     /**
-     * Typestate protocol file is parsed into an CompilationUnit
-     * An arribute pointer of ClassDecl is pointing to this CompilationUnit
+     * Typestate protocol file is parsed into a CompilationUnit
+     * An attribute pointer of ClassDecl is pointing to this CompilationUnit
      */
     syn CompilationUnit ClassDecl.getTypestateCompilationUnit(){
         TypestateAnnotation ta = getTypestateAnnotation();
