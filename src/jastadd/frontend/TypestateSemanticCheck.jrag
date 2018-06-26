@@ -10,18 +10,14 @@ aspect TypestateSemanticCheck {
 		if (unit != null) {
 			try {
 				System.out.println("processing...");
-				// Currently we do not have warnings of the typestate protocol file.
-				// If there are any thing which is not proper, it will be classified 
-				// as an error.
 				Collection<Problem> errors = unit.parseErrors();
 				Collection<Problem> warnings = EMPTY_PROBLEM_LIST;
-				if (errors.isEmpty()) {
+				if (errors.isEmpty()|| program.options().hasOption("-recover")) {
 					long start = System.nanoTime();
 					errors = unit.terrors();
 					warnings = unit.twarnings();
 					program.errorCheckTime += System.nanoTime() - start;
 				} 
-
 				if (!errors.isEmpty()) {
 					return EXIT_ERROR;
 				} else {
@@ -38,6 +34,8 @@ aspect TypestateSemanticCheck {
 		return EXIT_SUCCESS;
     }
 
+
+
     /**
      * Collect sematic problems of typestate protocol file
      */
@@ -45,21 +43,25 @@ aspect TypestateSemanticCheck {
 
     syn Collection<Problem> CompilationUnit.terrors() {
 		Collection<Problem> errors = new LinkedList<Problem>();
+		/*
 		for (Problem problem : tproblems()) {
 			if (problem.severity() == Problem.Severity.ERROR) {
 				errors.add(problem);
 			}
     	}
+    	*/
 		return errors;
 	}
 
 	syn Collection<Problem> CompilationUnit.twarnings() {
 		Collection<Problem> warnings = new LinkedList<Problem>();
+		/*
 		for (Problem problem : tproblems()) {
 			if (problem.severity() == Problem.Severity.WARNING) {
 				warnings.add(problem);
 			}
 		}
+		*/
 		return warnings;
 	}
 
@@ -71,21 +73,46 @@ aspect TypestateSemanticCheck {
         super.collectContributions();
     } to CompilationUnit.tproblems();
 
-    State contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
-    syn Collection<Problem> State.typestateSemanticProblems(){
-    	LinkedList<Problem> problems = new LinkedList<Problem>();
-    	if(isDuplicate()){
-			problems.add(error("Duplicate State: " + getID() + "."));
-    	}
-		if(!isReachable()){
-			problems.add(warning("State not reachable: " + getID() + "."));
-		}
 
-		String path;
-		if((path = getCircularPath()) != null){
-			problems.add(warning("Circular-referenced state definition: " + path + "."));
-		}
+    CompilationUnit contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+	syn Collection<Problem> CompilationUnit.typestateSemanticProblems() {
+		Collection<Problem> problems = new LinkedList<Problem>();
+		System.out.println("CompilationUnit contributing to tproblems()");
 		return problems;
-    }
+	}
 
+    //State contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    //syn Collection<Problem> State.typestateSemanticProblems() {
+    	//LinkedList<Problem> problems = new LinkedList<Problem>();
+    	//if(isDuplicate()){
+			//problems.add(error("Duplicate State: " + getID() + "."));
+    	//}
+		//if(!isReachable()){
+			//problems.add(warning("State not reachable: " + getID() + "."));
+		//}
+
+		//String path;
+		//if((path = getCircularPath()) != null){
+			//problems.add(warning("Circular-referenced state definition: " + path + "."));
+		//}
+		//return problems;
+    //}
+    // TODO add all typestateSemanticProblems()
+
+	//TypestateLabel contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    //syn Collection<Problem> TypestateLabel.typestateSemanticProblems() {
+    	//LinkedList problems = new LinkedList<Problem>();
+    	//if(getTarget() == null){
+			//problems.add(error("No Definition for state: " + getLabel()));
+    	//}
+    	//return problems;
+    //}
+
+    // Debug
+    public void ASTNode.doPrintFullTraversal() {
+    	System.out.println(this);
+		for (int i = 0; i < getNumChild(); i++) {
+			getChild(i).doPrintFullTraversal();
+		}
+	}
 }
