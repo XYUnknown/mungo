@@ -10,9 +10,6 @@ aspect TypestateSemanticCheck {
 		if (unit != null) {
 			try {
 				System.out.println("processing...");
-				// Currently we do not have warnings of the typestate protocol file.
-				// If there are any thing which is not proper, it will be classified 
-				// as an error.
 				Collection<Problem> errors = unit.parseErrors();
 				Collection<Problem> warnings = EMPTY_PROBLEM_LIST;
 				if (errors.isEmpty()) {
@@ -23,6 +20,7 @@ aspect TypestateSemanticCheck {
 				} 
 
 				if (!errors.isEmpty()) {
+					processWarnings(errors, unit);
 					return EXIT_ERROR;
 				} else {
             		if (!warnings.isEmpty() && !program.options().hasOption("-nowarn")) {
@@ -44,32 +42,27 @@ aspect TypestateSemanticCheck {
     coll LinkedList<Problem> CompilationUnit.tproblems() root CompilationUnit;
 
     syn Collection<Problem> CompilationUnit.terrors() {
-		Collection<Problem> errors = new LinkedList<Problem>();
-		/*
+		Collection<Problem> errors = new LinkedList<Problem>();	
 		for (Problem problem : tproblems()) {
 
 			if (problem.severity() == Problem.Severity.ERROR) {
 				errors.add(problem);
 			}
-    	}
-    	*/
+    	}  	
 		return errors;
 	}
 
 	syn Collection<Problem> CompilationUnit.twarnings() {
-		Collection<Problem> warnings = new LinkedList<Problem>();
-		/*
+		Collection<Problem> warnings = new LinkedList<Problem>();		
 		for (Problem problem : tproblems()) {		
 			if (problem.severity() == Problem.Severity.WARNING) {
 				warnings.add(problem);
 			}
-		}
-		*/
+		}		
 		return warnings;
 	}
 
-    // Add problem contributions from the implicit constructor invocation NTA.
-    /*
+    // Add problem contributions from the implicit constructor invocation NTA.    
     ConstructorDecl contributes {
         if (checkImplicitConstructorInvocation()) {
             getImplicitConstructorInvocation().collectContributions();
@@ -77,22 +70,91 @@ aspect TypestateSemanticCheck {
         super.collectContributions();
     } to CompilationUnit.tproblems();
 
+    /**
+     * Adapted with modifications from old mungo version.
+     * Checking sematic problems in each node of the typestate protocol AST.
+     */
     State contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
-    syn Collection<Problem> State.typestateSemanticProblems(){
+    syn Collection<Problem> State.typestateSemanticProblems() {
     	LinkedList<Problem> problems = new LinkedList<Problem>();
-    	if(isDuplicate()){
+    	if (isDuplicate()){
 			problems.add(error("Duplicate State: " + getID() + "."));
     	}
-		if(!isReachable()){
+		if (!isReachable()){
 			problems.add(warning("State not reachable: " + getID() + "."));
 		}
 
 		String path;
-		if((path = getCircularPath()) != null){
+		if ((path = getCircularPath()) != null){
 			problems.add(warning("Circular-referenced state definition: " + path + "."));
 		}
 		return problems;
     }
+
+    TypestateLabel contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TypestateLabel.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	if (getTarget() == null){
+			problems.add(error("No Definition for state: " + getLabel() + "."));
+    	}
+    	return problems;
+    }
+
+    TypestateSwitch contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TypestateSwitch.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	for(int i = 0; i < getNumTypestateSwitchCase(); i++) {
+			for(int j = i + 1; j < getNumTypestateSwitchCase(); j++) {
+				if(getTypestateSwitchCase(i).getLabel().equals(getTypestateSwitchCase(j).getLabel())) {
+					problems.add(error("Duplicate case label: " + getTypestateSwitchCase(i).getLabel() + "."));
+				}
+			}
+    	}
+    	return problems;
+    }
+
+    TypestateMethodList contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TypestateMethodList.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	for(int i = 0; i < getNumTypestateMethod(); i++) {
+			TypestateMethod tm1 = getTypestateMethod(i);
+			for(int j = i + 1; j < getNumTypestateMethod(); j++) {
+				TypestateMethod tm2 = getTypestateMethod(j);
+				if(tm1.signature().equals(tm2.signature()))
+					problems.add(error("Duplicate method signature in the prefix of a set: " + tm1.signature() + "."));
+			}
+		}
+    	return problems;
+    }
+    // TODO fix it
+    /*
+    TypestateMethod contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TypestateMethod.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	TypeDecl t;
+		if(getTypestate() instanceof TypestateSwitch) {
+			t = getTType().getAccess().lookupType();
+			if(!t.isEnumDeclType())
+				problems.add(error("Method " + signature() + " should return an enumeration type."));
+			else {
+				for(String s : t.getEnumDecl().getEnumLabels()) {
+					if(!((TypestateSwitch) getTypestate()).getLabels().contains(s))
+						problems.add(error("Label " + s + " defined for the enumeration type " + t.getEnumDecl().getID() + " is not defined as a switch label."));
+				}
+			}
+		}
+    	return problems;
+    }
     */
+
+    
+
+    // Debug
+    public void ASTNode.doPrintFullTraversal() {
+    	System.out.println(this);
+		for (int i = 0; i < getNumChild(); i++) {
+			getChild(i).doPrintFullTraversal();
+		}
+	}
 
 }
