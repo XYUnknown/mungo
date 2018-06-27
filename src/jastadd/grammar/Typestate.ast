@@ -9,7 +9,7 @@ TypestateAnnotation : ABSTypestateAnnotation;
  * Contructing AST from .protocol file. 
  * Adapted from old mungo version.
  */
-TypestateClassDecl	:	ClassDecl	::=	TypestateArg: Access;
+//TypestateClassDecl	:	ClassDecl	::=	TypestateArg: Access; (Not useful currently)
 
 TypestateDecl		:	TypeDecl	::=	InitState State*;
 

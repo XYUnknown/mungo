@@ -137,16 +137,30 @@ TType ttype				=	type.a LT typestate.t GT
 //							tt.setStart(LT.getStart());
 							return tt;
 						:}
-					|	type.a
+
+					|	type.a 
+
 						{:
-							return new TType(a);
+							System.out.println(a.getClass().getName());
+							TType tt;
+							if (a instanceof ParseName){
+								ParseName temp = (ParseName) a;
+								TypeAccess t = new TypeAccess(temp.name());
+								tt = new TType(t);
+							} else {
+								tt = new TType(a);
+							}
+							System.out.println(tt);
+							System.out.println(tt.getNumChild());
+							return tt;
 						:}
+
 					|	VOID
+
 						{:
 							return new TType(new PrimitiveTypeAccess("void"));
 						:}
 					;
-
 
 List ttype_list				=	ttype.t
 						{:

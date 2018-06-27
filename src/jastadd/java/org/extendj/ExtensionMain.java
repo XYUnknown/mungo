@@ -40,16 +40,17 @@ public class ExtensionMain extends JavaChecker {
                             System.out.println(tsd.getInitState());
                         }
                     }
-                    // TODO: fix it after linked together
-                    // cu.doPrintFullTraversal();
+
+                    //System.out.println("--------Debugging--------");
+                    //cu.doPrintFullTraversal();
                     // TODO sematic check of typestate protocol and update typestateSematicCheckCode
                     typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
-                    //System.out.println(typestateSematicCheckCode);
+                    // System.out.println(typestateSematicCheckCode);
                     // Sematic errors found in protocol
                     if (typestateSematicCheckCode != 0) {
                         return typestateSematicCheckCode;
                     }
-                    // pass the sematic checking add new Compilation Unit to program. 
+                    // Pass the sematic checking add new Compilation Unit to program. 
                     super.program.addCompilationUnit(cu);
                 }
             } catch (Error e) {
