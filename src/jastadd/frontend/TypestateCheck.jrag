@@ -22,7 +22,7 @@ aspect TypestateCheck {
      * Typestate protocol file is parsed into a CompilationUnit
      * An attribute pointer of ClassDecl is pointing to this CompilationUnit
      */
-    syn CompilationUnit ClassDecl.getTypestateCompilationUnit(){
+    syn lazy CompilationUnit ClassDecl.getTypestateCompilationUnit(){
         TypestateAnnotation ta = getTypestateAnnotation();
         if (ta != null){
             ASTNode node = this.getParent();
@@ -56,6 +56,49 @@ aspect TypestateCheck {
         return null;
     }
 
+    // Adding a field state to VarAccess to keep tracking the typestate
+    private State VarAccess.state;
+
+    public State VarAccess.getState() {
+        return this.state;
+    }
+
+    public void VarAccess.setState(State state) {
+        this.state = state;
+    }
+    
+    /**
+     * Getting variable access from a method access
+     * a.b.c()
+     * a.b().c()
+     */
+    private VarAccess MethodAccess.getVarAccess(){
+        Expr ac = this.parentDot().leftSide();
+        //System.out.println("--------------Traversal---------------");
+        //this.parentDot().doPrintFullTraversal();
+        //System.out.println("--------------End Traversal-----------");
+        while (!(ac instanceof VarAccess) && (ac != null)){
+            if (ac.parentDot().parentDot() == null){
+                if(ac instanceof Dot){
+                    Dot dot = (Dot) ac;
+                    while (dot.rightSide() != null) {
+                        ac = dot.rightSide();
+                        if (ac instanceof VarAccess) {
+                            return (VarAccess) ac;
+                        } else if (ac instanceof Dot) {
+                            dot = (Dot) ac;
+                        } else {
+                            return null;
+                        }
+                    }
+                } else {
+                    return null;
+                }
+            }
+            ac = ac.parentDot().parentDot().leftSide();
+        }
+        return ac == null ? null : (VarAccess) ac;
+    }
 
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
@@ -98,9 +141,14 @@ aspect TypestateCheck {
   		
   		// Here what we are trying to do is to check whether the typestate annotation can be found during method access.
   		// System.out.println("MethodAccess: " + (this.hostType() instanceof ClassDecl));
+        System.out.println("---------checking------------");
+        System.out.println("MethodAccess name: " + name());
+        //System.out.println("MethodAccess parent dot: " + parentDot());
+        System.out.println("MethodAccess instance: " + getVarAccess());
+        //System.out.println("MethodAccess instance Class: " + getVarAccess().getClass());
   		ClassDecl cd = (ClassDecl) this.hostType();
         if(cd.getTypestateCompilationUnit() != null){
-            System.out.println("Found CU in MethodAccess" + cd.getTypestateCompilationUnit().getProtocolName());
+            //System.out.println("Found CU in MethodAccess" + cd.getTypestateCompilationUnit().getProtocolName());
         }
   		return new LinkedList<Problem>();
 	}
