@@ -140,7 +140,7 @@ aspect TypestateCheck {
 
 
 
-    // Adding a field state to VarAccess to keep tracking the typestate
+    // Adding a field state to VariableDeclarator to keep tracking the typestate
     private State VariableDeclarator.state;
 
     public State VariableDeclarator.getState() {
@@ -216,8 +216,13 @@ aspect TypestateCheck {
                         for(VariableDeclarator v: vds.getDeclarators()){
                             if(vd.equals(v)) {
                                 vd.setState(new InitState());
+                                break;
                             }
                         }                        
+                    }
+                    // Typestate of a VariableDeclatator is set, jump out of the loop
+                    if(vd.getState() != null) {
+                        break;
                     }
                 }            
             }
