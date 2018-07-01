@@ -65,4 +65,63 @@ aspect LookupMethod {
         }
         return false;
     }
+
+    /**
+     * Get return type of a TypestateMethod
+     */
+    public Access TypestateMethod.getReturnType() {
+    	return getTType().getAccess();
+    }
+
+    /**
+     * Check whether a MethodDecl has the same return type as a TypestateMethod
+     */
+    public boolean MethodDecl.isSameReturnType(TypestateMethod tm) {
+    	Access mdReturn = this.getTypeAccess();
+    	Access tmReturn = tm.getReturnType();
+    	if (mdReturn.getClass().equals(tmReturn.getClass())) {
+			if(mdReturn.toString().equals(tmReturn.toString())){ // Better way to check than toString() ? 
+				return true;
+			}
+    	}
+    	return false;    	
+    }
+
+    /**
+     * Check whether a MethodDecl has the same name as a TypestateMethod
+     */
+    public boolean MethodDecl.isSameName(TypestateMethod tm) {
+    	return this.name().equals(tm.getID());    	
+    }
+
+    /**
+     * Check whether a MethodDecl has the same parameter list as a TypestateMethod
+     */
+    public boolean MethodDecl.isSameParamList(TypestateMethod tm) {
+    	if (this.getNumParameter() == tm.getTTypeList().getNumTType()) {
+    		Access mdParam, tmParam;
+    		for (int i = 0; i < this.getNumParameter(); i++){
+    			mdParam = getParameter(i).getTypeAccess();
+    			tmParam = tm.getTTypeList().getTType(i).getAccess();
+    			if (!mdParam.getClass().equals(tmParam.getClass())){
+    				return false;
+    			}
+    			if(!mdParam.toString().equals(tmParam.toString())){ //Better way to check than toString() ?
+    				return false;
+    			}    			
+    		}
+    		return true;
+    	}
+    	return false;    	
+    }
+
+    /**
+     * Check whether a MethodDecl has the same signature as a TypestateMethod
+     */
+    public boolean MethodDecl.isSameSignature(TypestateMethod tm) {
+    	return isSameReturnType(tm) &&isSameName(tm) && isSameParamList(tm);
+    }
+
+
+
 }

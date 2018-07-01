@@ -232,7 +232,12 @@ aspect TypestateCheck {
             } else {
                 // TODO checking whether start and end state match the protocol or not.
                 MethodDecl md = this.decl();
-                System.out.println("MethodDecl: " + md);
+                TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
+                for (TypestateMethod tm: typestate.getTypestateMethodList()){
+                    boolean result = md.isSameSignature(tm);
+                    System.out.println("Same signature? " + result);
+                }
+                // TODO get next typestate and update state of VariableDeclarator
             }
         }
   		return problems;
