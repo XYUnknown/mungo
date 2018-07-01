@@ -232,12 +232,26 @@ aspect TypestateCheck {
             } else {
                 // TODO checking whether start and end state match the protocol or not.
                 MethodDecl md = this.decl();
+                boolean result = false;
+                TypestateLabel tl = null;
                 TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
-                for (TypestateMethod tm: typestate.getTypestateMethodList()){
-                    boolean result = md.isSameSignature(tm);
-                    System.out.println("Same signature? " + result);
+                for (TypestateMethod tm: typestate.getTypestateMethodList()) {
+                    result = md.isSameSignature(tm);
+                    System.out.println("Same signature? " + result);                    
+                    if (result) {
+                        if (tm.getTypestate() instanceof TypestateLabel) {
+                            tl = (TypestateLabel) tm.getTypestate();
+                            vd.setState(tl.getTarget()); // Update State of VariableDeclarator
+                        } else if (tm.getTypestate() instanceof TypestateSwitch){
+                            // TODO: type state check of TypestateSwitch
+                        }
+                        break;
+                    }
                 }
-                // TODO get next typestate and update state of VariableDeclarator
+                if(!result) {
+                    problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
+                }
+                System.out.println("VD state" + vd.getState().getID());
             }
         }
   		return problems;
