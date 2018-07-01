@@ -20,6 +20,36 @@ aspect TypestateCheck {
 
     /**
      * Typestate protocol file is parsed into a CompilationUnit
+     * An attribute pointer of TypeDecl is pointing to this CompilationUnit
+     */
+    syn lazy CompilationUnit TypeDecl.getTypestateCompilationUnit(){
+        TypestateAnnotation ta = getTypestateAnnotation();
+        if (ta != null){
+            ASTNode node = this.getParent();
+            while (! (node instanceof Program)){
+                node = node.getParent();
+            }   
+            Program program = (Program) node;
+            for (CompilationUnit cu: program.getCompilationUnitList()){
+                if(cu.isTypestateCompilationUnit()){
+                    if(cu.getProtocolName().equals(ta.getID())){
+                        return cu;
+                    }
+                }
+            }
+        }       
+        return null;
+    }
+
+    /**
+     * Checking whether a TypeDecl has typestate or not
+     */
+    syn lazy boolean TypeDecl.hasTypestate() {
+        return getTypestateCompilationUnit() == null? false : true;
+    }
+
+    /**
+     * Typestate protocol file is parsed into a CompilationUnit
      * An attribute pointer of ClassDecl is pointing to this CompilationUnit
      */
     syn lazy CompilationUnit ClassDecl.getTypestateCompilationUnit(){
@@ -42,6 +72,50 @@ aspect TypestateCheck {
     }
 
     /**
+     * Checking whether a ClassDecl has typestate or not
+     */
+    syn lazy boolean ClassDecl.hasTypestate() {
+        return getTypestateCompilationUnit() == null? false : true;
+    }
+
+    /**
+     * Checking whether a VarAccess has typestate or not
+     */
+    syn lazy boolean VarAccess.hasTypestate(){
+        return this.type().hasTypestate();
+    }
+
+    /**
+     * Checking whether a VarDeclStmt has typestate or not
+     */
+    syn lazy boolean VarDeclStmt.hasTypestate(){
+        return this.type().hasTypestate();
+    }
+
+    /**
+     * Getting the TypestateAnnotation of a TypeDecl
+     * We need the TypestateAnnotation ID to check which 
+     * typestate protocol CompilationUnit is the corresponding one.
+     */
+    public TypestateAnnotation TypeDecl.getTypestateAnnotation(){
+        for (Modifier m: getModifiers().getModifierList()){
+            if (m instanceof TypestateAnnotation){
+                TypestateAnnotation ta = (TypestateAnnotation) m;
+                return ta;
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Checking whether a TypeDecl has typestate annotation
+     */
+    public boolean TypeDecl.hasTypestateAnnotation() {
+        return getTypestateAnnotation() == null? false : true;
+    }
+
+    /**
      * Getting the TypestateAnnotation of a ClassDecl
      * We need the TypestateAnnotation ID to check which 
      * typestate protocol CompilationUnit is the corresponding one.
@@ -56,14 +130,24 @@ aspect TypestateCheck {
         return null;
     }
 
-    // Adding a field state to VarAccess to keep tracking the typestate
-    private State VarAccess.state;
 
-    public State VarAccess.getState() {
+    /**
+     * Checking whether a ClassDecl has typestate annotation
+     */
+    public boolean ClassDecl.hasTypestateAnnotation() {
+        return getTypestateAnnotation() == null? false : true;
+    }
+
+
+
+    // Adding a field state to VarAccess to keep tracking the typestate
+    private State VariableDeclarator.state;
+
+    public State VariableDeclarator.getState() {
         return this.state;
     }
 
-    public void VarAccess.setState(State state) {
+    public void VariableDeclarator.setState(State state) {
         this.state = state;
     }
     
@@ -100,57 +184,76 @@ aspect TypestateCheck {
         return ac == null ? null : (VarAccess) ac;
     }
 
+
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
         CompilationUnit cu = this.getTypestateCompilationUnit();
+
+        if (hasTypestateAnnotation() && (cu == null)){
+            problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
+        }
         if(cu != null){
-            System.out.println("Found CU in ClassDecl" + cu.getProtocolName());
+            System.out.println("Found CU in ClassDecl: " + cu.getProtocolName());
         }        
-        return new LinkedList<Problem>();
+        return problems;
     }
 
-	Modifiers contributes each typestateProblems() to CompilationUnit.problems();
-	syn Collection<Problem> Modifiers.typestateProblems(){
-		for(Modifier m: getModifierList()){
-
-			// Here we would like to test how to access the protocol file according to the typestate annotation
-			if(m instanceof TypestateAnnotation){
-				//System.out.println("found typestate annotation in Modifiers");
-				//System.out.println("Get protocol name from ID: " + m.getID());
-				String fileName = "testfiles/collection/" + m.getID() + ".protocol";
-				String line = null;
-				try {
-            		FileReader fileReader = new FileReader(fileName);
-            		BufferedReader bufferedReader = new BufferedReader(fileReader);
-            		while((line = bufferedReader.readLine()) != null) {
-                		//System.out.println(line);
-            		}   
-            		bufferedReader.close();         
-        		} catch(FileNotFoundException ex) {
-            		System.out.println("Unable to open file '" + fileName + "'");                
-        		} catch(IOException ex) { 
-        			System.out.println("Error reading file '" + fileName + "'");                  
-        		}
-			}
-		}
-		return new LinkedList<Problem>();
-	}
-
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
-  	syn Collection<Problem> MethodAccess.typestateProblems(){
-  		
-  		// Here what we are trying to do is to check whether the typestate annotation can be found during method access.
-  		// System.out.println("MethodAccess: " + (this.hostType() instanceof ClassDecl));
+  	syn Collection<Problem> MethodAccess.typestateProblems() {
+  		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
         System.out.println("MethodAccess name: " + name());
-        //System.out.println("MethodAccess parent dot: " + parentDot());
         System.out.println("MethodAccess instance: " + getVarAccess());
-        //System.out.println("MethodAccess instance Class: " + getVarAccess().getClass());
-  		ClassDecl cd = (ClassDecl) this.hostType();
-        if(cd.getTypestateCompilationUnit() != null){
-            //System.out.println("Found CU in MethodAccess" + cd.getTypestateCompilationUnit().getProtocolName());
+        VarAccess va = getVarAccess();
+        if(va.hasTypestate()){
+            VariableDeclarator vd = (VariableDeclarator)va.varDecl();
+            // Typestate of a VariableDeclatator is not set, try to set InitState to it
+            if(vd.getState() == null) {
+                LinkedList<VarDeclStmt> list = va.compilationUnit().collectVarDeclStmts();
+                for(VarDeclStmt vds: list) {
+                    if(vds.hasTypestate() && vds.hasClassInstanceExpr()) {
+                        for(VariableDeclarator v: vds.getDeclarators()){
+                            if(vd.equals(v)) {
+                                vd.setState(new InitState());
+                            }
+                        }                        
+                    }
+                }            
+            }
+            // cannot set InitState, report error
+            if(vd.getState() == null){
+                problems.add(error("No Init State"));
+            } else {
+                // TODO checking whether start and end state match the protocol or not.
+            }
         }
-  		return new LinkedList<Problem>();
+  		return problems;
 	}
+
+
+    ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        return problems;
+    }
+
+    VarDeclStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> VarDeclStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("VarDeclStmt: " + this + " " +this.lineNumber());
+        System.out.println("VarDeclStmt Declarators: ");
+        for (VariableDeclarator vd: getDeclarators()){
+            System.out.println(vd);
+        }
+        return problems;
+    }
+
+    VarAccess contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> VarAccess.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        return problems;
+    }
+
 
 }
