@@ -215,7 +215,7 @@ aspect TypestateCheck {
                     if(vds.hasTypestate() && vds.hasClassInstanceExpr()) {
                         for(VariableDeclarator v: vds.getDeclarators()){
                             if(vd.equals(v)) {
-                                vd.setState(new InitState());
+                                vd.setInitState();
                                 break;
                             }
                         }                        
@@ -231,10 +231,27 @@ aspect TypestateCheck {
                 problems.add(error("No Init State"));
             } else {
                 // TODO checking whether start and end state match the protocol or not.
+                MethodDecl md = this.decl();
+                System.out.println("MethodDecl: " + md);
             }
         }
   		return problems;
 	}
+
+    /**
+     * Set the InitState from typstate protocol AST to a VariableDeclarator
+     */
+    public void VariableDeclarator.setInitState(){
+        CompilationUnit cu = this.type().getTypestateCompilationUnit();
+        for (TypeDecl td: cu.getTypeDecls()){
+            if (td instanceof TypestateDecl){
+                System.out.println("This is a TypestateDecl " + td.name());
+                TypestateDecl tsd = (TypestateDecl) td;
+                this.setState(tsd.getInitState());
+                break;
+            }
+        }
+    }
 
 
     ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
