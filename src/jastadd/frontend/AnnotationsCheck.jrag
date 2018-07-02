@@ -8,19 +8,6 @@ aspect AnnotationsCheck {
         super.collectContributions();
     } to CompilationUnit.collectTypestateAnnotations();
 
-    // Check whether there is a typestate annotation when a method access happens
-    MethodAccess contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
-    syn Collection<Modifier> MethodAccess.typestateAnnotations(){        
-        LinkedList<Modifier> ms = new LinkedList<Modifier>();
-        for(Modifier m: this.hostType().getModifiers().getModifierList()){
-            if(m instanceof TypestateAnnotation){
-                System.out.println("collecting: Typestate modifier found in MethodAccess");
-                ms.add(m);
-            }
-        }
-        return ms;
-    }
-
     // Check whether there is a typestate annotation at the TypeDecl
     TypeDecl contributes each typestateAnnotations() to CompilationUnit.collectTypestateAnnotations();
     syn Collection<Modifier> TypeDecl.typestateAnnotations(){        

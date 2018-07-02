@@ -206,54 +206,58 @@ aspect TypestateCheck {
         System.out.println("MethodAccess name: " + name());
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
-        if(va.hasTypestate()){
-            VariableDeclarator vd = (VariableDeclarator)va.varDecl();
-            // Typestate of a VariableDeclatator is not set, try to set InitState to it
-            if(vd.getState() == null) {
-                LinkedList<VarDeclStmt> list = va.compilationUnit().collectVarDeclStmts();
-                for(VarDeclStmt vds: list) {
-                    if(vds.hasTypestate() && vds.hasClassInstanceExpr()) {
-                        for(VariableDeclarator v: vds.getDeclarators()){
-                            if(vd.equals(v)) {
-                                vd.setInitState();
-                                break;
-                            }
-                        }                        
-                    }
-                    // Typestate of a VariableDeclatator is set, jump out of the loop
-                    if(vd.getState() != null) {
-                        break;
-                    }
-                }            
-            }
-            // cannot set InitState, report error
-            if(vd.getState() == null){
-                problems.add(error("No Init State"));
-            } else {
-                // TODO checking whether start and end state match the protocol or not.
-                MethodDecl md = this.decl();
-                boolean result = false;
-                TypestateLabel tl = null;
-                TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
-                for (TypestateMethod tm: typestate.getTypestateMethodList()) {
-                    result = md.isSameSignature(tm);
-                    System.out.println("Same signature? " + result);                    
-                    if (result) {
-                        if (tm.getTypestate() instanceof TypestateLabel) {
-                            tl = (TypestateLabel) tm.getTypestate();
-                            vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                        } else if (tm.getTypestate() instanceof TypestateSwitch){
-                            // TODO: type state check of TypestateSwitch
+        if(va != null){
+            if(va.hasTypestate()){
+                VariableDeclarator vd = (VariableDeclarator)va.varDecl();
+                // Typestate of a VariableDeclatator is not set, try to set InitState to it
+                if(vd.getState() == null) {
+                    LinkedList<VarDeclStmt> list = va.compilationUnit().collectVarDeclStmts();
+                    for(VarDeclStmt vds: list) {
+                        if(vds.hasTypestate() && vds.hasClassInstanceExpr()) {
+                            for(VariableDeclarator v: vds.getDeclarators()){
+                                if(vd.equals(v)) {
+                                    vd.setInitState();
+                                    break;
+                                }
+                            }                        
                         }
-                        break;
+                        // Typestate of a VariableDeclatator is set, jump out of the loop
+                        if(vd.getState() != null) {
+                            break;
+                        }
+                    }            
+                }
+                // cannot set InitState, report error
+                if(vd.getState() == null){
+                    problems.add(error("No Init State"));
+                } else {
+                    // TODO checking whether start and end state match the protocol or not.
+                    MethodDecl md = this.decl();
+                    boolean result = false;
+                    TypestateLabel tl = null;
+                    TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
+                    for (TypestateMethod tm: typestate.getTypestateMethodList()) {
+                        result = md.isSameSignature(tm);
+                        System.out.println("Same signature? " + result);                    
+                        if (result) {
+                            if (tm.getTypestate() instanceof TypestateLabel) {
+                                tl = (TypestateLabel) tm.getTypestate();
+                                vd.setState(tl.getTarget()); // Update State of VariableDeclarator
+                            } else if (tm.getTypestate() instanceof TypestateSwitch){
+                            // TODO: type state check of TypestateSwitch
+                            }
+                            break;
+                        }
                     }
+                    if(!result) {
+                        problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
+                    }
+                    System.out.println("VariableDeclarator state" + vd.getState().getID());
                 }
-                if(!result) {
-                    problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
-                }
-                System.out.println("VD state" + vd.getState().getID());
             }
+
         }
+        
   		return problems;
 	}
 
@@ -282,8 +286,8 @@ aspect TypestateCheck {
     VarDeclStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarDeclStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("VarDeclStmt: " + this + " " +this.lineNumber());
-        System.out.println("VarDeclStmt Declarators: ");
+        //System.out.println("VarDeclStmt: " + this + " " +this.lineNumber());
+        //System.out.println("VarDeclStmt Declarators: ");
         for (VariableDeclarator vd: getDeclarators()){
             System.out.println(vd);
         }

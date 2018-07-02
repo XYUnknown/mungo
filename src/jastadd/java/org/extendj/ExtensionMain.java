@@ -23,33 +23,38 @@ public class ExtensionMain extends JavaChecker {
         if (unit != null && unit.fromSource()) {
             try {
                 LinkedList<Modifier> ms = unit.collectTypestateAnnotations();
+                ms = removeDuplicate(ms);
                 System.out.println("collected annotations:" + ms.size());
+                String sourcePath = unit.pathName();
+                
                 if (ms.size() > 0) {
                     // At this point we can assume that there is only one typestate annotation for one java file.
                     // TODO Checking duplication OF typestate annotation
-                    String protocolFileName = ms.get(0).getID() + ".protocol";
-                    printProtocolFile(protocolFileName);
-                    // Typestate protocol file is parsed here
-                    CompilationUnit cu = parseProtocol(protocolFileName);
-                    cu.setProtocolName(ms.get(0).getID());
-                    for (TypeDecl td: cu.getTypeDecls()){
-                        if (td instanceof TypestateDecl){
-                            System.out.println("This is a TypestateDecl " + td.name());
-                            TypestateDecl tsd = (TypestateDecl) td;
-                            System.out.println(tsd.getInitState());
+                    for (Modifier m: ms) {
+                        String protocolFileName = m.getID() + ".protocol";
+                        printProtocolFile(protocolFileName, sourcePath);
+                        // Typestate protocol file is parsed here
+                        CompilationUnit cu = parseProtocol(protocolFileName, sourcePath);
+                        cu.setProtocolName(m.getID());
+                        for (TypeDecl td: cu.getTypeDecls()){
+                            if (td instanceof TypestateDecl){
+                                System.out.println("This is a TypestateDecl " + td.name());
+                                TypestateDecl tsd = (TypestateDecl) td;
+                                System.out.println(tsd.getInitState());
+                            }
                         }
-                    }
 
-                    //System.out.println("--------Debugging--------");
-                    //cu.doPrintFullTraversal();
-                    // TODO sematic check of typestate protocol and update typestateSematicCheckCode
-                    typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
-                    // Sematic errors found in protocol
-                    if (typestateSematicCheckCode != 0) {
-                        return typestateSematicCheckCode;
-                    }
-                    // Pass the sematic checking add new Compilation Unit to program. 
-                    super.program.addCompilationUnit(cu);
+                        //System.out.println("--------Debugging--------");
+                        //cu.doPrintFullTraversal();
+                        // TODO sematic check of typestate protocol and update typestateSematicCheckCode
+                        typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
+                        // Sematic errors found in protocol
+                        if (typestateSematicCheckCode != 0) {
+                            return typestateSematicCheckCode;
+                        }
+                        // Pass the sematic checking add new Compilation Unit to program. 
+                        super.program.addCompilationUnit(cu);
+                    }                    
                 }
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());
@@ -71,9 +76,11 @@ public class ExtensionMain extends JavaChecker {
      * Debug only - print protocol file content before processing CompilationUnit checking
      * Used for looking up the approprate point of parsing typstate protocol
      */
-    private void printProtocolFile(String protocolFileName){
-        String testPath = "testfiles/collection/";
-        String protocolFile =  testPath + protocolFileName;
+    private void printProtocolFile(String protocolFileName, String sourcePath){
+        int lastIdx = sourcePath.lastIndexOf('/');
+        String dir = sourcePath.substring(0, lastIdx + 1);
+        System.out.println("Path: " + dir);
+        String protocolFile =  dir + protocolFileName;
         String line = null;
         try {
             FileReader fileReader = new FileReader(protocolFile);
@@ -89,9 +96,11 @@ public class ExtensionMain extends JavaChecker {
         }
     }
 
-    private CompilationUnit parseProtocol(String protocolFileName){
-        String testPath = "testfiles/collection/";
-        String path = testPath + protocolFileName;
+    private CompilationUnit parseProtocol(String protocolFileName, String sourcePath){
+        int lastIdx = sourcePath.lastIndexOf('/');
+        String dir = sourcePath.substring(0, lastIdx + 1);
+        System.out.println("Path: " + dir);
+        String path = dir + protocolFileName;
         JavaParser parser = new JavaParser();
         CompilationUnit u = null;
         try{
@@ -111,5 +120,14 @@ public class ExtensionMain extends JavaChecker {
         return u;       
     }
 
+    private LinkedList<Modifier> removeDuplicate(LinkedList<Modifier> list) {
+        LinkedList<Modifier> result = new LinkedList<Modifier>();
+        for (Modifier m: list) {
+            if (!result.contains(m)) {
+                result.add(m);
+            }
+        }
+        return result;
+    }
   
 }
