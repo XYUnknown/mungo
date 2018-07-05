@@ -36,26 +36,29 @@ public class ExtensionMain extends JavaChecker {
                         // Typestate protocol file is parsed here
                         CompilationUnit cu = parseProtocol(protocolFileName, sourcePath);
                         //cu.setProtocolName(m.getID());
-                        for (TypeDecl td: cu.getTypeDecls()){
-                            if (td instanceof TypestateDecl){
-                                System.out.println("This is a TypestateDecl " + td.name());
-                                TypestateDecl tsd = (TypestateDecl) td;
-                                System.out.println(tsd.getInitState());
+                        if (cu != null){
+                            for (TypeDecl td: cu.getTypeDecls()){
+                                if (td instanceof TypestateDecl){
+                                    System.out.println("This is a TypestateDecl " + td.name());
+                                    TypestateDecl tsd = (TypestateDecl) td;
+                                    System.out.println(tsd.getInitState());
+                                }
                             }
-                        }
-
-                        //System.out.println("--------Debugging--------");
-                        //cu.doPrintFullTraversal();
-                        // TODO sematic check of typestate protocol and update typestateSematicCheckCode
-                        typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
-                        // Sematic errors found in protocol
-                        if (typestateSematicCheckCode != 0) {
-                            return typestateSematicCheckCode;
-                        }
-                        // Pass the sematic checking add new Compilation Unit to program. 
-                        super.program.addCompilationUnit(cu);
+                            //System.out.println("--------Debugging--------");
+                            //cu.doPrintFullTraversal();
+                            // TODO sematic check of typestate protocol and update typestateSematicCheckCode
+                            typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
+                            // Sematic errors found in protocol
+                            if (typestateSematicCheckCode != 0) {
+                                return typestateSematicCheckCode;
+                            }
+                            // Pass the sematic checking add new Compilation Unit to program. 
+                            super.program.addCompilationUnit(cu);
+                        }                        
                     }                    
                 }
+            } catch (FileNotFoundException e){
+                System.out.println("Cannot find protocol file");
             } catch (Error e) {
                 System.err.println("Encountered error while processing " + unit.pathName());
                 throw e;
@@ -96,7 +99,7 @@ public class ExtensionMain extends JavaChecker {
         }
     }
 
-    private CompilationUnit parseProtocol(String protocolFileName, String sourcePath){
+    private CompilationUnit parseProtocol(String protocolFileName, String sourcePath) throws FileNotFoundException{
         int lastIdx = sourcePath.lastIndexOf('/');
         String dir = sourcePath.substring(0, lastIdx + 1);
         System.out.println("Path: " + dir);
@@ -108,8 +111,7 @@ public class ExtensionMain extends JavaChecker {
             u = (CompilationUnit) parser.parse(fileStream, path);
             System.out.println("Typestate Protocol file is successfully parsed");
         } catch(FileNotFoundException e) {
-            System.out.println("FileNotFoundException");
-            return null;
+            throw e;
         } catch(IOException e) {
             System.out.println("IOException");
             return null;
