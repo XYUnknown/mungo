@@ -98,7 +98,7 @@ aspect TypestateAnalysis {
     /**
      * Checking whether a VarAccess has typestate or not
      */
-    syn lazy boolean VarAccess.hasTypestateDecl(){
+    syn lazy boolean VarAccess.hasTypestateDecl() {
         return this.type().hasTypestateDecl();
     }
 

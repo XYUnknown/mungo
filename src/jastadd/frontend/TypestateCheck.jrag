@@ -1,200 +1,15 @@
 aspect TypestateCheck {
 
-    public boolean CompilationUnit.isTypestateCompilationUnit(){
-        for (TypeDecl td: this.getTypeDecls()){
-            if (td instanceof TypestateDecl){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String CompilationUnit.protocolName = "";
-
-    public String CompilationUnit.getProtocolName() {
-        return this.protocolName;
-    }
-    public void CompilationUnit.setProtocolName(String name) {
-        this.protocolName = name;
-    }
-
-    /**
-     * Typestate protocol file is parsed into a CompilationUnit
-     * An attribute pointer of TypeDecl is pointing to this CompilationUnit
-     */
-    syn lazy CompilationUnit TypeDecl.getTypestateCompilationUnit(){
-        TypestateAnnotation ta = getTypestateAnnotation();
-        if (ta != null){
-            ASTNode node = this.getParent();
-            while (! (node instanceof Program)){
-                node = node.getParent();
-            }   
-            Program program = (Program) node;
-            for (CompilationUnit cu: program.getCompilationUnitList()){
-                if(cu.isTypestateCompilationUnit()){
-                    if(cu.getProtocolName().equals(ta.getID())){
-                        return cu;
-                    }
-                }
-            }
-        }       
-        return null;
-    }
-
-    /**
-     * Checking whether a TypeDecl has typestate or not
-     */
-    syn lazy boolean TypeDecl.hasTypestate() {
-        return getTypestateCompilationUnit() == null? false : true;
-    }
-
-    /**
-     * Typestate protocol file is parsed into a CompilationUnit
-     * An attribute pointer of ClassDecl is pointing to this CompilationUnit
-     */
-    syn lazy CompilationUnit ClassDecl.getTypestateCompilationUnit(){
-        TypestateAnnotation ta = getTypestateAnnotation();
-        if (ta != null){
-            ASTNode node = this.getParent();
-            while (! (node instanceof Program)){
-                node = node.getParent();
-            }   
-            Program program = (Program) node;
-            for (CompilationUnit cu: program.getCompilationUnitList()){
-                if(cu.isTypestateCompilationUnit()){
-                    if(cu.getProtocolName().equals(ta.getID())){
-                        return cu;
-                    }
-                }
-            }
-        }       
-        return null;
-    }
-
-    /**
-     * Checking whether a ClassDecl has typestate or not
-     */
-    syn lazy boolean ClassDecl.hasTypestate() {
-        return getTypestateCompilationUnit() == null? false : true;
-    }
-
-    /**
-     * Checking whether a VarAccess has typestate or not
-     */
-    syn lazy boolean VarAccess.hasTypestate(){
-        return this.type().hasTypestate();
-    }
-
-    /**
-     * Checking whether a VarDeclStmt has typestate or not
-     */
-    syn lazy boolean VarDeclStmt.hasTypestate(){
-        return this.type().hasTypestate();
-    }
-
-    /**
-     * Getting the TypestateAnnotation of a TypeDecl
-     * We need the TypestateAnnotation ID to check which 
-     * typestate protocol CompilationUnit is the corresponding one.
-     */
-    public TypestateAnnotation TypeDecl.getTypestateAnnotation(){
-        for (Modifier m: getModifiers().getModifierList()){
-            if (m instanceof TypestateAnnotation){
-                TypestateAnnotation ta = (TypestateAnnotation) m;
-                return ta;
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Checking whether a TypeDecl has typestate annotation
-     */
-    public boolean TypeDecl.hasTypestateAnnotation() {
-        return getTypestateAnnotation() == null? false : true;
-    }
-
-    /**
-     * Getting the TypestateAnnotation of a ClassDecl
-     * We need the TypestateAnnotation ID to check which 
-     * typestate protocol CompilationUnit is the corresponding one.
-     */
-    public TypestateAnnotation ClassDecl.getTypestateAnnotation(){
-        for (Modifier m: getModifiers().getModifierList()){
-            if (m instanceof TypestateAnnotation){
-                TypestateAnnotation ta = (TypestateAnnotation) m;
-                return ta;
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Checking whether a ClassDecl has typestate annotation
-     */
-    public boolean ClassDecl.hasTypestateAnnotation() {
-        return getTypestateAnnotation() == null? false : true;
-    }
-
-
-
-    // Adding a field state to VariableDeclarator to keep tracking the typestate
-    private State VariableDeclarator.state;
-
-    public State VariableDeclarator.getState() {
-        return this.state;
-    }
-
-    public void VariableDeclarator.setState(State state) {
-        this.state = state;
-    }
-    
-    /**
-     * Getting variable access from a method access
-     * a.b.c()
-     * a.b().c()
-     */
-    private VarAccess MethodAccess.getVarAccess(){
-        Expr ac = this.parentDot().leftSide();
-        //System.out.println("--------------Traversal---------------");
-        //this.parentDot().doPrintFullTraversal();
-        //System.out.println("--------------End Traversal-----------");
-        while (!(ac instanceof VarAccess) && (ac != null)){
-            if (ac.parentDot().parentDot() == null){
-                if(ac instanceof Dot){
-                    Dot dot = (Dot) ac;
-                    while (dot.rightSide() != null) {
-                        ac = dot.rightSide();
-                        if (ac instanceof VarAccess) {
-                            return (VarAccess) ac;
-                        } else if (ac instanceof Dot) {
-                            dot = (Dot) ac;
-                        } else {
-                            return null;
-                        }
-                    }
-                } else {
-                    return null;
-                }
-            }
-            ac = ac.parentDot().parentDot().leftSide();
-        }
-        return ac == null ? null : (VarAccess) ac;
-    }
-
-
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        CompilationUnit cu = this.getTypestateCompilationUnit();
+        TypestateDecl td = this.getTypestateDecl();
 
-        if (hasTypestateAnnotation() && (cu == null)){
+        if (hasTypestateAnnotation() && (td == null)){
             problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }
-        if(cu != null){
-            System.out.println("Found CU in ClassDecl: " + cu.getProtocolName());
+        if(td != null){
+            System.out.println("Found TypestateDecl in ClassDecl: " + td.getID());
         }        
         return problems;
     }
@@ -207,75 +22,53 @@ aspect TypestateCheck {
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
         if(va != null){
-            if(va.hasTypestate()){
-                VariableDeclarator vd = (VariableDeclarator)va.varDecl();
-                // Typestate of a VariableDeclatator is not set, try to set InitState to it
-                if(vd.getState() == null) {
-                    LinkedList<VarDeclStmt> list = va.compilationUnit().collectVarDeclStmts();
-                    for(VarDeclStmt vds: list) {
-                        if(vds.hasTypestate() && vds.hasClassInstanceExpr()) {
-                            for(VariableDeclarator v: vds.getDeclarators()){
-                                if(vd.equals(v)) {
-                                    vd.setInitState();
-                                    break;
-                                }
-                            }                        
+            if(va.hasTypestateDecl()){                
+                VariableDeclarator vd = (VariableDeclarator)va.varDecl();                
+                MethodDecl md = this.decl();
+                boolean result = false;
+                TypestateLabel tl = null;
+                TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
+                for (TypestateMethod tm: typestate.getTypestateMethodList()) {
+                    result = md.isSameSignature(tm);
+                    System.out.println("Same signature? " + result);                    
+                    if (result) {
+                        if (tm.getTypestate() instanceof TypestateLabel) {
+                            tl = (TypestateLabel) tm.getTypestate();
+                            vd.setState(tl.getTarget()); // Update State of VariableDeclarator
+                        } else if (tm.getTypestate() instanceof TypestateSwitch){
+                        // TODO: type state check of TypestateSwitch
                         }
-                        // Typestate of a VariableDeclatator is set, jump out of the loop
-                        if(vd.getState() != null) {
-                            break;
-                        }
-                    }            
+                        break;
+                    }
                 }
-                // cannot set InitState, report error
-                if(vd.getState() == null){
-                    problems.add(error("No Init State"));
-                } else {
-                    // TODO checking whether start and end state match the protocol or not.
-                    MethodDecl md = this.decl();
-                    boolean result = false;
-                    TypestateLabel tl = null;
-                    TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
-                    for (TypestateMethod tm: typestate.getTypestateMethodList()) {
-                        result = md.isSameSignature(tm);
-                        System.out.println("Same signature? " + result);                    
-                        if (result) {
-                            if (tm.getTypestate() instanceof TypestateLabel) {
-                                tl = (TypestateLabel) tm.getTypestate();
-                                vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                            } else if (tm.getTypestate() instanceof TypestateSwitch){
-                            // TODO: type state check of TypestateSwitch
-                            }
-                            break;
-                        }
-                    }
-                    if(!result) {
-                        problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
-                    }
-                    System.out.println("VariableDeclarator state" + vd.getState().getID());
+                if(!result) {
+                    problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
                 }
             }
-
-        }
-        
+        }        
   		return problems;
 	}
 
-    /**
-     * Set the InitState from typstate protocol AST to a VariableDeclarator
-     */
-    public void VariableDeclarator.setInitState(){
-        CompilationUnit cu = this.type().getTypestateCompilationUnit();
-        for (TypeDecl td: cu.getTypeDecls()){
-            if (td instanceof TypestateDecl){
-                System.out.println("This is a TypestateDecl " + td.name());
-                TypestateDecl tsd = (TypestateDecl) td;
-                this.setState(tsd.getInitState());
-                break;
-            }
-        }
-    }
 
+    VariableDeclarator contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> VariableDeclarator.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("Printing VD: " + this); 
+        System.out.println("Init: " + getInit().getClass());  
+        if (hasTypestateDecl()) {
+            if (!hasState()) {
+                if (getInit() instanceof ClassInstanceExpr) {
+                    setState(getTypestateInitState());
+                } else {
+
+                }
+            }
+            //if (!hasState()) {
+                //problems.add(error("No Init State"));
+            //}
+        }
+        return problems;
+    }
 
     ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
@@ -297,6 +90,7 @@ aspect TypestateCheck {
     VarAccess contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarAccess.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("Printing VA: " + this);  
         return problems;
     }
 

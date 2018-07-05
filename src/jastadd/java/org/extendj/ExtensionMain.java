@@ -35,7 +35,7 @@ public class ExtensionMain extends JavaChecker {
                         printProtocolFile(protocolFileName, sourcePath);
                         // Typestate protocol file is parsed here
                         CompilationUnit cu = parseProtocol(protocolFileName, sourcePath);
-                        cu.setProtocolName(m.getID());
+                        //cu.setProtocolName(m.getID());
                         for (TypeDecl td: cu.getTypeDecls()){
                             if (td instanceof TypestateDecl){
                                 System.out.println("This is a TypestateDecl " + td.name());
