@@ -1,10 +1,28 @@
 aspect TypestateCheck {
 
+    TypeDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> TypeDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        TypestateDecl td = this.getTypestateDecl();
+        if (!validNumTypestateAnnotation()){
+            problems.add(error("A TypeDecl could have at most one typestate annotation."));
+        }
+        if (hasTypestateAnnotation() && (td == null)){
+            problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
+        }
+        if(td != null){
+            System.out.println("Found TypestateDecl in TypeDecl: " + td.getID());
+        }        
+        return problems;
+    }
+
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         TypestateDecl td = this.getTypestateDecl();
-
+        if (!validNumTypestateAnnotation()){
+            problems.add(error("A ClassDecl could have at most one typestate annotation."));
+        }
         if (hasTypestateAnnotation() && (td == null)){
             problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }

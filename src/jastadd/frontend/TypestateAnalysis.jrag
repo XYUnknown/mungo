@@ -89,6 +89,19 @@ aspect TypestateAnalysis {
     }
 
     /**
+     * A TypeDecl could have at most one typestate annotation
+     */
+    public boolean TypeDecl.validNumTypestateAnnotation() {
+        LinkedList<TypestateAnnotation> list = new LinkedList<TypestateAnnotation>();
+        for (Modifier m: getModifiers().getModifierList()){
+            if (m instanceof TypestateAnnotation){
+                list.add((TypestateAnnotation) m);
+            }
+        }    
+        return ((list.size() == 0) || (list.size() == 1));
+    }
+
+    /**
      * Checking whether a TypeDecl has typestate or not
      */
     syn lazy boolean TypeDecl.hasTypestateDecl() {
