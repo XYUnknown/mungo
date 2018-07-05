@@ -1,0 +1,118 @@
+aspect TypestateAnalysis {
+	/**
+     * Adding a field state to VariableDeclarator to keep tracking the typestate
+     */
+    private State VariableDeclarator.state;
+
+    public void VariableDeclarator.setState(State state) {
+        this.state = state;
+    }
+
+    syn State VariableDeclarator.getState() {
+        return this.state;
+    }
+
+    syn boolean VariableDeclarator.hasState() {
+        return getState() != null;
+    }
+
+    /**
+     * Checking whether a compilation unit is constructed from a typestate protocol
+     */
+    public boolean CompilationUnit.isTypestateCompilationUnit(){
+        for (TypeDecl td: this.getTypeDecls()){
+            if (td instanceof TypestateDecl){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Getting the TypestateDecl from a CompilationUnit
+     * There should be only one TypestateDecl in one typestate complation unit 
+     */
+    public TypestateDecl CompilationUnit.getTypestateDecl(){
+    	if(isTypestateCompilationUnit()){
+    		for (TypeDecl td: this.getTypeDecls()){
+            	if (td instanceof TypestateDecl){
+                	return (TypestateDecl) td;
+            	}
+        	}
+    	}
+		return null;
+    }
+
+    /**
+     * Getting the TypestateAnnotation of a TypeDecl
+     * We need the TypestateAnnotation ID to check which 
+     * typestate protocol CompilationUnit is the corresponding one.
+     */
+    public TypestateAnnotation TypeDecl.getTypestateAnnotation(){
+        for (Modifier m: getModifiers().getModifierList()){
+            if (m instanceof TypestateAnnotation){
+                TypestateAnnotation ta = (TypestateAnnotation) m;
+                return ta;
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Checking whether a TypeDecl has typestate annotation
+     */
+    public boolean TypeDecl.hasTypestateAnnotation() {
+        return getTypestateAnnotation() == null? false : true;
+    }
+
+    /**
+     * Getting the TypestateDecl of a TypeDecl from compilation units
+     */
+    syn lazy TypestateDecl TypeDecl.getTypestateDecl() {
+    	TypestateAnnotation ta = getTypestateAnnotation();
+        if (ta != null){
+            ASTNode node = this.getParent();
+            while (! (node instanceof Program)){
+                node = node.getParent();
+            }   
+            Program program = (Program) node;
+            for (CompilationUnit cu: program.getCompilationUnitList()){
+                if(cu.isTypestateCompilationUnit()){
+                    if(cu.getTypestateDecl().getID().equals(ta.getID())){
+                        return cu.getTypestateDecl();
+                    }
+                }
+            }
+        }       
+        return null;
+    }
+
+    /**
+     * Checking whether a TypeDecl has typestate or not
+     */
+    syn lazy boolean TypeDecl.hasTypestateDecl() {
+        return getTypestateDecl() == null? false : true;
+    }
+
+    /**
+     * Checking whether a VarAccess has typestate or not
+     */
+    syn lazy boolean VarAccess.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * Checking whether a VarDeclStmt has typestate or not
+     */
+    syn lazy boolean VarDeclStmt.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * Checking whether a VarDeclStmt has typestate or not
+     */
+    syn lazy boolean VariableDeclarator.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+}
