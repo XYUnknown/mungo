@@ -32,69 +32,6 @@ aspect LookupMethod {
         return ac == null ? null : (VarAccess) ac;
     }
 
-	/**
-	 * Collecting all ClassInstanceExpr
-	 */
-	coll LinkedList<ClassInstanceExpr> CompilationUnit.collectClassInstanceExpressions() root CompilationUnit;
-    ConstructorDecl contributes {
-        if (checkImplicitConstructorInvocation()) {
-            getImplicitConstructorInvocation().collectContributions();
-        }
-        super.collectContributions();
-    } to CompilationUnit.collectClassInstanceExpressions();
-
-    ClassInstanceExpr contributes each classInstanceExpressions() to CompilationUnit.collectClassInstanceExpressions();
-    syn Collection<ClassInstanceExpr> ClassInstanceExpr.classInstanceExpressions() {
-        LinkedList<ClassInstanceExpr> list = new LinkedList<ClassInstanceExpr>();
-        list.add(this);
-        return list;
-    }
-
-    /**
-	 * Collecting all VarDeclStmt
-	 */
-	coll LinkedList<VarDeclStmt> CompilationUnit.collectVarDeclStmts() root CompilationUnit;
-    ConstructorDecl contributes {
-        if (checkImplicitConstructorInvocation()) {
-            getImplicitConstructorInvocation().collectContributions();
-        }
-        super.collectContributions();
-    } to CompilationUnit.collectVarDeclStmts();
-
-    VarDeclStmt contributes each varDeclStmts() to CompilationUnit.collectVarDeclStmts();
-    syn Collection<VarDeclStmt> VarDeclStmt.varDeclStmts() {
-        LinkedList<VarDeclStmt> list = new LinkedList<VarDeclStmt>();
-        list.add(this);
-        return list;
-    }
-
-    /**
-     * Checking whether a VarDeclStmt contains a specific ClassInstanceExpr
-     */
-    public boolean VarDeclStmt.containsClassInstanceExpr(ClassInstanceExpr c) {
-    	if (!this.getTypeAccess().type().equals(c.type())){
-    		return false;
-    	}
-    	int stmtStartLine = getLine(getStart());
-    	int stmtEndLine = getLine(getEnd());
-    	int cStartLine = getLine(c.getStart());
-    	int cEndLine = getLine(c.getEnd());
-    	return (stmtStartLine <= cStartLine) && (stmtEndLine >= cEndLine);
-    }
-
-    /**
-     * Checking whether a VarDeclStmt contains ClassInstanceExpr
-     */
-    public boolean VarDeclStmt.hasClassInstanceExpr(){
-    	LinkedList<ClassInstanceExpr> list = this.compilationUnit().collectClassInstanceExpressions();
-        for (ClassInstanceExpr c: list) {
-            if (this.containsClassInstanceExpr(c)){
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Get return type of a TypestateMethod
      */
@@ -154,6 +91,4 @@ aspect LookupMethod {
     syn State VariableDeclarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
 
     
-
-
 }
