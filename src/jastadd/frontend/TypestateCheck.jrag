@@ -67,25 +67,66 @@ aspect TypestateCheck {
   		return problems;
 	}
 
-
     VariableDeclarator contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VariableDeclarator.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("Printing VD: " + this); 
-        System.out.println("Init: " + getInit().getClass());  
+        System.out.println("Printing VD: " + this);  
         if (hasTypestateDecl()) {
             if (!hasState()) {
-                if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
-                    setState(getTypestateInitState());
-                } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
-                    VarAccess va = (VarAccess) getInit();
-                    setState(va.getState());
-                } else {
+                if (getInit() != null) {
+                    System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
+                    if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
+                        setState(getTypestateInitState());
+                    } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
+                        VarAccess va = (VarAccess) getInit();
+                        setState(va.getState());
+                    } else {
+                        // TODO: C c = a.get();
+                    }
+                    if (!hasState()) {
+                        problems.add(error("No Init State"));
+                    }
+                }                
+            }            
+        }
+        return problems;
+    }
 
+    AssignExpr contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> AssignExpr.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("AssignExpr source: " + getSource().isVariable() + " " + getSource().getClass());
+        System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
+        
+        if (getDest().isVariable() && getSource().isVariable()) {
+            if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
+                problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
+                    + " dest has typestate? " + getDest().hasTypestateDecl()));
+            } else if (getSource().hasTypestateDecl()) {  
+                State state = null;
+                if (getSource() instanceof VarAccess) {
+                    VarAccess va = (VarAccess) getSource();
+                    state = va.getState();
+                } else if (getSource().varDecl() instanceof Declarator) {
+                    Declarator d = (Declarator) getSource().varDecl();
+                    state = d.getState();
+                } else {
+                    // TODO c = a.get();
                 }
-            }
-            if (!hasState()) {
-                problems.add(error("No Init State"));
+                System.out.println("State: " + state);
+                if (getDest() instanceof VarAccess) {
+                    VarAccess dva = (VarAccess) getDest();
+                    Declarator dest = (Declarator)dva.varDecl();
+                    dest.setState(state);
+                    System.out.println("Dest State if: " + dva.getState());
+                } else if (getDest().varDecl() instanceof Declarator) {
+                    Declarator dest = (Declarator) getDest().varDecl();
+                    dest.setState(state);
+                    System.out.println("Dest State: " + dest.getState());
+                } else {
+                    problems.add(error("Cannot set state"));
+                }
+
             }
         }
         return problems;
