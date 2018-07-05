@@ -16,6 +16,11 @@ aspect TypestateAnalysis {
         return getState() != null;
     }
 
+    syn State VarAccess.getState() {
+        VariableDeclarator vd = (VariableDeclarator) varDecl(); 
+        return vd.getState();
+    }
+
     /**
      * Checking whether a compilation unit is constructed from a typestate protocol
      */

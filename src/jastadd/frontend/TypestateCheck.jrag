@@ -75,15 +75,18 @@ aspect TypestateCheck {
         System.out.println("Init: " + getInit().getClass());  
         if (hasTypestateDecl()) {
             if (!hasState()) {
-                if (getInit() instanceof ClassInstanceExpr) {
+                if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                     setState(getTypestateInitState());
+                } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
+                    VarAccess va = (VarAccess) getInit();
+                    setState(va.getState());
                 } else {
 
                 }
             }
-            //if (!hasState()) {
-                //problems.add(error("No Init State"));
-            //}
+            if (!hasState()) {
+                problems.add(error("No Init State"));
+            }
         }
         return problems;
     }
