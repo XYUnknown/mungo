@@ -2,6 +2,8 @@ aspect TypestateAnalysis {
 	/**
      * Adding a field state to Declarator to keep tracking the typestate
      * Valid for both FieldDeclarator and VariableDeclarator
+     * FieldDeclarator: Declarator
+     * VariableDeclarator: Declarator
      */
     private State Declarator.state;
 
@@ -129,6 +131,13 @@ aspect TypestateAnalysis {
      * Checking whether a VarDeclStmt has typestate or not
      */
     syn lazy boolean VarDeclStmt.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * Checking whether a Declarator has typestate or not
+     */
+    syn lazy boolean Declarator.hasTypestateDecl(){
         return this.type().hasTypestateDecl();
     }
 

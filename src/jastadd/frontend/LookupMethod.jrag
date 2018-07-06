@@ -88,7 +88,7 @@ aspect LookupMethod {
     	return isSameReturnType(tm) &&isSameName(tm) && isSameParamList(tm);
     }
 
-    syn State VariableDeclarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
+    syn State Declarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
 
     
 }

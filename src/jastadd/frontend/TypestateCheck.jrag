@@ -1,14 +1,20 @@
+/**
+ * Typestate checking in each node of the AST
+ * Every node contribute typestate problems to compilation unit problem collection
+ */
 aspect TypestateCheck {
-
+    /**
+     * Typestate checking in TypeDecl
+     */
     TypeDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> TypeDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         TypestateDecl td = this.getTypestateDecl();
-        if (!validNumTypestateAnnotation()){
+        if (!validNumTypestateAnnotation()) { // a TypeDecl could have at most one typestate annotation
             problems.add(error("A TypeDecl could have at most one typestate annotation."));
         }
-        if (hasTypestateAnnotation() && (td == null)){
-            problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
+        if (hasTypestateAnnotation() && (td == null)) { // the annotation is found but no AST
+            problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }
         if(td != null){
             System.out.println("Found TypestateDecl in TypeDecl: " + td.getID());
@@ -16,15 +22,19 @@ aspect TypestateCheck {
         return problems;
     }
 
+    /**
+     * Typestate checking in ClassDecl
+     * ClassDecl: TypeDecl
+     */
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         TypestateDecl td = this.getTypestateDecl();
-        if (!validNumTypestateAnnotation()){
+        if (!validNumTypestateAnnotation()) { // a ClassDecl could have at most one typestate annotation
             problems.add(error("A ClassDecl could have at most one typestate annotation."));
         }
-        if (hasTypestateAnnotation() && (td == null)){
-            problems.add(error("There is no CompilationUnit contructed from typestate protocol: " + getTypestateAnnotation().getID()));
+        if (hasTypestateAnnotation() && (td == null)) { // the annotation is found but no AST
+            problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }
         if(td != null){
             System.out.println("Found TypestateDecl in ClassDecl: " + td.getID());
@@ -32,6 +42,10 @@ aspect TypestateCheck {
         return problems;
     }
 
+    /**
+     * MethodAccess: c.foo()
+     * From a MethodAccess we could get VariableAccess and MethodDecl
+     */
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems() {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -39,13 +53,13 @@ aspect TypestateCheck {
         System.out.println("MethodAccess name: " + name());
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
-        if(va != null){
-            if(va.hasTypestateDecl() && va.hasState()){                
-                VariableDeclarator vd = (VariableDeclarator)va.varDecl();                
+        if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
+            if(va.hasTypestateDecl() && va.hasState()) { // if va does not have state, VarAccess will report error               
+                Declarator vd = (Declarator)va.varDecl();                
                 MethodDecl md = this.decl();
-                boolean result = false;
+                boolean result = false; // result of comparasion of method signatures
                 TypestateLabel tl = null;
-                TypestateMethodList typestate = (TypestateMethodList) vd.getState().getTypestate();
+                TypestateMethodList typestate = (TypestateMethodList) va.getState().getTypestate();
                 for (TypestateMethod tm: typestate.getTypestateMethodList()) {
                     result = md.isSameSignature(tm);
                     System.out.println("Same signature? " + result);                    
@@ -67,8 +81,11 @@ aspect TypestateCheck {
   		return problems;
 	}
 
-    VariableDeclarator contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> VariableDeclarator.typestateProblems() {
+    /**
+     * Declarator - C c;
+     */
+    Declarator contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> Declarator.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("Printing VD: " + this);  
         if (hasTypestateDecl()) {
@@ -95,11 +112,15 @@ aspect TypestateCheck {
         return problems;
     }
 
+
+    /**
+     * AssignExpr - c1 = c2;
+     */
     AssignExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> AssignExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("AssignExpr source: " + getSource().isVariable() + " " + getSource().getClass());
-        System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
+        //System.out.println("AssignExpr source: " + getSource().isVariable() + " " + getSource().getClass());
+        //System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
         
         if (getDest().isVariable() && getSource().isVariable()) {
             if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
@@ -135,6 +156,16 @@ aspect TypestateCheck {
         return problems;
     }
 
+    VarAccess contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> VarAccess.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        if (hasTypestateDecl() && !hasState()) {
+            problems.add(error("No Init State found in VarAccess " + this));
+        }
+        return problems;
+    }
+
+    /** Unused */
     ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -152,15 +183,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    VarAccess contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> VarAccess.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("Printing VA: " + this);  
-        if (hasTypestateDecl() && !hasState()) {
-            problems.add(error("No Init State found in VarAccess " + this));
-        }
-        return problems;
-    }
+    
 
 
 }
