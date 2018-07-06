@@ -40,7 +40,7 @@ aspect TypestateCheck {
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
         if(va != null){
-            if(va.hasTypestateDecl()){                
+            if(va.hasTypestateDecl() && va.hasState()){                
                 VariableDeclarator vd = (VariableDeclarator)va.varDecl();                
                 MethodDecl md = this.decl();
                 boolean result = false;
@@ -80,11 +80,14 @@ aspect TypestateCheck {
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
                         setState(va.getState());
+                    } else if (getInit().varDecl() instanceof Declarator) { // C c = a.get();
+                        Declarator d = (Declarator) getInit().varDecl();
+                        setState(d.getState());
                     } else {
-                        // TODO: C c = a.get();
+                        // TODO: other case? 
                     }
                     if (!hasState()) {
-                        problems.add(error("No Init State"));
+                        problems.add(error("No Init State of VariableDeclarator: " + this));
                     }
                 }                
             }            
@@ -111,7 +114,7 @@ aspect TypestateCheck {
                     Declarator d = (Declarator) getSource().varDecl();
                     state = d.getState();
                 } else {
-                    // TODO c = a.get();
+                    // TODO other cases?
                 }
                 System.out.println("State: " + state);
                 if (getDest() instanceof VarAccess) {
@@ -153,6 +156,9 @@ aspect TypestateCheck {
     syn Collection<Problem> VarAccess.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("Printing VA: " + this);  
+        if (hasTypestateDecl() && !hasState()) {
+            problems.add(error("No Init State found in VarAccess " + this));
+        }
         return problems;
     }
 

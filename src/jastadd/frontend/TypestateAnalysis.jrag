@@ -22,6 +22,10 @@ aspect TypestateAnalysis {
         return vd.getState();
     }
 
+    syn boolean VarAccess.hasState() {
+        return getState() != null;
+    }
+
     /**
      * Checking whether a compilation unit is constructed from a typestate protocol
      */
