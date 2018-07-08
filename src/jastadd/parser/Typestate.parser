@@ -131,17 +131,29 @@ TypestateLabel t_label			=	IDENTIFIER
 						:}
 					;
 
-TType ttype				=	type.a LT typestate.t GT
-						{:
-							TTypestate tt = new TTypestate(a, t);
+/**
+ * Fix parsing type with typestate
+ * The syntax in source code should be in this format: Class<<Typestate>>
+ * For example: Stack<<Empty>>
+ */
+TTypestate ttypestate   = type.a LSHIFT typestate.t RSHIFT
+						{:	
+							TTypestate tt;
+							if (a instanceof ParseName) {
+								ParseName temp = (ParseName) a;
+								TypeAccess ta = new TypeAccess(temp.name());
+								tt = new TTypestate(ta, t);
+							} else {
+								tt = new TTypestate(a, t);
+							}
 //							tt.setStart(LT.getStart());
+							System.out.println(tt);
 							return tt;
 						:}
+						;
 
-					|	type.a 
-
+TType ttype				=	type.a 
 						{:
-							System.out.println(a.getClass().getName());
 							TType tt;
 							if (a instanceof ParseName){
 								ParseName temp = (ParseName) a;
@@ -150,8 +162,6 @@ TType ttype				=	type.a LT typestate.t GT
 							} else {
 								tt = new TType(a);
 							}
-							System.out.println(tt);
-							System.out.println(tt.getNumChild());
 							return tt;
 						:}
 
@@ -169,6 +179,16 @@ List ttype_list				=	ttype.t
 					|	ttype_list.tl COMMA ttype.t
 						{:
 							return tl.add(t);
+						:}
+
+					| 	ttypestate.tt
+						{:
+							return new List<TType>().add(tt);
+						:}
+
+					|	ttype_list.tl COMMA ttypestate.tt
+						{:
+							return tl.add(tt);
 						:}
 					;
 
