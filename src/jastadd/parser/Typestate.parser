@@ -136,7 +136,7 @@ TypestateLabel t_label			=	IDENTIFIER
  * The syntax in source code should be in this format: Class<<Typestate>>
  * For example: Stack<<Empty>>
  */
-TTypestate ttypestate   = type.a LSHIFT typestate.t RSHIFT
+TType ttype				=	type.a LSHIFT typestate.t RSHIFT
 						{:	
 							TTypestate tt;
 							if (a instanceof ParseName) {
@@ -150,9 +150,8 @@ TTypestate ttypestate   = type.a LSHIFT typestate.t RSHIFT
 							System.out.println(tt);
 							return tt;
 						:}
-						;
 
-TType ttype				=	type.a 
+						|	type.a 
 						{:
 							TType tt;
 							if (a instanceof ParseName){
@@ -165,8 +164,7 @@ TType ttype				=	type.a
 							return tt;
 						:}
 
-					|	VOID
-
+						|	VOID
 						{:
 							return new TType(new PrimitiveTypeAccess("void"));
 						:}
@@ -179,16 +177,6 @@ List ttype_list				=	ttype.t
 					|	ttype_list.tl COMMA ttype.t
 						{:
 							return tl.add(t);
-						:}
-
-					| 	ttypestate.tt
-						{:
-							return new List<TType>().add(tt);
-						:}
-
-					|	ttype_list.tl COMMA ttypestate.tt
-						{:
-							return tl.add(tt);
 						:}
 					;
 
