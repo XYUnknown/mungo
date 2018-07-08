@@ -137,4 +137,10 @@ aspect TypestateSemanticCheck {
 		}
 	}
 
+	public void ASTNode.doPrintFullTraversalClass() {
+    	System.out.println(this.getClass());
+		for (int i = 0; i < getNumChild(); i++) {
+			getChild(i).doPrintFullTraversalClass();
+		}
+	}
 }
