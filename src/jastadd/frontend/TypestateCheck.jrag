@@ -90,7 +90,7 @@ aspect TypestateCheck {
         System.out.println("Printing VD: " + this);  
         if (hasTypestateDecl()) {
             if (!hasState()) {
-                if (getInit() != null) {
+                if (!(getInit() instanceof NullLiteral)) { // taking care of C c = null 
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                         setState(getTypestateInitState());
@@ -121,12 +121,11 @@ aspect TypestateCheck {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         //System.out.println("AssignExpr source: " + getSource().isVariable() + " " + getSource().getClass());
         //System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
-        
-        if (getDest().isVariable() && getSource().isVariable()) {
-            if (!getDest().isVariable()) {
-                problems.add(error("left hand side is not a variable"));
-                return problems;
-            }
+        if (!getDest().isVariable()) {
+            problems.add(error("left hand side is not a variable"));
+            return problems;
+        }
+        if (getSource().isVariable()) {            
             if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
                 problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
                     + " dest has typestate? " + getDest().hasTypestateDecl()));
@@ -160,9 +159,9 @@ aspect TypestateCheck {
     VarAccess contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarAccess.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        if (hasTypestateDecl() && !hasState()) {
+        if (hasTypestateDecl() && !hasState() ) {
             problems.add(error("No Init State found in VarAccess " + this));
-        }
+        }       
         return problems;
     }
 
