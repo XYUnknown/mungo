@@ -77,7 +77,7 @@ aspect TypestateCheck {
                     problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
                 }
             }
-        }        
+        }      
   		return problems;
 	}
 
@@ -96,7 +96,9 @@ aspect TypestateCheck {
                         setState(getTypestateInitState());
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
+                        Declarator d = (Declarator) va.varDecl();
                         setState(va.getState());
+                        d.setState(null); // one typestate object could only have one reference.
                     } else if (getInit().varDecl() instanceof Declarator) { // C c = a.get();
                         Declarator d = (Declarator) getInit().varDecl();
                         setState(d.getState());
@@ -134,7 +136,9 @@ aspect TypestateCheck {
                 State state = null;
                 if (getSource() instanceof VarAccess) { // c = c1
                     VarAccess va = (VarAccess) getSource();
+                    Declarator d = (Declarator) va.varDecl();
                     state = va.getState();
+                    d.setState(null); // one typestate object could only have one reference. 
                 } else if (getSource().varDecl() instanceof Declarator) { // c = c1.foo();
                     Declarator d = (Declarator) getSource().varDecl();
                     state = d.getState();
