@@ -123,30 +123,31 @@ aspect TypestateCheck {
         //System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
         
         if (getDest().isVariable() && getSource().isVariable()) {
+            if (!getDest().isVariable()) {
+                problems.add(error("left hand side is not a variable"));
+                return problems;
+            }
             if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
                 problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
                     + " dest has typestate? " + getDest().hasTypestateDecl()));
+                return problems;
             } else if (getSource().hasTypestateDecl()) {  
                 State state = null;
-                if (getSource() instanceof VarAccess) {
+                if (getSource() instanceof VarAccess) { // c = c1
                     VarAccess va = (VarAccess) getSource();
                     state = va.getState();
-                } else if (getSource().varDecl() instanceof Declarator) {
+                } else if (getSource().varDecl() instanceof Declarator) { // c = c1.foo();
                     Declarator d = (Declarator) getSource().varDecl();
                     state = d.getState();
                 } else {
                     // TODO other cases?
                 }
                 System.out.println("State: " + state);
-                if (getDest() instanceof VarAccess) {
+                if (getDest() instanceof VarAccess) { 
                     VarAccess dva = (VarAccess) getDest();
                     Declarator dest = (Declarator)dva.varDecl();
                     dest.setState(state);
-                    System.out.println("Dest State if: " + dva.getState());
-                } else if (getDest().varDecl() instanceof Declarator) {
-                    Declarator dest = (Declarator) getDest().varDecl();
-                    dest.setState(state);
-                    System.out.println("Dest State: " + dest.getState());
+                    System.out.println("Dest State: " + dva.getState());
                 } else {
                     problems.add(error("Cannot set state"));
                 }
