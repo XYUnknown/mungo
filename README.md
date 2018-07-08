@@ -2,6 +2,26 @@
 
 This project uses project `Extension Base` as a starting point. 
 
+## Cloning and Building this Project
+To clone this project, use this command:
+
+`git clone --recursive https://github.com/XYUnknown/mungo.git`
+
+To build this project, use this command:
+
+`gradle build`
+
+## Running the Typechecker
+Format of command to run the typechecker:
+
+`java -jar Typestate.jar [filepath]`
+
+Notice that all relevant java source files should be passed into command line, similar as using java compiler `javac *.java`.
+
+An example command to run the typechecker:
+
+`java -jar Typestate.jar testfiles/collection/*.java`
+
 
 ## README Documentation from Extension Base
 This project is a minimal working example of an extension to the extensible Java compiler ExtendJ. This should provide a useful base for creating your own extensions.
