@@ -54,7 +54,11 @@ aspect TypestateCheck {
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
-            if(va.hasTypestateDecl() && va.hasState()) { // if va does not have state, VarAccess will report error               
+            if (va.hasTypestateDecl() && !va.hasState()) { // if va does not have state, report error
+                problems.add(error("No Init State found in VarAccess " + va));
+                return problems;
+            }
+            if(va.hasTypestateDecl() && va.hasState()) {               
                 Declarator vd = (Declarator)va.varDecl();                
                 MethodDecl md = this.decl();
                 boolean result = false; // result of comparasion of method signatures
@@ -75,8 +79,10 @@ aspect TypestateCheck {
                 }
                 if(!result) {
                     problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
+                    return problems;
                 }
             }
+            
         }      
   		return problems;
 	}
@@ -145,12 +151,12 @@ aspect TypestateCheck {
                 } else {
                     // TODO other cases?
                 }
-                System.out.println("State: " + state);
+                System.out.println("State: " + state.getID());
                 if (getDest() instanceof VarAccess) { 
                     VarAccess dva = (VarAccess) getDest();
                     Declarator dest = (Declarator)dva.varDecl();
                     dest.setState(state);
-                    System.out.println("Dest State: " + dva.getState());
+                    System.out.println("Dest State: " + dva.getState().getID());
                 } else {
                     problems.add(error("Cannot set state"));
                 }
@@ -159,17 +165,17 @@ aspect TypestateCheck {
         }
         return problems;
     }
-
+    
+    /** Unused */
     VarAccess contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarAccess.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         if (hasTypestateDecl() && !hasState() ) {
-            problems.add(error("No Init State found in VarAccess " + this));
+            //problems.add(error("No Init State found in VarAccess " + this));
         }       
         return problems;
     }
 
-    /** Unused */
     ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -182,7 +188,7 @@ aspect TypestateCheck {
         //System.out.println("VarDeclStmt: " + this + " " +this.lineNumber());
         //System.out.println("VarDeclStmt Declarators: ");
         for (VariableDeclarator vd: getDeclarators()){
-            System.out.println(vd);
+            //System.out.println(vd);
         }
         return problems;
     }
