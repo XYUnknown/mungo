@@ -41,7 +41,7 @@ public class Cat {
 		c1.initialise();
 		c2.initialise();
 		Cat c3 = c2;
-		c1.playWith(c2); // Error not detected
+		c1.playWith(c2); // Error detected
 		c2.playWith(c1); // Error detected
 	}
 }
