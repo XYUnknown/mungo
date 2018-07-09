@@ -131,7 +131,6 @@ aspect TypestateCheck {
         return problems;
     }
 
-
     /**
      * AssignExpr - c1 = c2;
      */
@@ -218,8 +217,4 @@ aspect TypestateCheck {
         }
         return problems;
     }
-
-    
-
-
 }
