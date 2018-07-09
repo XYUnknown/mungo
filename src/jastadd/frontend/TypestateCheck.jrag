@@ -83,7 +83,18 @@ aspect TypestateCheck {
                 }
             }
             
-        }      
+        } 
+        // Checking argument
+        for (int i = 0; i < getNumArg(); i++) {
+            System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
+            if (getArg(i) instanceof VarAccess) {
+                VarAccess arg = (VarAccess) getArg(i);
+                if (arg.hasTypestateDecl() && arg.getState() == null) {
+                   problems.add(error("No Init State found in argument " + arg));
+                   return problems; 
+                }
+            }
+        }     
   		return problems;
 	}
 
@@ -165,7 +176,7 @@ aspect TypestateCheck {
         }
         return problems;
     }
-    
+
     /** Unused */
     VarAccess contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarAccess.typestateProblems() {
