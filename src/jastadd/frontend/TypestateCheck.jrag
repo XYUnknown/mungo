@@ -106,21 +106,21 @@ aspect TypestateCheck {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("Printing VD: " + this);  
         if (hasTypestateDecl()) {
-            if (!hasState()) {
+            if (!hasState()) { // getInit() : Expr
                 if (!(getInit() instanceof NullLiteral)) { // taking care of C c = null 
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
-                        setState(getTypestateInitState());
+                        ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
+                        setState(ins.getState());
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
                         Declarator d = (Declarator) va.varDecl();
                         setState(va.getState());
                         d.setState(null); // one typestate object could only have one reference.
-                    } else if (getInit().varDecl() instanceof Declarator) { // C c = a.get();
-                        Declarator d = (Declarator) getInit().varDecl();
-                        setState(d.getState());
+                    } else if (getInit() instanceof Dot) { // C c = a.get();
+                        // TODO: checking return type?
                     } else {
-                        // TODO: other case? 
+                        // TODO analysing other Expr
                     }
                     if (!hasState()) {
                         problems.add(error("No Init State of VariableDeclarator: " + this));
@@ -144,40 +144,61 @@ aspect TypestateCheck {
             problems.add(error("left hand side is not a variable"));
             return problems;
         }
-        if (getSource().isVariable()) {            
-            if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
-                problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
-                    + " dest has typestate? " + getDest().hasTypestateDecl()));
-                return problems;
-            } else if (getSource().hasTypestateDecl()) {  
-                State state = null;
-                if (getSource() instanceof VarAccess) { // c = c1
-                    VarAccess va = (VarAccess) getSource();
-                    Declarator d = (Declarator) va.varDecl();
-                    state = va.getState();
-                    d.setState(null); // one typestate object could only have one reference. 
-                } else if (getSource().varDecl() instanceof Declarator) { // c = c1.foo();
-                    Declarator d = (Declarator) getSource().varDecl();
-                    state = d.getState();
-                } else {
-                    // TODO other cases?
-                }
-                System.out.println("State: " + state.getID());
-                if (getDest() instanceof VarAccess) { 
-                    VarAccess dva = (VarAccess) getDest();
-                    Declarator dest = (Declarator)dva.varDecl();
-                    dest.setState(state);
-                    System.out.println("Dest State: " + dva.getState().getID());
-                } else {
-                    problems.add(error("Cannot set state"));
-                }
+        if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
+            problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
+                + " dest has typestate? " + getDest().hasTypestateDecl()));
+            return problems;
+        }
+        if (getSource().hasTypestateDecl()) {  
+            State state = null;
+            if (getSource() instanceof VarAccess) { // c = c1
+                VarAccess va = (VarAccess) getSource();
+                Declarator d = (Declarator) va.varDecl();
+                state = va.getState();
+                d.setState(null); // one typestate object could only have one reference. 
+            } else if (getSource() instanceof ClassInstanceExpr) {
+                ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
+                state = ins.getState(); 
+            } else if (getSource() instanceof Dot) { // c = c1.foo();
+                //Declarator d = (Declarator) getSource().varDecl();
+                //state = d.getState();
+            } else {
+                // TODO analysing other Expr
+            }
+            System.out.println("State: " + state.getID());
+            if (getDest() instanceof VarAccess) { 
+                VarAccess dva = (VarAccess) getDest();
+                Declarator dest = (Declarator)dva.varDecl();
+                dest.setState(state);
+                System.out.println("Dest State: " + dva.getState().getID());
+            } else {
+                problems.add(error("Cannot set state"));
+            }
+        }        
+        return problems;
+    }
 
+    ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        if (this.hasTypestateState()) {
+            if (!this.hasState()) {
+                problems.add(error("ClassInstanceExpr has no Init state"));
+            } else if (!this.getState().equals(type().getTypestateDecl().getInitState())) {
+                problems.add(error("ClassInstanceExpr should be in Init state instead of " + this.getState().getID()));
             }
         }
         return problems;
     }
 
     /** Unused */
+    Dot contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> Dot.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        //System.out.println("varDecl of Dot: " + this + " " + this.varDecl());
+        return problems;
+    }
+
     VarAccess contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarAccess.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -185,13 +206,7 @@ aspect TypestateCheck {
             //problems.add(error("No Init State found in VarAccess " + this));
         }       
         return problems;
-    }
-
-    ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        return problems;
-    }
+    }    
 
     VarDeclStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> VarDeclStmt.typestateProblems() {
