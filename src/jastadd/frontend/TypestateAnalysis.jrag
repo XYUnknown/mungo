@@ -62,8 +62,21 @@ aspect TypestateAnalysis {
     /**
      * VarAccess, getting the state of the corresponding Declarator
      */
+
+    /**
+     * Checking whether a VarAccess has typestate or not
+     */
+    syn boolean VarAccess.hasTypestateDecl() {
+        return this.type().hasTypestateDecl();
+    }
+
+    syn boolean VarAccess.hasTypestateState() {
+        Declarator vd = (Declarator) varDecl(); 
+        return vd.hasTypestateState();
+    }
+
     public State VarAccess.getState() {
-        VariableDeclarator vd = (VariableDeclarator) varDecl(); 
+        Declarator vd = (Declarator) varDecl(); 
         return vd.getState();
     }
 
@@ -189,13 +202,6 @@ aspect TypestateAnalysis {
      */
     syn lazy boolean TypeDecl.hasTypestateDecl() {
         return getTypestateDecl() == null? false : true;
-    }
-
-    /**
-     * Checking whether a VarAccess has typestate or not
-     */
-    syn lazy boolean VarAccess.hasTypestateDecl() {
-        return this.type().hasTypestateDecl();
     }
 
     /**

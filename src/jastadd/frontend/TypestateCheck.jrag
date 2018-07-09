@@ -89,7 +89,7 @@ aspect TypestateCheck {
             System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
-                if (arg.hasTypestateDecl() && arg.getState() == null) {
+                if (arg.hasTypestateState() && arg.getState() == null) {
                    problems.add(error("No Init State found in argument " + arg));
                    return problems; 
                 }
