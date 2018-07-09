@@ -1,32 +1,103 @@
 aspect TypestateAnalysis {
+    /**
+     * Adding a field state to ASTNode
+     */
+    private State ASTNode.typestate = null;
+
+    /**
+     * Checking whether a ASTNode has typestate or not
+     * TypeDecl and its child nodes might have TypstateDecl
+     */
+    syn boolean ASTNode.hasTypestateDecl() {
+        return false;
+    }
+
+    /** 
+     * Attribute hasTypestateState(), ASTNode does not have state,
+     * but some subtypes of ASTNode have state
+     */
+    syn boolean ASTNode.hasTypestateState() {
+        return false;
+    }
+
+    public void ASTNode.setState(State typestate) {
+        if (hasTypestateState()) {
+            this.typestate = typestate;
+        }        
+    }
+
+    public State ASTNode.getState() {
+        return this.typestate;
+    }
+
+    public boolean ASTNode.hasState() {
+        return false;
+    }
+
 	/**
-     * Adding a field state to Declarator to keep tracking the typestate
+     * Declarator: ASTNode
      * Valid for both FieldDeclarator and VariableDeclarator
      * FieldDeclarator: Declarator
      * VariableDeclarator: Declarator
      */
-    private State Declarator.state;
 
-    public void Declarator.setState(State state) {
-        this.state = state;
+    /**
+     * Checking whether a Declarator has typestate or not
+     */
+    syn boolean Declarator.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
     }
 
-    syn State Declarator.getState() {
-        return this.state;
-    }
+    /** 
+     * Attribute hasTypestateState(), a Declarator should have a state
+     * if it has a TypestateDecl.
+     */
+    eq Declarator.hasTypestateState() = hasTypestateDecl();
 
-    syn boolean Declarator.hasState() {
+    @Override
+    public boolean Declarator.hasState() {
         return getState() != null;
     }
 
-    syn State VarAccess.getState() {
+    /**
+     * VarAccess, getting the state of the corresponding Declarator
+     */
+    public State VarAccess.getState() {
         VariableDeclarator vd = (VariableDeclarator) varDecl(); 
         return vd.getState();
     }
 
-    syn boolean VarAccess.hasState() {
+    public boolean VarAccess.hasState() {
         return getState() != null;
     }
+
+    /**
+     * ClassInstanceExpr: Access 
+     */
+    syn boolean ClassInstanceExpr.hasTypestateDecl() {
+        return this.type().hasTypestateDecl();
+    }
+
+    /** 
+     * A ClassInstanceExpr should have a state if it has a TypestateDecl,
+     * state will always be init state
+     */
+    eq ClassInstanceExpr.hasTypestateState() = hasTypestateDecl();
+
+    @Override
+    public boolean ClassInstanceExpr.hasState() {
+        return getState() != null;
+    }
+
+    @Override
+    public State ClassInstanceExpr.getState() {
+        if (hasTypestateState()) {
+            super.setState(type().getTypestateDecl().getInitState());
+        }
+        return super.getState();
+    }
+
+
 
     /**
      * Checking whether a compilation unit is constructed from a typestate protocol
@@ -135,23 +206,11 @@ aspect TypestateAnalysis {
     }
 
     /**
-     * Checking whether a Declarator has typestate or not
-     */
-    syn lazy boolean Declarator.hasTypestateDecl(){
-        return this.type().hasTypestateDecl();
-    }
-
-    /**
      * Checking whether a VariableDeclarator has typestate or not
      */
     syn lazy boolean VariableDeclarator.hasTypestateDecl(){
         return this.type().hasTypestateDecl();
     }
 
-    /**
-     * Checking whether a Expr has typestate or not
-     */
-    syn lazy boolean Expr.hasTypestateDecl() {
-        return this.type().hasTypestateDecl();
-    }
+    
 }
