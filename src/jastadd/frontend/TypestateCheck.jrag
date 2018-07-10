@@ -67,6 +67,11 @@ aspect TypestateCheck {
                 // lookup the TypestateMethod which has same signature as the MethodDecl
                 tsMethod = methodList.lookupMethod(md); 
                 if (tsMethod != null) { // The TypestateMethod is found
+                    // TODO checking argument
+                    if(!isValidParamState(tsMethod)) {
+                        problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
+                        return problems;
+                    }
                     if (tsMethod.getTypestate() instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
                         vd.setState(tl.getTarget()); // Update State of VariableDeclarator
@@ -79,7 +84,11 @@ aspect TypestateCheck {
                 }
             }
         } 
-        // Checking argument
+        /* *
+         * Checking null state argument for all method Access
+         * If a reference to a typestate object is `removed` 
+         * Any method access using this reference will be regard as invalid
+         */
         for (int i = 0; i < getNumArg(); i++) {
             System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
             if (getArg(i) instanceof VarAccess) {

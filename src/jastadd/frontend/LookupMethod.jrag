@@ -69,9 +69,6 @@ aspect LookupMethod {
     		for (int i = 0; i < this.getNumParameter(); i++){
     			mdParam = getParameter(i).getTypeAccess();
     			tmParam = tm.getTTypeList().getTType(i).getAccess();
-                if (tm.getTTypeList().getTType(i) instanceof TTypestate) {
-                    System.out.println("Found TTypestate ");
-                }
     			if (!mdParam.getClass().equals(tmParam.getClass())){
     				return false;
     			}
@@ -89,6 +86,44 @@ aspect LookupMethod {
      */
     public boolean MethodDecl.isSameSignature(TypestateMethod tm) {
     	return isSameReturnType(tm) &&isSameName(tm) && isSameParamList(tm);
+    }
+
+    /**
+     * Check whether the arguments in a MethodAccess have valid state or not
+     */
+    public boolean MethodAccess.isValidParamState(TypestateMethod tm) {
+        if (this.decl().isSameSignature(tm)) {
+            Expr maArg, tmParam;
+            if (this.getNumArg() == 0) { // Do not have arguments, nothing to check
+                return true;
+            }
+            for (int i = 0; i < this.getNumArg(); i++){
+                maArg = getArg(i);
+                tmParam = tm.getTTypeList().getTType(i).getAccess();
+                // A parameter has typestate specification
+                if (tm.getTTypeList().getTType(i) instanceof TTypestate) {
+                    TTypestate tt = (TTypestate) tm.getTTypeList().getTType(i);
+                    Typestate ts = tt.getTypestate();
+                    if (ts instanceof TypestateLabel) {
+                        TypestateLabel tl = (TypestateLabel) ts;
+                        System.out.println("Found TTypestate " + tl.getStateAncestor().getID());
+                        if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
+                            System.out.println("State equal? " + maArg.getState().equals(tl.getStateAncestor()));
+                            if(!maArg.getState().equals(tl.getStateAncestor())) { // state mismatch, return false
+                                return false;
+                            }
+                        } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
+                            return false;
+                        }
+                    } else if (ts instanceof TypestateSwitch) {
+                        // TODO args checking for TypestateSwitch
+                        return true;
+                    }                                      
+                }             
+            }
+            return true; // nothing happens, return true
+        }
+        return false; // not same signature, return false
     }
 
     /**
