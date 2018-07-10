@@ -59,10 +59,8 @@ aspect TypestateCheck {
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
             }
-            if(va.hasTypestateState() && va.hasState()) {               
-                // Declarator vd = (Declarator)va.varDecl();
-                ASTNode vd = (ASTNode) va.varDecl();  
-                System.out.println("VD class cast " + vd.getClass());              
+            if(va.hasTypestateState() && va.hasState()) {
+                ASTNode vd = (ASTNode) va.varDecl();               
                 MethodDecl md = this.decl();
                 TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
                 // lookup the TypestateMethod which has same signature as the MethodDecl
