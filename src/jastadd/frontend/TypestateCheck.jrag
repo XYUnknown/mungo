@@ -66,7 +66,6 @@ aspect TypestateCheck {
                 // lookup the TypestateMethod which has same signature as the MethodDecl
                 tsMethod = methodList.lookupMethod(md); 
                 if (tsMethod != null) { // The TypestateMethod is found
-                    // TODO checking argument
                     if(!isValidParamState(tsMethod)) {
                         problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
                         return problems;
