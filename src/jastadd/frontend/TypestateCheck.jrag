@@ -64,13 +64,12 @@ aspect TypestateCheck {
                 ASTNode vd = (ASTNode) va.varDecl();  
                 System.out.println("VD class cast " + vd.getClass());              
                 MethodDecl md = this.decl();
-                TypestateLabel tl = null;
-                TypestateMethodList typestate = (TypestateMethodList) va.getState().getTypestate();
+                TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
                 // lookup the TypestateMethod which has same signature as the MethodDecl
-                TypestateMethod result = typestate.lookupMethod(md); 
+                TypestateMethod result = methodList.lookupMethod(md); 
                 if (result != null) { // The TypestateMethod is found
                     if (result.getTypestate() instanceof TypestateLabel) {
-                        tl = (TypestateLabel) result.getTypestate();
+                        TypestateLabel tl = (TypestateLabel) result.getTypestate();
                         vd.setState(tl.getTarget()); // Update State of VariableDeclarator
                     } else if (result.getTypestate() instanceof TypestateSwitch){
                         // TODO: type state check of TypestateSwitch
