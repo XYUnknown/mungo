@@ -106,7 +106,6 @@ aspect LookupMethod {
                     Typestate ts = tt.getTypestate();
                     if (ts instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) ts;
-                        System.out.println("Found TTypestate " + tl.getStateAncestor().getID());
                         if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
                             System.out.println("State equal? " + maArg.getState().equals(tl.getStateAncestor()));
                             if(!maArg.getState().equals(tl.getStateAncestor())) { // state mismatch, return false

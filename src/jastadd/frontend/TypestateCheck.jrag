@@ -55,7 +55,6 @@ aspect TypestateCheck {
         VarAccess va = getVarAccess();
         TypestateMethod tsMethod = null; // used for lookup method with signature 
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
-            System.out.println("MethodAccess VA varDecl: " + va.varDecl() + " " + va.varDecl().getClass());
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
@@ -83,7 +82,8 @@ aspect TypestateCheck {
                     return problems;
                 }
             }
-        } 
+        }
+
         /* *
          * Checking null state argument for all method Access
          * If a reference to a typestate object is `removed` 
