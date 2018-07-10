@@ -69,7 +69,44 @@ aspect TypestateAnalysis {
     }
 
     /**
-     * VarAccess, getting the state of the corresponding Declarator
+     * ParameterDeclaration: ASTNode
+     * Direct subtype - VariableArityParameterDeclaration
+     */
+    syn boolean ParameterDeclaration.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+
+    eq ParameterDeclaration.hasTypestateState() = hasTypestateDecl();
+
+    @Override
+    public boolean ParameterDeclaration.hasState() {
+        return getState() != null;
+    }
+
+    /**
+     * InferredParameterDeclaration: ASTNode
+     */
+    syn boolean InferredParameterDeclaration.hasTypestateDecl(){
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * EnumConstant: ASTNode
+     */
+    syn boolean EnumConstant.hasTypestateDecl() {
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * CatchParameterDeclaration: ASTNode
+     * Currently does not have state 
+     */
+    syn boolean CatchParameterDeclaration.hasTypestateDecl() {
+        return this.type().hasTypestateDecl();
+    }
+
+    /**
+     * VarAccess, getting the state of the corresponding subtypes implementing Variable
      */
 
     /**
@@ -80,13 +117,14 @@ aspect TypestateAnalysis {
     }
 
     syn boolean VarAccess.hasTypestateState() {
-        Declarator vd = (Declarator) varDecl(); 
-        return vd.hasTypestateState();
+        //Declarator vd = (Declarator) varDecl(); 
+        ASTNode node = (ASTNode) varDecl();
+        return node.hasTypestateState();
     }
 
     public State VarAccess.getState() {
-        Declarator vd = (Declarator) varDecl(); 
-        return vd.getState();
+        ASTNode node = (ASTNode) varDecl();
+        return node.getState();
     }
 
     public boolean VarAccess.hasState() {
