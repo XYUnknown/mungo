@@ -64,28 +64,22 @@ aspect TypestateCheck {
                 ASTNode vd = (ASTNode) va.varDecl();  
                 System.out.println("VD class cast " + vd.getClass());              
                 MethodDecl md = this.decl();
-                boolean result = false; // result of comparasion of method signatures
                 TypestateLabel tl = null;
                 TypestateMethodList typestate = (TypestateMethodList) va.getState().getTypestate();
-                for (TypestateMethod tm: typestate.getTypestateMethodList()) {
-                    result = md.isSameSignature(tm);
-                    System.out.println("Same signature? " + result);                    
-                    if (result) {
-                        if (tm.getTypestate() instanceof TypestateLabel) {
-                            tl = (TypestateLabel) tm.getTypestate();
-                            vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                        } else if (tm.getTypestate() instanceof TypestateSwitch){
+                // lookup the TypestateMethod which has same signature as the MethodDecl
+                TypestateMethod result = typestate.lookupMethod(md); 
+                if (result != null) { // The TypestateMethod is found
+                    if (result.getTypestate() instanceof TypestateLabel) {
+                        tl = (TypestateLabel) result.getTypestate();
+                        vd.setState(tl.getTarget()); // Update State of VariableDeclarator
+                    } else if (result.getTypestate() instanceof TypestateSwitch){
                         // TODO: type state check of TypestateSwitch
-                        }
-                        break;
                     }
-                }
-                if(!result) {
+                } else { // The TypestateMethod is not found 
                     problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
                     return problems;
                 }
             }
-            
         } 
         // Checking argument
         for (int i = 0; i < getNumArg(); i++) {
@@ -93,7 +87,7 @@ aspect TypestateCheck {
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
                 if (arg.hasTypestateState() && arg.getState() == null) {
-                   problems.add(error("No Init State found in argument " + arg));
+                   problems.add(error("No Init State found in MethodAccess argument " + arg));
                    return problems; 
                 }
             }

@@ -91,6 +91,20 @@ aspect LookupMethod {
     	return isSameReturnType(tm) &&isSameName(tm) && isSameParamList(tm);
     }
 
+    /**
+     * Look up a TypestateMethod in TypestateMethodList for a MethodDecl
+     */
+    syn TypestateMethod TypestateMethodList.lookupMethod(MethodDecl md) {
+        TypestateMethod result = null;        
+        for (TypestateMethod tm: this.getTypestateMethodList()) {
+            if (md.isSameSignature(tm)) {
+                result = tm;
+                return result;
+            }            
+        }
+        return result;
+    }
+
     syn State Declarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
 
     
