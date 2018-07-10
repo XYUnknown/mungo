@@ -54,12 +54,15 @@ aspect TypestateCheck {
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
-            if (va.hasTypestateDecl() && !va.hasState()) { // if va does not have state, report error
+            System.out.println("MethodAccess VA varDecl: " + va.varDecl() + " " + va.varDecl().getClass());
+            if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
             }
-            if(va.hasTypestateDecl() && va.hasState()) {               
-                Declarator vd = (Declarator)va.varDecl();                
+            if(va.hasTypestateState() && va.hasState()) {               
+                // Declarator vd = (Declarator)va.varDecl();
+                ASTNode vd = (ASTNode) va.varDecl();  
+                System.out.println("VD class cast " + vd.getClass());              
                 MethodDecl md = this.decl();
                 boolean result = false; // result of comparasion of method signatures
                 TypestateLabel tl = null;
