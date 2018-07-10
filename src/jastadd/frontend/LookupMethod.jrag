@@ -126,6 +126,40 @@ aspect LookupMethod {
     }
 
     /**
+     * Checking null state argument for all method Access
+     * If a reference to a typestate object is `removed` 
+     * Any method access using this reference will be regard as invalid
+     */
+    public boolean MethodAccess.hasParamWithNullState() {
+        for (int i = 0; i < getNumArg(); i++) {
+            System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
+            if (getArg(i) instanceof VarAccess) {
+                VarAccess arg = (VarAccess) getArg(i);
+                if (arg.hasTypestateState() && arg.getState() == null) {
+                   // problems.add(error("No Init State found in MethodAccess argument " + arg));
+                   return true; 
+                }
+            }
+        }
+        return false;
+    }
+
+    public VarAccess MethodAccess.getParamWithNullState() {
+        for (int i = 0; i < getNumArg(); i++) {
+            System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
+            if (getArg(i) instanceof VarAccess) {
+                VarAccess arg = (VarAccess) getArg(i);
+                if (arg.hasTypestateState() && arg.getState() == null) {
+                   // problems.add(error("No Init State found in MethodAccess argument " + arg));
+                   return arg; 
+                }
+            }
+        }
+        return null;
+    }
+    
+
+    /**
      * Look up a TypestateMethod in TypestateMethodList for a MethodDecl
      */
     syn TypestateMethod TypestateMethodList.lookupMethod(MethodDecl md) {
