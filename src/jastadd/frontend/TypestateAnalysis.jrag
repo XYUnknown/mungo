@@ -42,7 +42,6 @@ aspect TypestateAnalysis {
         return this.type().hasTypestateDecl();
     }
 
-
 	/**
      * Declarator: ASTNode
      * Valid for both FieldDeclarator and VariableDeclarator
@@ -157,7 +156,25 @@ aspect TypestateAnalysis {
         return super.getState();
     }
 
+    /**
+     * MethodAccess: Access
+     * A MethodAccess might have a TypestateDecl
+     * but does not have Typestate state.
+     */
+    syn boolean MethodAccess.hasTypestateDecl() {
+        return decl().hasTypestateDecl(); // the TypeDecl in which MethodDecl is declared
+    }
 
+    /**
+     * MethodDecl: MemberDecl
+     * MemberDecl: BodyDecl
+     * BodyDecl: ASTNode
+     * A MethodDecl might have a TypestateDecl
+     * but does not have Typestate state.
+     */
+    syn boolean MethodDecl.hasTypestateDecl() {
+        return hostType().hasTypestateDecl(); // the TypeDecl in which MethodDecl is declared
+    }
 
     /**
      * Checking whether a compilation unit is constructed from a typestate protocol
