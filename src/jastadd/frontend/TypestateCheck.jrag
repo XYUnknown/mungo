@@ -53,6 +53,7 @@ aspect TypestateCheck {
         System.out.println("MethodAccess name: " + name());
         System.out.println("MethodAccess instance: " + getVarAccess());
         VarAccess va = getVarAccess();
+        TypestateMethod tsMethod = null; // used for lookup method with signature 
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
             System.out.println("MethodAccess VA varDecl: " + va.varDecl() + " " + va.varDecl().getClass());
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
@@ -64,12 +65,12 @@ aspect TypestateCheck {
                 MethodDecl md = this.decl();
                 TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
                 // lookup the TypestateMethod which has same signature as the MethodDecl
-                TypestateMethod result = methodList.lookupMethod(md); 
-                if (result != null) { // The TypestateMethod is found
-                    if (result.getTypestate() instanceof TypestateLabel) {
-                        TypestateLabel tl = (TypestateLabel) result.getTypestate();
+                tsMethod = methodList.lookupMethod(md); 
+                if (tsMethod != null) { // The TypestateMethod is found
+                    if (tsMethod.getTypestate() instanceof TypestateLabel) {
+                        TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
                         vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                    } else if (result.getTypestate() instanceof TypestateSwitch){
+                    } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
                         // TODO: type state check of TypestateSwitch
                     }
                 } else { // The TypestateMethod is not found 
