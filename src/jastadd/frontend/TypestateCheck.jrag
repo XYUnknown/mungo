@@ -186,7 +186,46 @@ aspect TypestateCheck {
         return problems;
     }
 
+    MethodDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> MethodDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        Block block = getBlock();
+        System.out.println("MethodDecl getAccess: " + this.getTypeAccess() + " " + this.getTypeAccess().getClass());
+        if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
+            if (hasTypestateDecl() && returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
+                TypestateDecl td = this.hostType().getTypestateDecl();
+                TypestateMethod tm = td.lookupMethod(this);
+                if (tm == null) {
+                    problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
+                    return problems;
+                }
+                System.out.println("MethodDecl found TypestateMethod: " + tm);
+                if (block != null) { // Do not check return statement of abstract method declaration
+                    System.out.println("MethodDecl " + this.name() + " stmts: ");
+                    for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
+                        if (s instanceof ReturnStmt) {
+                            ReturnStmt rs = (ReturnStmt)s;
+                            System.out.println("Same return state? " + tm.isSameReturnState(rs));
+                            if (!tm.isSameReturnState(rs)) { // State mismatch, report error
+                                problems.add(error("ReturnStmt Typestate mismatch"));
+                            }
+                        }
+                    }
+                }
+            }            
+        }         
+        return problems;
+    }
+
     /** Unused */
+    ReturnStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ReturnStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        //System.out.println("ReturnStmt class: " + returnType());
+        //System.out.println("ReturnStmt result: " + getResult() + " " + getResult().getClass());
+        return problems;
+    }
+    
     Dot contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> Dot.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
