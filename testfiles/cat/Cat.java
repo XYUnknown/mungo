@@ -31,6 +31,10 @@ public class Cat {
 		return BooleanChoice.TRUE;
 	}
 
+	public Cat giveBirth() {
+		return new Cat();
+	}
+
 	public void close() {
 
 	}
@@ -43,5 +47,13 @@ public class Cat {
 		Cat c3 = c2;
 		c1.playWith(c2); // Error detected
 		c2.playWith(c1); // Error detected
+		c1.playWith(c3); // pass
+		c3.poison();
+		c1.playWith(c3); // Error detected
+		Cat c4 = new Cat();
+		c4.initialise();
+		c4.putInBox();
+		c1.playWith(c4); // Error detected
+		c4.playWith(c1); // Error detected
 	}
 }

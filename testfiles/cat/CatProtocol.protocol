@@ -9,6 +9,7 @@ typestate CatProtocol {
 		void putInBox(): Schrodinger,
 		void playWith(Cat<<Alive>>): Alive,
 		void poison(): Dead,
+		Cat<<Init>> giveBirth(): Alive,
 		void close(): end
 	}
 
@@ -18,7 +19,6 @@ typestate CatProtocol {
 	}
 
 	Schrodinger = {
-		void poison() : Dead,
 		BooleanChoice openBox() : <TRUE: Alive, FALSE: Dead>
 	}
 }
