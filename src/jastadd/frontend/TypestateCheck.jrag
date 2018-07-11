@@ -100,7 +100,7 @@ aspect TypestateCheck {
         System.out.println("Printing VD: " + this);  
         if (hasTypestateState()) {
             if (!hasState()) { // getInit() : Expr
-                if (!(getInit() instanceof NullLiteral)) { // taking care of C c = null 
+                if ((getInit() != null ) && !(getInit() instanceof NullLiteral)) { // taking care of C c = null; and C c;
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
@@ -140,7 +140,7 @@ aspect TypestateCheck {
             problems.add(error("left hand side is not a variable"));
             return problems;
         }
-        if (getDest().hasTypestateState() ^ getSource().hasTypestateState()) {
+        if ((getDest().hasTypestateState() ^ getSource().hasTypestateState()) && !(getSource() instanceof NullLiteral)) { // c = null
             problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateState() 
                 + " dest has typestate? " + getDest().hasTypestateState()));
             return problems;
@@ -225,7 +225,7 @@ aspect TypestateCheck {
         //System.out.println("ReturnStmt result: " + getResult() + " " + getResult().getClass());
         return problems;
     }
-    
+
     Dot contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> Dot.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
