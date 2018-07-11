@@ -159,15 +159,28 @@ aspect LookupMethod {
             }
         }
         return null;
-    }
-    
+    }    
 
     /**
-     * Look up a TypestateMethod in TypestateMethodList for a MethodDecl
+     * Lookup a TypestateMethod in TypestateMethodList for a MethodDecl
      */
     syn TypestateMethod TypestateMethodList.lookupMethod(MethodDecl md) {
         TypestateMethod result = null;        
         for (TypestateMethod tm: this.getTypestateMethodList()) {
+            if (md.isSameSignature(tm)) {
+                result = tm;
+                return result;
+            }            
+        }
+        return result;
+    }
+
+    /** 
+     * Lookup a TypestateMethod in TypestateDecl for a MethodDecl
+     */
+    syn TypestateMethod TypestateDecl.lookupMethod(MethodDecl md) {
+        TypestateMethod result = null;        
+        for (TypestateMethod tm: this.getMethods()) {
             if (md.isSameSignature(tm)) {
                 result = tm;
                 return result;
