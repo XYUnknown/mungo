@@ -98,7 +98,7 @@ aspect TypestateCheck {
     syn Collection<Problem> Declarator.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("Printing VD: " + this);  
-        if (hasTypestateDecl()) {
+        if (hasTypestateState()) {
             if (!hasState()) { // getInit() : Expr
                 if (!(getInit() instanceof NullLiteral)) { // taking care of C c = null 
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
@@ -107,7 +107,11 @@ aspect TypestateCheck {
                         setState(ins.getState());
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
-                        Declarator d = (Declarator) va.varDecl();
+                        if (!va.hasTypestateState()) {
+                            problems.add(error("Typestate mismatch, no typestate found in source variable access " + va));
+                            return problems;
+                        }
+                        ASTNode d = (ASTNode) va.varDecl();
                         setState(va.getState());
                         d.setState(null); // one typestate object could only have one reference.
                     } else if (getInit() instanceof Dot) { // C c = a.get();
@@ -136,31 +140,30 @@ aspect TypestateCheck {
             problems.add(error("left hand side is not a variable"));
             return problems;
         }
-        if (getDest().hasTypestateDecl() ^ getSource().hasTypestateDecl()) {
-            problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateDecl() 
-                + " dest has typestate? " + getDest().hasTypestateDecl()));
+        if (getDest().hasTypestateState() ^ getSource().hasTypestateState()) {
+            problems.add(error("Typestate mismatch. src has typestate? " + getSource().hasTypestateState() 
+                + " dest has typestate? " + getDest().hasTypestateState()));
             return problems;
         }
-        if (getSource().hasTypestateDecl()) {  
+        if (getSource().hasTypestateState()) {  
             State state = null;
             if (getSource() instanceof VarAccess) { // c = c1
                 VarAccess va = (VarAccess) getSource();
-                Declarator d = (Declarator) va.varDecl();
+                ASTNode d = (ASTNode) va.varDecl();
                 state = va.getState();
                 d.setState(null); // one typestate object could only have one reference. 
             } else if (getSource() instanceof ClassInstanceExpr) {
                 ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
                 state = ins.getState(); 
             } else if (getSource() instanceof Dot) { // c = c1.foo();
-                //Declarator d = (Declarator) getSource().varDecl();
-                //state = d.getState();
+                // TODO: checking return type?
             } else {
                 // TODO analysing other Expr
             }
             System.out.println("State: " + state.getID());
             if (getDest() instanceof VarAccess) { 
                 VarAccess dva = (VarAccess) getDest();
-                Declarator dest = (Declarator)dva.varDecl();
+                ASTNode dest = (ASTNode)dva.varDecl();
                 dest.setState(state);
                 System.out.println("Dest State: " + dva.getState().getID());
             } else {
