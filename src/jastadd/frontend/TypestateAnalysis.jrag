@@ -51,6 +51,14 @@ aspect TypestateAnalysis {
         return this.type().hasTypestateDecl();
     }
 
+    /**
+     * Access: Expr
+     * Access may have a TypestateDecl, some subtypes of Access have state
+     */
+    syn boolean Access.hasTypestateDecl() {
+        return this.type().hasTypestateDecl();
+    }
+
 	/**
      * Declarator: ASTNode
      * Valid for both FieldDeclarator and VariableDeclarator
@@ -183,6 +191,42 @@ aspect TypestateAnalysis {
      */
     syn boolean MethodDecl.hasTypestateDecl() {
         return hostType().hasTypestateDecl(); // the TypeDecl in which MethodDecl is declared
+    }
+
+    syn boolean MethodDecl.returnHasTypestateDecl() {
+        return getTypeAccess().hasTypestateDecl(); // the TypeAccess of return value of the MethodDecl
+    }
+
+    /**
+     * TypeAccess: Access
+     */
+    syn boolean TypeAccess.hasTypestateDecl() {
+        System.out.println("TypeAccess: " + type());
+        return type().hasTypestateDecl();
+    }
+
+    /**
+     * ReturnStmt: Stmt ::=
+     *      [Result:Expr]
+     *      [Finally:Block]
+     * A ReturnStmt might have a TypestateDecl and Typestate state
+     */
+    syn boolean ReturnStmt.hasTypestateDecl() {
+        return returnType().hasTypestateDecl(); // the TypeDecl of the return value
+    }
+
+    syn boolean ReturnStmt.hasTypestateState() {
+        return hasTypestateDecl();
+    }
+
+    @Override
+    public State ReturnStmt.getState() {
+        return getResult().getState();
+    }
+
+    @Override
+    public boolean ReturnStmt.hasState() {
+        return getState() != null;
     }
 
     /**
