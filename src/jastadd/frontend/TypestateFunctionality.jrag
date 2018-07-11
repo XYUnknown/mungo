@@ -1,3 +1,7 @@
+/**
+ * Adapted from old version mungo
+ * Helper methods and attributes of Typestate ASTNode 
+ */
 aspect TypestateFunctionality {
 
 	inh State TypestateLabel.getTarget(String name);

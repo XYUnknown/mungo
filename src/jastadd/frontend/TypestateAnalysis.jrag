@@ -1,3 +1,12 @@
+/**
+ * Declarations of storing, checking and updating typestate of ASTNode 
+ * in Java AST.
+ * Typestate state is stored as a field of ASTNode.
+ * Attribute hasTypestateDecl() returns whether the node is associated with an TypestateDecl or not
+ * Attribute hasTypestateState() returns whether the node has a specific state or not
+ * hasState() is a method for checking whether a node with hasTypestateState() == true has been assigned
+ * with a state or not.
+ */
 aspect TypestateAnalysis {
     /**
      * Adding a field state to ASTNode

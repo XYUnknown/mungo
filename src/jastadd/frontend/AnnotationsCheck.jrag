@@ -1,3 +1,8 @@
+/**
+ * Collecting typestate annotations in Java source code 
+ * Corresponding Typestate protocol files will then 
+ * be parsed and analysed.
+ */
 aspect AnnotationsCheck {
     coll LinkedList<Modifier> CompilationUnit.collectTypestateAnnotations() root CompilationUnit;
     // Add problem contributions from the implicit constructor invocation NTA.

@@ -1,3 +1,6 @@
+/**
+ * Checking semantic problems of typestate protocol file
+ */
 aspect TypestateSemanticCheck {
 	/**
      * Processes from-source compilation units by error-checking them.

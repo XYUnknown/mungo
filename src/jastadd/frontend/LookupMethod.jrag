@@ -1,3 +1,6 @@
+/**
+ * Helper Methods for looking up methods, variables in AST
+ */
 aspect LookupMethod {
 	/**
      * Getting variable access from a method access
