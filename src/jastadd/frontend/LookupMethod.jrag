@@ -39,6 +39,7 @@ aspect LookupMethod {
      * Get return type of a TypestateMethod
      */
     public Access TypestateMethod.getReturnType() {
+        System.out.println("getReturnType: " + getTType().getAccess());
     	return getTType().getAccess();
     }
 
@@ -110,8 +111,9 @@ aspect LookupMethod {
                     if (ts instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) ts;
                         if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
-                            System.out.println("State equal? " + maArg.getState().equals(tl.getStateAncestor()));
-                            if(!maArg.getState().equals(tl.getStateAncestor())) { // state mismatch, return false
+                            System.out.println("State equal? " + maArg.getState().getID().equals(tl.getLabel()) + " "
+                                + maArg.getState().getID() + " " +tl.getLabel());
+                            if(!maArg.getState().getID().equals(tl.getLabel())) { // state mismatch, return false
                                 return false;
                             }
                         } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
@@ -187,6 +189,37 @@ aspect LookupMethod {
             }            
         }
         return result;
+    }
+
+    /**
+     * Checking whether a return statement has same state as the 
+     * return state of the TypestateMethod with same signature 
+     * of its host MethodDecl
+     */
+    syn boolean TypestateMethod.isSameReturnState(ReturnStmt rs) {
+        if (getTType() instanceof TTypestate) {
+            TTypestate tt = (TTypestate) getTType();
+            Typestate ts = tt.getTypestate();
+            if (ts instanceof TypestateLabel) {
+                TypestateLabel tl = (TypestateLabel) ts;
+                if (rs.hasTypestateState() && rs.getState() != null) { // checking whether typestate are the same
+                    System.out.println("ReturnStmt state: " + rs.getState());
+                    if(!tl.getLabel().equals(rs.getState().getID())) { // state mismatch, return false
+                        return false;
+                    }
+                } else { // the return type does not have state, this does not match the TTypestate
+                    return false;
+                }
+            } else if (ts instanceof TypestateSwitch) {
+                // TODO args checking for TypestateSwitch
+                return true;
+            }
+        } else {
+            if (rs.hasState()) { // return type in TypestateMethod has no state specification but return statement has state
+                return false;    
+            }
+        }
+        return true; // nothing happens
     }
 
     syn State Declarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
