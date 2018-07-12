@@ -109,9 +109,9 @@ aspect TypestateSemanticCheck {
     TypestateSwitch contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
     syn Collection<Problem> TypestateSwitch.typestateSemanticProblems() {
     	Collection<Problem> problems = new LinkedList<Problem>();
-    	for(int i = 0; i < getNumTypestateSwitchCase(); i++) {
-			for(int j = i + 1; j < getNumTypestateSwitchCase(); j++) {
-				if(getTypestateSwitchCase(i).getLabel().equals(getTypestateSwitchCase(j).getLabel())) {
+    	for (int i = 0; i < getNumTypestateSwitchCase(); i++) {
+			for (int j = i + 1; j < getNumTypestateSwitchCase(); j++) {
+				if (getTypestateSwitchCase(i).getLabel().equals(getTypestateSwitchCase(j).getLabel())) {
 					problems.add(error("Duplicate case label: " + getTypestateSwitchCase(i).getLabel() + "."));
 				}
 			}
@@ -122,11 +122,11 @@ aspect TypestateSemanticCheck {
     TypestateMethodList contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
     syn Collection<Problem> TypestateMethodList.typestateSemanticProblems() {
     	Collection<Problem> problems = new LinkedList<Problem>();
-    	for(int i = 0; i < getNumTypestateMethod(); i++) {
+    	for (int i = 0; i < getNumTypestateMethod(); i++) {
 			TypestateMethod tm1 = getTypestateMethod(i);
-			for(int j = i + 1; j < getNumTypestateMethod(); j++) {
+			for (int j = i + 1; j < getNumTypestateMethod(); j++) {
 				TypestateMethod tm2 = getTypestateMethod(j);
-				if(tm1.signature().equals(tm2.signature()))
+				if (tm1.signature().equals(tm2.signature()))
 					problems.add(error("Duplicate method signature in the prefix of a set: " + tm1.signature() + "."));
 			}
 		}
@@ -137,15 +137,15 @@ aspect TypestateSemanticCheck {
     syn Collection<Problem> TypestateMethod.typestateSemanticProblems() {
     	Collection<Problem> problems = new LinkedList<Problem>();
     	TypeDecl t;
-		if(getTypestate() instanceof TypestateSwitch) {
+		if (getTypestate() instanceof TypestateSwitch) {
 			// t = getTType().getAccess().lookupType();
 			t = getTType().getAccess().type();
-			if(!t.isEnumDeclType()){
+			if (!t.isEnumDeclType()){
 				problems.add(error("Method " + signature() + " should return an enumeration type."));
 				return problems;
 			} else {
-				for(String s : t.getEnumDecl().getEnumLabels()) {
-					if(!((TypestateSwitch) getTypestate()).getLabels().contains(s)){
+				for (String s : t.getEnumDecl().getEnumLabels()) {
+					if (!((TypestateSwitch) getTypestate()).getLabels().contains(s)){
 						problems.add(error("Label " + s + " defined for the enumeration type " + t.getEnumDecl().getID() + " is not defined as a switch label."));
 						return problems;
 					}
@@ -160,11 +160,26 @@ aspect TypestateSemanticCheck {
     syn Collection<Problem> TType.typestateSemanticProblems() {
     	Collection<Problem> problems = new LinkedList<Problem>();
     	TypeDecl t = getAccess().type();
-		if(t.isTypestateDeclType()){
+		if (t.isTypestateDeclType()){
 			problems.add(error(getAccess().toString() + " is not a proper java type."));
 		}
     	return problems;
     }
+
+    TTypestate contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TTypestate.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+		TypeDecl t = getAccess().type();
+		if (!t.hasTypestateDecl()) {
+			problems.add(error("Type " + getAccess().toString() + " is not a typestate class type."));
+		} else if (t.hasTypestateDecl()) {//(t.getTypestateClassDecl().existsTypestateDecl()){
+			// OLD-TODO Check if getTypestate() is a postfix of cu.getClassDecl().getTypestateDecl() 
+		}
+		if (getAccess().hasDims()){
+			problems.add(error("Typestate type " + getAccess().toString() + " should not be an array type."));
+		}
+		return problems;
+	}
 
     /** 
      * Helper Methods 
@@ -177,6 +192,10 @@ aspect TypestateSemanticCheck {
 
     syn lazy boolean TypeDecl.isTypestateDeclType() = false;
     eq TypestateDecl.isTypestateDeclType() = true;
+
+    syn lazy int Access.countDims() = 0;
+    eq ArrayTypeAccess.countDims() = 1 + getAccess().countDims();
+    syn lazy boolean Access.hasDims() = countDims() != 0;
 
     // Debug
     public void ASTNode.doPrintFullTraversal() {
