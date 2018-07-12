@@ -76,8 +76,9 @@ aspect TypestateSemanticCheck {
     /**
      * Adapted with modifications from old mungo version.
      * Checking sematic problems in each node of the typestate protocol AST.
-     * Semantic checking in TypestateMethod TTypestate is unavaliable at this stage, 
-     * since this CompilationUnit has not been connected to Program yet.
+     * Typestate semantic checking starts after the Typestate protocol AST is linked to main Java AST.
+     * If there are errors found in typestate semantic checking, all problem checking on java source 
+     * file will not process.
      */
     State contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
     syn Collection<Problem> State.typestateSemanticProblems() {
@@ -131,6 +132,35 @@ aspect TypestateSemanticCheck {
 		}
     	return problems;
     }
+
+    TypestateMethod contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TypestateMethod.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	TypeDecl t;
+		if(getTypestate() instanceof TypestateSwitch) {
+			// t = getTType().getAccess().lookupType();
+			t = getTType().getAccess().type();
+			if(!t.isEnumDeclType()){
+				problems.add(error("Method " + signature() + " should return an enumeration type."));
+				return problems;
+			} else {
+				for(String s : t.getEnumDecl().getEnumLabels()) {
+					if(!((TypestateSwitch) getTypestate()).getLabels().contains(s)){
+						problems.add(error("Label " + s + " defined for the enumeration type " + t.getEnumDecl().getID() + " is not defined as a switch label."));
+						return problems;
+					}
+						
+				}
+			}
+		}
+		return problems;
+    }
+
+    /** Helper Methods */
+    syn lazy boolean TypeDecl.isEnumDeclType() = false;
+    syn lazy EnumDecl TypeDecl.getEnumDecl() = null;
+    eq EnumDecl.isEnumDeclType() = true;
+    eq EnumDecl.getEnumDecl() = this;
 
     // Debug
     public void ASTNode.doPrintFullTraversal() {
