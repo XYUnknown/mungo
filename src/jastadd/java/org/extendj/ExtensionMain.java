@@ -28,8 +28,6 @@ public class ExtensionMain extends JavaChecker {
                 String sourcePath = unit.pathName();
                 
                 if (ms.size() > 0) {
-                    // At this point we can assume that there is only one typestate annotation for one java file.
-                    // TODO Checking duplication OF typestate annotation
                     for (Modifier m: ms) {
                         String protocolFileName = m.getID() + ".protocol";
                         printProtocolFile(protocolFileName, sourcePath);
@@ -37,6 +35,9 @@ public class ExtensionMain extends JavaChecker {
                         CompilationUnit cu = parseProtocol(protocolFileName, sourcePath);
                         //cu.setProtocolName(m.getID());
                         if (cu != null){
+                            // Add the new compilation unit to program before protocol semantic checking
+                            // As semantic checking need inforamtion from whole Java AST
+                            super.program.addCompilationUnit(cu);
                             for (TypeDecl td: cu.getTypeDecls()){
                                 if (td instanceof TypestateDecl){
                                     System.out.println("This is a TypestateDecl " + td.name());
@@ -52,8 +53,7 @@ public class ExtensionMain extends JavaChecker {
                             if (typestateSematicCheckCode != 0) {
                                 return typestateSematicCheckCode;
                             }
-                            // Pass the sematic checking add new Compilation Unit to program. 
-                            super.program.addCompilationUnit(cu);
+                            // Protocol passes the sematic checking
                         }                        
                     }                    
                 }
