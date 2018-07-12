@@ -156,11 +156,27 @@ aspect TypestateSemanticCheck {
 		return problems;
     }
 
-    /** Helper Methods */
+    TType contributes each typestateSemanticProblems() to CompilationUnit.tproblems();
+    syn Collection<Problem> TType.typestateSemanticProblems() {
+    	Collection<Problem> problems = new LinkedList<Problem>();
+    	TypeDecl t = getAccess().type();
+		if(t.isTypestateDeclType()){
+			problems.add(error(getAccess().toString() + " is not a proper java type."));
+		}
+    	return problems;
+    }
+
+    /** 
+     * Helper Methods 
+     * Adapted from old mungo version JavaASTFunctionality.jrag
+     */
     syn lazy boolean TypeDecl.isEnumDeclType() = false;
     syn lazy EnumDecl TypeDecl.getEnumDecl() = null;
     eq EnumDecl.isEnumDeclType() = true;
     eq EnumDecl.getEnumDecl() = this;
+
+    syn lazy boolean TypeDecl.isTypestateDeclType() = false;
+    eq TypestateDecl.isTypestateDeclType() = true;
 
     // Debug
     public void ASTNode.doPrintFullTraversal() {
