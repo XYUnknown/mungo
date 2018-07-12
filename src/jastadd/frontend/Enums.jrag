@@ -1,0 +1,24 @@
+/**
+ * Helper methods of Enum for typechecking 
+ * Adapted from provious version of Mungo
+ */
+
+aspect Enums{
+
+	coll Set<String>EnumDecl.getEnumLabels()[new HashSet<String>()]with add root EnumDecl;
+	EnumConstant contributes getID()to EnumDecl.getEnumLabels()for getEnumDeclAncestor();
+
+	//	syn lazy Set<String> EnumDecl.getEnums() {
+	//		Set<String> s = new HashSet<String>();
+	//		for(String l : getEnumLabels())
+	//			s.add(getID() + "." + l);
+	//
+	//		return s;
+	// 	}
+
+
+	inh EnumDecl EnumConstant.getEnumDeclAncestor();
+	eq EnumDecl.getBodyDecl(int i).getEnumDeclAncestor()=this;
+	eq TypeDecl.getBodyDecl(int i).getEnumDeclAncestor()=null;
+
+}
