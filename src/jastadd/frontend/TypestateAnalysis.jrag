@@ -216,7 +216,7 @@ aspect TypestateAnalysis {
     }
 
     syn boolean ReturnStmt.hasTypestateState() {
-        return hasTypestateDecl();
+        return getResult().hasTypestateDecl();
     }
 
     @Override
