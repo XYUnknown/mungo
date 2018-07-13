@@ -35,6 +35,10 @@ public class Cat {
 		return new Cat();
 	}
 
+	public void bury() {
+		System.out.println("This cat is buried");
+	}
+
 	public void close() {
 
 	}
@@ -55,5 +59,19 @@ public class Cat {
 		c4.putInBox();
 		c1.playWith(c4); // Error detected
 		c4.playWith(c1); // Error detected
+
+		// Switch statement
+		Cat cat1 = new Cat();
+		cat1.initialise();
+		cat1.putInBox();
+		switch (cat1.openBox()) {
+			case TRUE:
+				cat1.giveBirth();
+				break;
+			case FALSE:
+				cat1.bury();
+				break;
+		}
+
 	}
 }
