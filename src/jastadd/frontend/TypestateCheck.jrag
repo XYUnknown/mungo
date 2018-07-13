@@ -66,15 +66,9 @@ aspect TypestateCheck {
                 if (stateMap.size() == 0){
                     problems.add(error("No State found in VarAccess " + va));
                     return problems;
-                }
-                if (stateMap.size() == 1) { // No switch
-                    // TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
-                    TypestateMethodList methodList = null;
-                    State currState = null;
-                    for(String id: stateMap.keySet()) {
-                        methodList = (TypestateMethodList) stateMap.get(id).getTypestate();
-                        currState = stateMap.get(id);
-                    }
+                } else if (stateMap.size() == 1) { // No switch                  
+                    State currState = getSingleStateFromMap(stateMap);
+                    TypestateMethodList methodList = (TypestateMethodList) currState.getTypestate();
                     // lookup the TypestateMethod which has same signature as the MethodDecl
                     tsMethod = methodList.lookupMethod(md); 
                     if (tsMethod != null) { // The TypestateMethod is found
@@ -86,16 +80,17 @@ aspect TypestateCheck {
                             TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
                             HashMap<String, State> newState = new HashMap<String, State>();
                             newState.put(tl.getTarget().getID(), tl.getTarget());
-                            //vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                            vd.setState(newState);
+                            vd.setState(newState); // Update State of VariableDeclarator
                         } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
                             // TODO: type state check of TypestateSwitch
                         }   
                     } else { // The TypestateMethod is not found 
-                        problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()/*vd.getState().getID()*/));
+                        problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
                         return problems;
                     }
-                }                
+                } else {
+                    // Typestate switch handling, might not be checked here
+                }               
             }
         }
         // Checking null state argument for all method Access
@@ -150,8 +145,6 @@ aspect TypestateCheck {
     AssignExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> AssignExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        //System.out.println("AssignExpr source: " + getSource().isVariable() + " " + getSource().getClass());
-        //System.out.println("AssignExpr dest: " + getDest().isVariable() + " " + getDest().getClass() + " " + getDest().varDecl().getClass());
         if (!getDest().isVariable()) {
             problems.add(error("left hand side is not a variable"));
             return problems;
@@ -201,12 +194,9 @@ aspect TypestateCheck {
                 problems.add(error("ClassInstanceExpr should be in Init state instead of a TypestateSwitch"));
                 return problems;
             } else { //if (!this.getState().equals(type().getTypestateDecl().getInitState())) {
-                State state = null;
-                for (String id: this.getState().keySet()) {
-                    state = this.getState().get(id);
-                }
+                State state = getSingleStateFromMap(this.getState());
                 if (!this.getState().containsKey(type().getTypestateDecl().getInitState().getID())) {
-                    problems.add(error("ClassInstanceExpr should be in Init state instead of " + ((state != null) ? state.getID() : "null")/*this.getState().getID()*/));
+                    problems.add(error("ClassInstanceExpr should be in Init state instead of " + ((state != null) ? state.getID() : "null")));
                 }                
             }
         }

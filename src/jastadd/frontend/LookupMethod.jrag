@@ -111,10 +111,7 @@ aspect LookupMethod {
                     if (ts instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) ts;
                         if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
-                            //System.out.println("State equal? " + maArg.getState().getID().equals(tl.getLabel()) + " "
-                            //    + maArg.getState().getID() + " " +tl.getLabel());
-                            //if(!maArg.getState().getID().equals(tl.getLabel())) { // state mismatch, return false
-                            if(!maArg.getState().containsKey(tl.getLabel())) {
+                            if(!maArg.getState().containsKey(tl.getLabel())) { // state mismatch, return false
                                 return false;
                             }
                         } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
@@ -142,7 +139,6 @@ aspect LookupMethod {
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
                 if (arg.hasTypestateState() && arg.getState() == null) {
-                   // problems.add(error("No Init State found in MethodAccess argument " + arg));
                    return true; 
                 }
             }
@@ -156,7 +152,6 @@ aspect LookupMethod {
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
                 if (arg.hasTypestateState() && arg.getState() == null) {
-                   // problems.add(error("No Init State found in MethodAccess argument " + arg));
                    return arg; 
                 }
             }

@@ -44,6 +44,16 @@ aspect TypestateAnalysis {
         return false;
     }
 
+    /** Helper Method */
+    public static State ASTNode.getSingleStateFromMap(HashMap<String, State> typestate) {
+        if (typestate.size() == 1) { // avoid TypestateSwitch and size 0
+            for (String id: typestate.keySet()) {
+                return typestate.get(id);
+            }
+        }
+        return null;
+    }
+
     /**
      * Expr: ASTNode
      * Expr may have a TypestateDecl, some subtypes of Expr have state
