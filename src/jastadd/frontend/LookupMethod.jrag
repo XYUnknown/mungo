@@ -111,9 +111,10 @@ aspect LookupMethod {
                     if (ts instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) ts;
                         if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
-                            System.out.println("State equal? " + maArg.getState().getID().equals(tl.getLabel()) + " "
-                                + maArg.getState().getID() + " " +tl.getLabel());
-                            if(!maArg.getState().getID().equals(tl.getLabel())) { // state mismatch, return false
+                            //System.out.println("State equal? " + maArg.getState().getID().equals(tl.getLabel()) + " "
+                            //    + maArg.getState().getID() + " " +tl.getLabel());
+                            //if(!maArg.getState().getID().equals(tl.getLabel())) { // state mismatch, return false
+                            if(!maArg.getState().containsKey(tl.getLabel())) {
                                 return false;
                             }
                         } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
@@ -207,7 +208,8 @@ aspect LookupMethod {
                 TypestateLabel tl = (TypestateLabel) ts;
                 if (rs.hasTypestateState() && rs.getState() != null) { // checking whether typestate are the same
                     System.out.println("ReturnStmt state: " + rs.getState());
-                    if(!tl.getLabel().equals(rs.getState().getID())) { // state mismatch, return false
+                    //if(!tl.getLabel().equals(rs.getState().getID())) { // state mismatch, return false
+                    if(!rs.getState().containsKey(tl.getLabel())) { 
                         return false;
                     }
                 } else { // the return type does not have state, this does not match the TTypestate

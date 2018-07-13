@@ -62,24 +62,40 @@ aspect TypestateCheck {
             if(va.hasTypestateState() && va.hasState()) {
                 ASTNode vd = (ASTNode) va.varDecl();               
                 MethodDecl md = this.decl();
-                TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
-                // lookup the TypestateMethod which has same signature as the MethodDecl
-                tsMethod = methodList.lookupMethod(md); 
-                if (tsMethod != null) { // The TypestateMethod is found
-                    if(!isValidParamState(tsMethod)) {
-                        problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
-                        return problems;
-                    }
-                    if (tsMethod.getTypestate() instanceof TypestateLabel) {
-                        TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
-                        vd.setState(tl.getTarget()); // Update State of VariableDeclarator
-                    } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
-                        // TODO: type state check of TypestateSwitch
-                    }
-                } else { // The TypestateMethod is not found 
-                    problems.add(error("Invalid MethodAccess " + this + " in State: " + vd.getState().getID()));
+                HashMap<String, State> stateMap = va.getState();
+                if (stateMap.size() == 0){
+                    problems.add(error("No State found in VarAccess " + va));
                     return problems;
                 }
+                if (stateMap.size() == 1) { // No switch
+                    // TypestateMethodList methodList = (TypestateMethodList) va.getState().getTypestate();
+                    TypestateMethodList methodList = null;
+                    State currState = null;
+                    for(String id: stateMap.keySet()) {
+                        methodList = (TypestateMethodList) stateMap.get(id).getTypestate();
+                        currState = stateMap.get(id);
+                    }
+                    // lookup the TypestateMethod which has same signature as the MethodDecl
+                    tsMethod = methodList.lookupMethod(md); 
+                    if (tsMethod != null) { // The TypestateMethod is found
+                        if(!isValidParamState(tsMethod)) {
+                            problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
+                            return problems;
+                        }
+                        if (tsMethod.getTypestate() instanceof TypestateLabel) {
+                            TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
+                            HashMap<String, State> newState = new HashMap<String, State>();
+                            newState.put(tl.getTarget().getID(), tl.getTarget());
+                            //vd.setState(tl.getTarget()); // Update State of VariableDeclarator
+                            vd.setState(newState);
+                        } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
+                            // TODO: type state check of TypestateSwitch
+                        }   
+                    } else { // The TypestateMethod is not found 
+                        problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()/*vd.getState().getID()*/));
+                        return problems;
+                    }
+                }                
             }
         }
         // Checking null state argument for all method Access
@@ -146,7 +162,8 @@ aspect TypestateCheck {
             return problems;
         }
         if (getSource().hasTypestateState()) {  
-            State state = null;
+            //State state = null;
+            HashMap<String, State> state = null;
             if (getSource() instanceof VarAccess) { // c = c1
                 VarAccess va = (VarAccess) getSource();
                 ASTNode d = (ASTNode) va.varDecl();
@@ -160,12 +177,12 @@ aspect TypestateCheck {
             } else {
                 // TODO analysing other Expr
             }
-            System.out.println("State: " + state.getID());
+            //System.out.println("State: " + state.getID());
             if (getDest() instanceof VarAccess) { 
                 VarAccess dva = (VarAccess) getDest();
                 ASTNode dest = (ASTNode)dva.varDecl();
                 dest.setState(state);
-                System.out.println("Dest State: " + dva.getState().getID());
+                //System.out.println("Dest State: " + dva.getState().getID());
             } else {
                 problems.add(error("Cannot set state"));
             }
@@ -179,8 +196,18 @@ aspect TypestateCheck {
         if (this.hasTypestateState()) {
             if (!this.hasState()) {
                 problems.add(error("ClassInstanceExpr has no Init state"));
-            } else if (!this.getState().equals(type().getTypestateDecl().getInitState())) {
-                problems.add(error("ClassInstanceExpr should be in Init state instead of " + this.getState().getID()));
+                return problems;
+            } else if (this.getState().size() > 1) {
+                problems.add(error("ClassInstanceExpr should be in Init state instead of a TypestateSwitch"));
+                return problems;
+            } else { //if (!this.getState().equals(type().getTypestateDecl().getInitState())) {
+                State state = null;
+                for (String id: this.getState().keySet()) {
+                    state = this.getState().get(id);
+                }
+                if (!this.getState().containsKey(type().getTypestateDecl().getInitState().getID())) {
+                    problems.add(error("ClassInstanceExpr should be in Init state instead of " + ((state != null) ? state.getID() : "null")/*this.getState().getID()*/));
+                }                
             }
         }
         return problems;
