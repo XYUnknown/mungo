@@ -11,7 +11,8 @@ aspect TypestateAnalysis {
     /**
      * Adding a field state to ASTNode
      */
-    private State ASTNode.typestate = null;
+    //private State ASTNode.typestate = null;
+    private HashMap<String, State> ASTNode.typestate = null;
 
     /**
      * Checking whether a ASTNode has typestate or not
@@ -29,13 +30,13 @@ aspect TypestateAnalysis {
         return false;
     }
 
-    public void ASTNode.setState(State typestate) {
+    public void ASTNode.setState(HashMap<String, State> typestate) {
         if (hasTypestateState()) {
             this.typestate = typestate;
         }        
     }
 
-    public State ASTNode.getState() {
+    public HashMap<String, State> ASTNode.getState() {
         return this.typestate;
     }
 
@@ -138,7 +139,7 @@ aspect TypestateAnalysis {
         return node.hasTypestateState();
     }
 
-    public State VarAccess.getState() {
+    public HashMap<String, State> VarAccess.getState() {
         ASTNode node = (ASTNode) varDecl();
         return node.getState();
     }
@@ -166,9 +167,12 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public State ClassInstanceExpr.getState() {
+    public HashMap<String, State> ClassInstanceExpr.getState() {
         if (hasTypestateState()) {
-            super.setState(type().getTypestateDecl().getInitState());
+            HashMap<String, State> state = new HashMap<String, State>();
+            state.put(type().getTypestateDecl().getInitState().getID(), type().getTypestateDecl().getInitState());
+            //super.setState(type().getTypestateDecl().getInitState());
+            super.setState(state);
         }
         return super.getState();
     }
@@ -220,7 +224,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public State ReturnStmt.getState() {
+    public HashMap<String, State> ReturnStmt.getState() {
         return getResult().getState();
     }
 
