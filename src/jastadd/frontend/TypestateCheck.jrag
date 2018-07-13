@@ -83,6 +83,18 @@ aspect TypestateCheck {
                             vd.setState(newState); // Update State of VariableDeclarator
                         } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
                             // TODO: type state check of TypestateSwitch
+                            HashMap<String, State> newState = new HashMap<String, State>();
+                            TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
+                            for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
+                                if (!(c.getTypestate() instanceof TypestateLabel)) {
+                                    problems.add(error("TypestateSwitchCase should not have TypestateSwitch as target state."));
+                                    return problems;
+                                }
+                                String label = c.getLabel();
+                                State state = ((TypestateLabel) c.getTypestate()).getTarget();
+                                newState.put(label, state);
+                            }
+                            vd.setState(newState);
                         }   
                     } else { // The TypestateMethod is not found 
                         problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
@@ -90,6 +102,7 @@ aspect TypestateCheck {
                     }
                 } else {
                     // Typestate switch handling, might not be checked here
+                    System.out.println(vd.getState());
                 }               
             }
         }
