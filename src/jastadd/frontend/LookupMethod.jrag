@@ -2,39 +2,6 @@
  * Helper Methods for looking up methods, variables in AST
  */
 aspect LookupMethod {
-	/**
-     * Getting variable access from a method access
-     * a.b.c()
-     * a.b().c()
-     */
-    private VarAccess MethodAccess.getVarAccess(){
-        Expr ac = this.parentDot().leftSide();
-        //System.out.println("--------------Traversal---------------");
-        //this.parentDot().doPrintFullTraversal();
-        //System.out.println("--------------End Traversal-----------");
-        while (!(ac instanceof VarAccess) && (ac != null)){
-            if (ac.parentDot().parentDot() == null){
-                if(ac instanceof Dot){
-                    Dot dot = (Dot) ac;
-                    while (dot.rightSide() != null) {
-                        ac = dot.rightSide();
-                        if (ac instanceof VarAccess) {
-                            return (VarAccess) ac;
-                        } else if (ac instanceof Dot) {
-                            dot = (Dot) ac;
-                        } else {
-                            return null;
-                        }
-                    }
-                } else {
-                    return null;
-                }
-            }
-            ac = ac.parentDot().parentDot().leftSide();
-        }
-        return ac == null ? null : (VarAccess) ac;
-    }
-
     /**
      * Get return type of a TypestateMethod
      */
