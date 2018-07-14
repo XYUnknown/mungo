@@ -151,6 +151,12 @@ aspect TypestateCheck {
                         d.setState(null); // one typestate object could only have one reference.
                     } else if (getInit() instanceof Dot) { // C c = a.get();
                         // TODO: checking return type?
+                        Dot d = (Dot) getInit();
+                        if (!d.hasTypestateState()) {
+                            problems.add(error("Typestate mismatch, no typestate found in source dot " + d));
+                            return problems;
+                        }
+                        setState(d.getState());
                     } else {
                         // TODO analysing other Expr
                     }
@@ -191,6 +197,12 @@ aspect TypestateCheck {
                 state = ins.getState(); 
             } else if (getSource() instanceof Dot) { // c = c1.foo();
                 // TODO: checking return type?
+                Dot d = (Dot) getSource();
+                if (!d.hasTypestateState()) {
+                    problems.add(error("Typestate mismatch, no typestate found in source dot " + d));
+                    return problems;
+                }
+                state = d.getState();
             } else {
                 // TODO analysing other Expr
             }

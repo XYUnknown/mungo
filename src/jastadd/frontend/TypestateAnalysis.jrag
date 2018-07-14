@@ -253,6 +253,35 @@ aspect TypestateAnalysis {
     }
 
     /**
+     * Dot: Access
+     * A Dot might have a TypestateDecl and a Typestate state
+     * Depends on last access
+     */
+    syn boolean Dot.hasTypestateDecl() {
+        return lastAccess().hasTypestateDecl();
+    }
+
+    syn boolean Dot.hasTypestateState() {
+        return lastAccess().hasTypestateState();
+    }
+
+    @Override
+    public HashMap<String, State> Dot.getState() {
+        return lastAccess().getState();
+    }
+
+    @Override
+    public boolean Dot.hasState() {
+        return getState() != null;
+    }
+
+    @Override
+    public void Dot.setState(HashMap<String, State> state) {
+        lastAccess().setState(state);
+    }
+
+
+    /**
      * MethodDecl: MemberDecl
      * MemberDecl: BodyDecl
      * BodyDecl: ASTNode
