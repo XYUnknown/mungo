@@ -51,16 +51,19 @@ aspect TypestateCheck {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
         System.out.println("MethodAccess name: " + name());
-        System.out.println("MethodAccess instance: " + getVarAccess());
-        VarAccess va = getVarAccess();
-        TypestateMethod tsMethod = null; // used for lookup method with signature 
+        // System.out.println("MethodAccess instance: " + getVarAccess());
+        // VarAccess va = getVarAccess();
+        Expr va = prevExpr();
+        System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
+        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());        
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
             }
             if(va.hasTypestateState() && va.hasState()) {
-                ASTNode vd = (ASTNode) va.varDecl();               
+                //ASTNode vd = (ASTNode) va.varDecl();  
+                TypestateMethod tsMethod = null; // used for lookup method with signature              
                 MethodDecl md = this.decl();
                 HashMap<String, State> stateMap = va.getState();
                 if (stateMap.size() == 0){
@@ -84,7 +87,7 @@ aspect TypestateCheck {
                             TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
                             HashMap<String, State> newState = new HashMap<String, State>();
                             newState.put(tl.getTarget().getID(), tl.getTarget());
-                            vd.setState(newState); // Update State of VariableDeclarator
+                            va.setState(newState); // Update State of VariableDeclarator
                         } else if (tsMethod.getTypestate() instanceof TypestateSwitch){
                             /**
                              * Update state - Store label and State in the state map
@@ -102,7 +105,7 @@ aspect TypestateCheck {
                                 State state = ((TypestateLabel) c.getTypestate()).getTarget();
                                 newState.put(label, state);
                             }
-                            vd.setState(newState);
+                            va.setState(newState);
                         }   
                     } else { // The TypestateMethod is not found 
                         problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
@@ -110,7 +113,7 @@ aspect TypestateCheck {
                     }
                 } else {
                     // Typestate switch handling, might not be checked here
-                    System.out.println(vd.getState());
+                    System.out.println(va.getState());
                 }               
             }
         }
