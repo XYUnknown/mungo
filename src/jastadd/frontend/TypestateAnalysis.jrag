@@ -149,13 +149,21 @@ aspect TypestateAnalysis {
         return node.hasTypestateState();
     }
 
+    @Override
     public HashMap<String, State> VarAccess.getState() {
         ASTNode node = (ASTNode) varDecl();
         return node.getState();
     }
 
+    @Override
     public boolean VarAccess.hasState() {
         return getState() != null;
+    }
+
+    @Override
+    public void VarAccess.setState(HashMap<String, State> typestate) {
+        ASTNode node = (ASTNode) varDecl();
+        node.setState(typestate);     
     }
 
     /**
@@ -190,10 +198,58 @@ aspect TypestateAnalysis {
     /**
      * MethodAccess: Access
      * A MethodAccess might have a TypestateDecl
-     * but does not have Typestate state.
+     * Typestate state is the state of return type
      */
     syn boolean MethodAccess.hasTypestateDecl() {
         return decl().hasTypestateDecl(); // the TypeDecl in which MethodDecl is declared
+    }
+
+    syn boolean MethodAccess.returnHasTypestateDecl() {
+        return decl().returnHasTypestateDecl(); // return type of corresponding MethodDecl
+    }
+
+    syn boolean MethodAccess.hasTypestateState() {
+        if (hasTypestateDecl() && returnHasTypestateDecl()) {
+            MethodDecl md = decl();
+            TypestateDecl td = this.hostType().getTypestateDecl();
+            TypestateMethod tm = td.lookupMethod(md);
+            if (tm.getTType() instanceof TTypestate) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public HashMap<String, State> MethodAccess.getState() {
+        if (hasTypestateState()) {
+            MethodDecl md = decl();
+            TypestateDecl td = this.hostType().getTypestateDecl();
+            TypestateMethod tm = td.lookupMethod(md);
+            if (tm.getTType() instanceof TTypestate) {
+                Typestate ts = ((TTypestate)tm.getTType()).getTypestate();
+                if (ts instanceof TypestateLabel) {
+                    HashMap<String, State> state = new HashMap<String, State>();
+                    String label = ((TypestateLabel)ts).getLabel();
+                    state.put(label, td.lookupState(label));
+                    System.out.println("MethodAccess lookupState: " + td.lookupState(label));
+                    System.out.println("MethodAccess state: " + state);
+                    return state;
+                }
+                
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean MethodAccess.hasState() {
+        return getState() != null;
+    }
+
+    @Override
+    public void MethodAccess.setState(HashMap<String, State> state) {
+        // do nothing
     }
 
     /**
