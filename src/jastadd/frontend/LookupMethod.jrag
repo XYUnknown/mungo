@@ -39,7 +39,7 @@ aspect LookupMethod {
      * Get return type of a TypestateMethod
      */
     public Access TypestateMethod.getReturnType() {
-        System.out.println("getReturnType: " + getTType().getAccess());
+        //System.out.println("getReturnType: " + getTType().getAccess());
     	return getTType().getAccess();
     }
 
@@ -220,6 +220,23 @@ aspect LookupMethod {
             }
         }
         return true; // nothing happens
+    }
+
+    /**
+     * Lookup a state according to a string label
+     */
+    syn State TypestateDecl.lookupState(String label) {
+        if (getInitState().getID().equals(label)) {
+            return getInitState(); // separately parsed in old version
+        } else {
+            for (State s: getStateList()) {
+                System.out.println(s.getID());
+                if (s.getID().equals(label)){
+                    return s;
+                }
+            }
+        }        
+        return null;
     }
 
     syn State Declarator.getTypestateInitState() = type().getTypestateDecl().getInitState();
