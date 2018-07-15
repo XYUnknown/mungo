@@ -217,24 +217,10 @@ aspect TypestateAnalysis {
     }
 
     public HashMap<String, State> MethodAccess.getTargetState() {
-        if (returnHasTypestateDecl()) {
+        if (hasTargetTypestateState()) {
             MethodDecl md = decl();
+            System.out.println("Target State: " + md.getTargetState());
             return md.getTargetState();
-            /*
-            TypestateDecl td = this.hostType().getTypestateDecl();
-            TypestateMethod tm = td.lookupMethod(md);
-            if (tm.getTType() instanceof TTypestate) {
-                Typestate ts = ((TTypestate)tm.getTType()).getTypestate();
-                if (ts instanceof TypestateLabel) {
-                    HashMap<String, State> state = new HashMap<String, State>();
-                    String label = ((TypestateLabel)ts).getLabel();
-                    state.put(label, td.lookupState(label));
-                    System.out.println("MethodAccess lookupState: " + td.lookupState(label));
-                    System.out.println("MethodAccess state: " + state);
-                    return state;
-                }                
-            }
-            */
         }
         return null;
     }
@@ -348,7 +334,7 @@ aspect TypestateAnalysis {
 
     public HashMap<String, State> MethodDecl.getTargetState() {
         if (hasTypestateDecl()) {
-            TypestateDecl td = this.getTypeAccess().type().getTypestateDecl();
+            TypestateDecl td = this.hostType().getTypestateDecl();
             TypestateMethod tm = td.lookupMethod(this);
             if (tm != null) {
                 if (tm.getTypestate() instanceof TypestateLabel) {
