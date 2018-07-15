@@ -62,6 +62,18 @@ aspect TypestateAnalysis {
         return this.type().hasTypestateDecl();
     }
 
+    syn boolean Expr.returnHasTypestateDecl() {
+        return false;
+    }
+
+    syn boolean Expr.hasTargetTypestateState() {
+        return false;
+    }
+
+    public HashMap<String, State> Expr.getTargetState() {
+        return null;
+    }
+
     /**
      * Access: Expr
      * Access may have a TypestateDecl, some subtypes of Access have state
@@ -216,6 +228,7 @@ aspect TypestateAnalysis {
         return hasTypestateDecl();
     }
 
+    @Override
     public HashMap<String, State> MethodAccess.getTargetState() {
         if (hasTargetTypestateState()) {
             MethodDecl md = decl();
@@ -263,6 +276,7 @@ aspect TypestateAnalysis {
         return false;
     }
 
+    @Override
     public HashMap<String, State> Dot.getTargetState() {
         if (lastAccess() instanceof MethodAccess) {
             return ((MethodAccess) lastAccess()).getTargetState();
