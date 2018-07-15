@@ -113,7 +113,10 @@ aspect TypestateCheck {
                     }
                 } else {
                     // Typestate switch handling, might not be checked here
+                    // TypestateSwitch is not handled, report error.
                     System.out.println(va.getState());
+                    problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
+                    return problems;
                 }               
             }
         }
@@ -265,6 +268,32 @@ aspect TypestateCheck {
                 }
             }            
         }         
+        return problems;
+    }
+
+    /**
+     * TODO Look up variables, check and update their states.
+     *
+     * switch (a.isFoo()) {...}
+     *
+     * Choice c = a.isFoo();
+     * switch (c) {...}
+     * 
+     * In both cases, state of a need to be updated
+     */
+    SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> SwitchStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        Expr exp = getExpr();
+        Block blk = getBlock();
+        System.out.println("SwitchStmt Expr: " + exp + " State: " + exp.getTargetState());
+        return problems;
+    }
+
+    LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> LabeledStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("LabeledStmt label: " + getLabel());
         return problems;
     }
 
