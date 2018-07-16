@@ -70,7 +70,7 @@ aspect SwitchCaseAnalysis {
 				}
 			} else if (s instanceof BreakStmt) {
 				if (caseLabel != null) {
-					String label = ((BreakStmt)s).getLabel().equals("") ? null : ((BreakStmt)s).getLabel();
+					String label = ((BreakStmt)s).hasLabel() ? null : ((BreakStmt)s).getLabel();
 					StmtInfo info = new StmtInfo(caseLabel);
 					info.setTermination(0);
 					info.setTerminationLabel(label);
@@ -90,7 +90,7 @@ aspect SwitchCaseAnalysis {
 				}				
 			} else if (s instanceof ContinueStmt) {
 				if (caseLabel != null) {
-					String label = ((ContinueStmt)s).getLabel().equals("") ? null : ((ContinueStmt)s).getLabel();
+					String label = ((ContinueStmt)s).hasLabel() ? null : ((ContinueStmt)s).getLabel();
 					StmtInfo info = new StmtInfo(caseLabel);
 					info.setTermination(1);
 					info.setTerminationLabel(label);
