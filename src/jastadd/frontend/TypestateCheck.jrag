@@ -67,43 +67,45 @@ aspect TypestateCheck {
                 MethodDecl md = this.decl();
                 HashMap<String, State> stateMap = va.getState();
                 if (stateMap.size() == 0){
+                    // End of state error reporting
                     problems.add(error("Reach end of state " + va));
                     return problems;
                 } else if (stateMap.size() == 1) { // No switch
+                    // Typestate checking and state updating
                     State currState = getSingleStateFromMap(stateMap);                 
                     problems = collectProblems(currState, md, va);
                     if (problems.size() != 0) {
                         return problems;
                     }
                 } else {
-                    // Typestate switch handling, might not be checked here                    
+                    // Typestate switch handling                   
                     System.out.println(va.getState());
-                    // TODO add label here
                     SwitchStmt switchStmt = lookupSwitch();
                     if (switchStmt == null) { // TypestateSwitch is not handled, report error.
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
                         return problems;
                     } else {
                         HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+                        // Lookup information of the Stmt which contains this MethodAccess, if not found report error
                         StmtInfo info = this.lookupInfo(infoMap);
                         if (info == null) {
                             problems.add(error("MethodAccess " + this + " in SwitchStmt does not have valid case label."));
                             return problems;
                         }
-                        String caseLabel = info.getCaseLabel();
-                        System.out.println(caseLabel);                        
+                        // Lookup case label, if the TypestateSwitch does not contains the label, report error.
+                        String caseLabel = info.getCaseLabel();                       
                         if (!stateMap.containsKey(caseLabel)) {
                             problems.add(error("TypestateSwitch does not contains key " + caseLabel));
                             return problems;
                         }
+                        // Typestate checking and state updating
                         State currState = stateMap.get(caseLabel);
                         problems = collectProblems(currState, md, va);
                         if (problems.size() != 0) {
                             return problems;
                         }
-                        if (info.hasTermination()) { //reset
-                            System.out.println("hasBreak: " + info.hasBreak());
-                            System.out.println("hasContinue: " + info.hasContinue());
+                        // Reset state when encounter termination statement
+                        if (info.hasTermination()) { 
                             va.setState(stateMap);
                         }
                     }
@@ -124,8 +126,7 @@ aspect TypestateCheck {
      */
     Declarator contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> Declarator.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("Printing VD: " + this);  
+        LinkedList<Problem> problems = new LinkedList<Problem>(); 
         if (hasTypestateState()) {
             if (!hasState()) { // getInit() : Expr
                 if ((getInit() != null ) && !(getInit() instanceof NullLiteral)) { // taking care of C c = null; and C c;
