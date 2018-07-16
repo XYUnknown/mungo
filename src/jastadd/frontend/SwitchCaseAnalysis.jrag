@@ -1,0 +1,143 @@
+aspect SwitchCaseAnalysis {
+
+	class StmtInfo {
+		private String caseLabel;
+		int termination = -1; // -1 no termination, 0 break, 1 continue
+		String terminationLabel = null;
+		public StmtInfo(String caseLabel) {
+			this.caseLabel = caseLabel;
+		}
+
+		public void setTermination(int termination) {
+			if ((-1 <= termination) && (1 >= termination)) {
+				this.termination = termination;
+			}
+		}
+
+		public void setTerminationLabel(String terminationLabel) {
+			this.terminationLabel = terminationLabel;
+		}
+
+		public String getCaseLabel() {
+			return this.caseLabel;
+		}
+
+		public int getTermination() {
+			return this.termination;
+		}
+
+		public String getTerminationLabel() {
+			return this.terminationLabel;
+		}
+
+		public boolean hasTermination() {
+			return this.termination != -1;
+		}
+
+		public boolean hasBreak() {
+			return this.termination == 0;
+		}
+
+		public boolean hasContinue() {
+			return this.termination == 1;
+		}
+	}
+
+	public HashMap<Stmt, StmtInfo> SwitchStmt.getStmtInfoMap() {
+		Stack<Stmt> stack = new Stack<Stmt>();
+		HashMap<Stmt, StmtInfo> map = new HashMap<Stmt, StmtInfo>();
+		Block blk = getBlock();
+		String caseLabel = null;
+		for (Stmt s: blk.getStmts()) {			
+			if (s instanceof Case) {
+				if (s instanceof ConstCase) {
+					VarAccess value = (VarAccess)((ConstCase)s).getValue();
+					caseLabel = value.getID();
+				} else {
+					caseLabel = "default";
+				}
+				StmtInfo info = new StmtInfo(caseLabel);
+				map.put(s, info);
+
+				if (stack.empty()) {
+					stack.push(s);
+				} else {
+					stack.clear();
+					stack.push(s);
+				}
+			} else if (s instanceof BreakStmt) {
+				String label = ((BreakStmt)s).getLabel().equals("") ? null : ((BreakStmt)s).getLabel();
+				StmtInfo info = new StmtInfo(caseLabel);
+				info.setTermination(0);
+				info.setTerminationLabel(label);
+				map.put(s, info);
+				caseLabel = null; // reset case label
+
+				Stmt temp = null;
+				while(!stack.empty()) {
+					temp = stack.pop();
+					StmtInfo i = map.get(temp);
+					i.setTermination(0);
+					i.setTerminationLabel(label);
+					if (temp instanceof Case) {
+						break;
+					}
+				}
+			} else if (s instanceof ContinueStmt) {
+				String label = ((ContinueStmt)s).getLabel().equals("") ? null : ((ContinueStmt)s).getLabel();
+				StmtInfo info = new StmtInfo(caseLabel);
+				info.setTermination(1);
+				info.setTerminationLabel(label);
+				map.put(s, info);
+				caseLabel = null; // reset case label
+
+				Stmt temp = null;
+				while(!stack.empty()) {
+					temp = stack.pop();
+					StmtInfo i = map.get(temp);
+					i.setTermination(1);
+					i.setTerminationLabel(label);
+					if (temp instanceof Case) {
+						break;
+					}
+				}
+			} else {
+				if (caseLabel != null) {
+					StmtInfo info = new StmtInfo(caseLabel);
+					map.put(s, info);
+					stack.push(s);
+				}
+			}
+		}
+		return map;
+	}
+
+	public StmtInfo MethodAccess.lookupInfo(HashMap<Stmt, StmtInfo> infoMap) {
+		ASTNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof Stmt) {
+                if (infoMap.containsKey((Stmt)node)) {
+                	return infoMap.get((Stmt)node);
+                }
+            } else {
+                node = node.getParent();
+            }
+        }
+        return null;
+	}
+
+	/**
+     * Lookup a Switch Stmt of the a MethodAccess
+     */
+    syn SwitchStmt MethodAccess.lookupSwitch() {
+        ASTNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof SwitchStmt) {
+                return (SwitchStmt)node;
+            } else {
+                node = node.getParent();
+            }
+        }
+        return null;
+    }
+}
