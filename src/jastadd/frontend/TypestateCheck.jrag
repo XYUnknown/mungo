@@ -122,13 +122,16 @@ aspect TypestateCheck {
                     } else {
                         HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
                         StmtInfo info = this.lookupInfo(infoMap);
+                        if (info == null) {
+                            problems.add(error("MethodAccess " + this + " in SwitchStmt does not have valid case label."));
+                            return problems;
+                        }
                         String caseLabel = info.getCaseLabel();
                         System.out.println(caseLabel);                        
                         if (!stateMap.containsKey(caseLabel)) {
-                            problems.add(error("TypestateSwitch does not contaions key " + caseLabel));
+                            problems.add(error("TypestateSwitch does not contains key " + caseLabel));
                             return problems;
                         }
-
                         // DO NOT TOUCH
                         State currState = stateMap.get(caseLabel);
                         TypestateMethodList methodList = (TypestateMethodList) currState.getTypestate();
@@ -333,24 +336,7 @@ aspect TypestateCheck {
      */
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        Expr exp = getExpr();
-        Block blk = getBlock();
-        System.out.println("SwitchStmt Expr: " + exp + " State: " + exp.getTargetState());
-        if (exp instanceof Dot) {
-            Expr va = ((Dot)exp).lastAccess().prevExpr();
-            System.out.println("SwitchStmt Expr Varible: " + va + " " + va.getClass());
-        }
-        for (Stmt s: blk.getStmts()) {
-            if (s instanceof ConstCase) {
-                System.out.println("ConstCase value: " + ((ConstCase)s).getValue() + " " + ((ConstCase)s).getValue().getClass());
-                VarAccess cc = (VarAccess)((ConstCase)s).getValue();
-                System.out.println("ConstCase value name: " + cc.name() + " ID " + cc.getID());
-            }
-            if (s instanceof BreakStmt) {                
-                System.out.println("BreakStmt label: " + s + " null? " + (((BreakStmt)s).getLabel().equals("")));
-            }
-        }     
+        LinkedList<Problem> problems = new LinkedList<Problem>();      
         return problems;
     }
 
