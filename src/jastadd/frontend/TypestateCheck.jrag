@@ -67,7 +67,7 @@ aspect TypestateCheck {
                 MethodDecl md = this.decl();
                 HashMap<String, State> stateMap = va.getState();
                 if (stateMap.size() == 0){
-                    problems.add(error("No State found in VarAccess " + va));
+                    problems.add(error("Reach end of state " + va));
                     return problems;
                 } else if (stateMap.size() == 1) { // No switch                  
                     State currState = getSingleStateFromMap(stateMap);
@@ -106,7 +106,10 @@ aspect TypestateCheck {
                                 newState.put(label, state);
                             }
                             va.setState(newState);
-                        }   
+                        } else if (tsMethod.getTypestate() instanceof EndTypestate) { // end of state, create empty state map
+                            HashMap<String, State> newState = new HashMap<String, State>();
+                            va.setState(newState);
+                        }  
                     } else { // The TypestateMethod is not found 
                         problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
                         return problems;
@@ -160,13 +163,18 @@ aspect TypestateCheck {
                                     newState.put(label, state);
                                 }
                                 va.setState(newState);
-                            }   
+                            } else if (tsMethod.getTypestate() instanceof EndTypestate) { // end of state, create empty state map
+                                HashMap<String, State> newState = new HashMap<String, State>();
+                                va.setState(newState);
+                            }  
                         } else { // The TypestateMethod is not found 
                             problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
                             return problems;
                         }
                         // DO NOT TOUCH
-                        if (info.hasBreak() || info.hasContinue()) { //reset
+                        if (info.hasTermination()) { //reset
+                            System.out.println("hasBreak: " + info.hasBreak());
+                            System.out.println("hasContinue: " + info.hasContinue());
                             va.setState(stateMap);
                         }
                     }
