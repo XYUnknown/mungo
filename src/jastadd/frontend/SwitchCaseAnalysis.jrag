@@ -51,8 +51,11 @@ aspect SwitchCaseAnalysis {
 		for (Stmt s: blk.getStmts()) {			
 			if (s instanceof Case) {
 				if (s instanceof ConstCase) {
-					VarAccess value = (VarAccess)((ConstCase)s).getValue();
-					caseLabel = value.getID();
+					Expr exp = ((ConstCase)s).getValue();
+					if (exp.type().isEnumDeclType()){
+						VarAccess value = (VarAccess)((ConstCase)s).getValue();
+						caseLabel = value.getID();
+					}					
 				} else {
 					caseLabel = "default";
 				}
@@ -66,41 +69,45 @@ aspect SwitchCaseAnalysis {
 					stack.push(s);
 				}
 			} else if (s instanceof BreakStmt) {
-				String label = ((BreakStmt)s).getLabel().equals("") ? null : ((BreakStmt)s).getLabel();
-				StmtInfo info = new StmtInfo(caseLabel);
-				info.setTermination(0);
-				info.setTerminationLabel(label);
-				map.put(s, info);
-				caseLabel = null; // reset case label
+				if (caseLabel != null) {
+					String label = ((BreakStmt)s).getLabel().equals("") ? null : ((BreakStmt)s).getLabel();
+					StmtInfo info = new StmtInfo(caseLabel);
+					info.setTermination(0);
+					info.setTerminationLabel(label);
+					map.put(s, info);
+					caseLabel = null; // reset case label
 
-				Stmt temp = null;
-				while(!stack.empty()) {
-					temp = stack.pop();
-					StmtInfo i = map.get(temp);
-					i.setTermination(0);
-					i.setTerminationLabel(label);
-					if (temp instanceof Case) {
-						break;
+					Stmt temp = null;
+					while(!stack.empty()) {
+						temp = stack.pop();
+						StmtInfo i = map.get(temp);
+						i.setTermination(0);
+						i.setTerminationLabel(label);
+						if (temp instanceof Case) {
+							break;
+						}
 					}
-				}
+				}				
 			} else if (s instanceof ContinueStmt) {
-				String label = ((ContinueStmt)s).getLabel().equals("") ? null : ((ContinueStmt)s).getLabel();
-				StmtInfo info = new StmtInfo(caseLabel);
-				info.setTermination(1);
-				info.setTerminationLabel(label);
-				map.put(s, info);
-				caseLabel = null; // reset case label
+				if (caseLabel != null) {
+					String label = ((ContinueStmt)s).getLabel().equals("") ? null : ((ContinueStmt)s).getLabel();
+					StmtInfo info = new StmtInfo(caseLabel);
+					info.setTermination(1);
+					info.setTerminationLabel(label);
+					map.put(s, info);
+					caseLabel = null; // reset case label
 
-				Stmt temp = null;
-				while(!stack.empty()) {
-					temp = stack.pop();
-					StmtInfo i = map.get(temp);
-					i.setTermination(1);
-					i.setTerminationLabel(label);
-					if (temp instanceof Case) {
-						break;
+					Stmt temp = null;
+					while(!stack.empty()) {
+						temp = stack.pop();
+						StmtInfo i = map.get(temp);
+						i.setTermination(1);
+						i.setTerminationLabel(label);
+						if (temp instanceof Case) {
+							break;
+						}
 					}
-				}
+				}				
 			} else {
 				if (caseLabel != null) {
 					StmtInfo info = new StmtInfo(caseLabel);
@@ -118,6 +125,8 @@ aspect SwitchCaseAnalysis {
             if (node instanceof Stmt) {
                 if (infoMap.containsKey((Stmt)node)) {
                 	return infoMap.get((Stmt)node);
+                } else {
+                	node = node.getParent();
                 }
             } else {
                 node = node.getParent();
@@ -133,7 +142,7 @@ aspect SwitchCaseAnalysis {
         ASTNode node = this.getParent();
         while (node != null) {
             if (node instanceof SwitchStmt) {
-                return (SwitchStmt)node;
+                return (SwitchStmt) node;
             } else {
                 node = node.getParent();
             }
