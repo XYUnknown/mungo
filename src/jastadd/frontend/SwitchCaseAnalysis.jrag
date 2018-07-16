@@ -2,7 +2,7 @@ aspect SwitchCaseAnalysis {
 
 	class StmtInfo {
 		private String caseLabel;
-		int termination = -1; // -1 no termination, 0 break, 1 continue
+		int termination = -1; // -1 no termination, 0 break/end block, 1 continue
 		String terminationLabel = null;
 		public StmtInfo(String caseLabel) {
 			this.caseLabel = caseLabel;
@@ -113,6 +113,17 @@ aspect SwitchCaseAnalysis {
 					StmtInfo info = new StmtInfo(caseLabel);
 					map.put(s, info);
 					stack.push(s);
+				}
+			}
+		}
+		// Last case analysis
+		if (!stack.empty()) {
+			Stmt temp;
+			while (!stack.empty()) {
+				temp = stack.pop();
+				if (map.containsKey(temp)){
+					StmtInfo i = map.get(temp);
+					i.setTermination(0);
 				}
 			}
 		}
