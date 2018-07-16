@@ -1,0 +1,58 @@
+/**
+ * Helper methods for typestate checking
+ */
+aspect TypstateCheckFunctionality {
+	/**
+	 * Method Access Typestate analysing, state updating, problems reporting.
+	 */
+	private LinkedList<Problem> MethodAccess.collectProblems(State currState, MethodDecl md, Expr va) {
+		LinkedList<Problem> problems = new LinkedList<Problem>();		
+		TypestateMethodList methodList = (TypestateMethodList) currState.getTypestate();
+		// lookup the TypestateMethod which has same signature as the MethodDecl
+		TypestateMethod tsMethod = methodList.lookupMethod(md); 
+		if (tsMethod != null) { // The TypestateMethod is found
+			if(!isValidParamState(tsMethod)) {
+				problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
+				return problems;
+			}
+			if (tsMethod.getTypestate() instanceof TypestateLabel) {
+				/**
+				 * Update state - Store label and State in the state map
+				 * label is the same as the State name
+				 */
+				TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
+				HashMap<String, State> newState = new HashMap<String, State>();
+				newState.put(tl.getTarget().getID(), tl.getTarget());
+				va.setState(newState); // Update State of VariableDeclarator
+			} else if (tsMethod.getTypestate() instanceof TypestateSwitch){
+				/**
+				 * Update state - Store label and State in the state map
+				 * lable is different from the State name
+				 * For example TRUE: Empty
+				 */
+				HashMap<String, State> newState = new HashMap<String, State>();
+				TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
+				for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
+					if (!(c.getTypestate() instanceof TypestateLabel)) {
+						problems.add(error("TypestateSwitchCase should not have TypestateSwitch as target state."));
+						return problems;
+					}
+					String label = c.getLabel();
+					State state = ((TypestateLabel) c.getTypestate()).getTarget();
+					newState.put(label, state);
+				}
+				va.setState(newState);
+			} else if (tsMethod.getTypestate() instanceof EndTypestate) { 
+				/**
+				 * End of state, create empty state map
+				 */
+				HashMap<String, State> newState = new HashMap<String, State>();
+				va.setState(newState);
+			}  
+		} else { // The TypestateMethod is not found 
+			problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
+			return problems;
+		}
+		return problems;
+	}
+}
