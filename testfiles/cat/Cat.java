@@ -60,18 +60,39 @@ public class Cat {
 		c1.playWith(c4); // Error detected
 		c4.playWith(c1); // Error detected
 
+		// Test sequence  method access
+		Cat cat0 = new Cat();
+		cat0.initialise();
+		cat0.giveBirth().poison(); // Error detected
+
+		// Test sequence method access
+		Cat cat00 = new Cat();
+		cat00.initialise();
+		cat00.giveBirth().initialise(); // pass
+
+		// Test Assignment using Dot
+		Cat neko0 = new Cat();
+		neko0.initialise();
+		Cat neko1 = neko0.giveBirth();
+		neko1.initialise(); // pass
+		neko1.openBox(); // Error detected
+		Cat neko2;
+		neko2 = neko0.giveBirth();
+		neko2.initialise();
+
+
 		// Switch statement
 		Cat cat1 = new Cat();
 		cat1.initialise();
 		cat1.putInBox();
 		switch (cat1.openBox()) {
-			case TRUE:
+			case TRUE:				
 				cat1.giveBirth();
+				//cat1.bury();
 				break;
 			case FALSE:
 				cat1.bury();
 				break;
 		}
-
 	}
 }
