@@ -51,11 +51,9 @@ aspect TypestateCheck {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
         System.out.println("MethodAccess name: " + name());
-        // System.out.println("MethodAccess instance: " + getVarAccess());
-        // VarAccess va = getVarAccess();
-        Expr va = prevExpr();
         System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
-        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());      
+        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());  
+        Expr va = prevExpr();
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
@@ -63,7 +61,7 @@ aspect TypestateCheck {
             }
             if(va.hasTypestateState() && va.hasState()) {
                 //ASTNode vd = (ASTNode) va.varDecl();  
-                TypestateMethod tsMethod = null; // used for lookup method with signature              
+                //TypestateMethod tsMethod = null; // used for lookup method with signature              
                 MethodDecl md = this.decl();
                 HashMap<String, State> stateMap = va.getState();
                 if (stateMap.size() == 0){
@@ -79,7 +77,6 @@ aspect TypestateCheck {
                     }
                 } else {
                     // Typestate switch handling                   
-                    System.out.println(va.getState());
                     SwitchStmt switchStmt = lookupSwitch();
                     if (switchStmt == null) { // TypestateSwitch is not handled, report error.
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
@@ -235,7 +232,6 @@ aspect TypestateCheck {
     syn Collection<Problem> MethodDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
-        System.out.println("MethodDecl getAccess: " + this.getTypeAccess() + " " + this.getTypeAccess().getClass());
         if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
             if (hasTypestateDecl() && returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
                 TypestateDecl td = this.hostType().getTypestateDecl();
@@ -244,13 +240,10 @@ aspect TypestateCheck {
                     problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
                     return problems;
                 }
-                System.out.println("MethodDecl found TypestateMethod: " + tm);
                 if (block != null) { // Do not check return statement of abstract method declaration
-                    System.out.println("MethodDecl " + this.name() + " stmts: ");
                     for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
                         if (s instanceof ReturnStmt) {
                             ReturnStmt rs = (ReturnStmt)s;
-                            System.out.println("Same return state? " + tm.isSameReturnState(rs));
                             if (!tm.isSameReturnState(rs)) { // State mismatch, report error
                                 problems.add(error("ReturnStmt Typestate mismatch"));
                             }

@@ -6,7 +6,6 @@ aspect LookupMethod {
      * Get return type of a TypestateMethod
      */
     public Access TypestateMethod.getReturnType() {
-        //System.out.println("getReturnType: " + getTType().getAccess());
     	return getTType().getAccess();
     }
 
@@ -102,7 +101,6 @@ aspect LookupMethod {
      */
     public boolean MethodAccess.hasParamWithNullState() {
         for (int i = 0; i < getNumArg(); i++) {
-            System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
                 if (arg.hasTypestateState() && arg.getState() == null) {
@@ -115,7 +113,6 @@ aspect LookupMethod {
 
     public VarAccess MethodAccess.getParamWithNullState() {
         for (int i = 0; i < getNumArg(); i++) {
-            System.out.println("MethodAccess Param: " + getArg(i) + " " + getArg(i).getClass());
             if (getArg(i) instanceof VarAccess) {
                 VarAccess arg = (VarAccess) getArg(i);
                 if (arg.hasTypestateState() && arg.getState() == null) {
@@ -169,9 +166,7 @@ aspect LookupMethod {
             if (ts instanceof TypestateLabel) {
                 TypestateLabel tl = (TypestateLabel) ts;
                 if (rs.hasTypestateState() && rs.getState() != null) { // checking whether typestate are the same
-                    System.out.println("ReturnStmt state: " + rs.getState());
-                    //if(!tl.getLabel().equals(rs.getState().getID())) { // state mismatch, return false
-                    if(!rs.getState().containsKey(tl.getLabel())) { 
+                    if(!rs.getState().containsKey(tl.getLabel())) { // state mismatch, return false
                         return false;
                     }
                 } else { // the return type does not have state, this does not match the TTypestate
@@ -197,7 +192,6 @@ aspect LookupMethod {
             return getInitState(); // separately parsed in old version
         } else {
             for (State s: getStateList()) {
-                System.out.println(s.getID());
                 if (s.getID().equals(label)){
                     return s;
                 }

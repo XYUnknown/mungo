@@ -232,7 +232,6 @@ aspect TypestateAnalysis {
     public HashMap<String, State> MethodAccess.getTargetState() {
         if (hasTargetTypestateState()) {
             MethodDecl md = decl();
-            System.out.println("Target State: " + md.getTargetState());
             return md.getTargetState();
         }
         return null;
@@ -336,8 +335,6 @@ aspect TypestateAnalysis {
                     HashMap<String, State> state = new HashMap<String, State>();
                     String label = ((TypestateLabel)ts).getLabel();
                     state.put(label, td.lookupState(label));
-                    System.out.println("MethodDecl lookupState: " + td.lookupState(label));
-                    System.out.println("MethodDecl state: " + state);
                     return state;
                 }
                 
@@ -376,7 +373,6 @@ aspect TypestateAnalysis {
      * TypeAccess: Access
      */
     syn boolean TypeAccess.hasTypestateDecl() {
-        System.out.println("TypeAccess: " + type());
         return type().hasTypestateDecl();
     }
 
