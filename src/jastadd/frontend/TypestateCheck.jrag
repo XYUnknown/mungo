@@ -55,7 +55,7 @@ aspect TypestateCheck {
         // VarAccess va = getVarAccess();
         Expr va = prevExpr();
         System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
-        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());        
+        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());      
         if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
@@ -112,11 +112,61 @@ aspect TypestateCheck {
                         return problems;
                     }
                 } else {
-                    // Typestate switch handling, might not be checked here
-                    // TypestateSwitch is not handled, report error.
+                    // Typestate switch handling, might not be checked here                    
                     System.out.println(va.getState());
-                    problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
-                    return problems;
+                    // TODO add label here
+                    SwitchStmt switchStmt = lookupSwitch();
+                    if (switchStmt == null) { // TypestateSwitch is not handled, report error.
+                        problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
+                        return problems;
+                    } else {
+                        HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+                        StmtInfo info = this.lookupInfo(infoMap);
+                        String caseLabel = info.getCaseLabel();
+                        System.out.println(caseLabel);                        
+                        if (!stateMap.containsKey(caseLabel)) {
+                            problems.add(error("TypestateSwitch does not contaions key " + caseLabel));
+                            return problems;
+                        }
+
+                        // DO NOT TOUCH
+                        State currState = stateMap.get(caseLabel);
+                        TypestateMethodList methodList = (TypestateMethodList) currState.getTypestate();
+                        // lookup the TypestateMethod which has same signature as the MethodDecl
+                        tsMethod = methodList.lookupMethod(md); 
+                        if (tsMethod != null) { // The TypestateMethod is found
+                            if(!isValidParamState(tsMethod)) {
+                                problems.add(error("MethodAccess " + this + " has arguments in invalid state."));
+                                return problems;
+                            }
+                            if (tsMethod.getTypestate() instanceof TypestateLabel) {
+                                TypestateLabel tl = (TypestateLabel) tsMethod.getTypestate();
+                                HashMap<String, State> newState = new HashMap<String, State>();
+                                newState.put(tl.getTarget().getID(), tl.getTarget());
+                                va.setState(newState); // Update State of VariableDeclarator
+                            } else if (tsMethod.getTypestate() instanceof TypestateSwitch){                            
+                                HashMap<String, State> newState = new HashMap<String, State>();
+                                TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
+                                for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
+                                    if (!(c.getTypestate() instanceof TypestateLabel)) {
+                                        problems.add(error("TypestateSwitchCase should not have TypestateSwitch as target state."));
+                                        return problems;
+                                    }
+                                    String label = c.getLabel();
+                                    State state = ((TypestateLabel) c.getTypestate()).getTarget();
+                                    newState.put(label, state);
+                                }
+                                va.setState(newState);
+                            }   
+                        } else { // The TypestateMethod is not found 
+                            problems.add(error("Invalid MethodAccess " + this + " in State: " + currState.getID()));
+                            return problems;
+                        }
+                        // DO NOT TOUCH
+                        if (info.hasBreak() || info.hasContinue()) { //reset
+                            va.setState(stateMap);
+                        }
+                    }
                 }               
             }
         }
@@ -287,6 +337,20 @@ aspect TypestateCheck {
         Expr exp = getExpr();
         Block blk = getBlock();
         System.out.println("SwitchStmt Expr: " + exp + " State: " + exp.getTargetState());
+        if (exp instanceof Dot) {
+            Expr va = ((Dot)exp).lastAccess().prevExpr();
+            System.out.println("SwitchStmt Expr Varible: " + va + " " + va.getClass());
+        }
+        for (Stmt s: blk.getStmts()) {
+            if (s instanceof ConstCase) {
+                System.out.println("ConstCase value: " + ((ConstCase)s).getValue() + " " + ((ConstCase)s).getValue().getClass());
+                VarAccess cc = (VarAccess)((ConstCase)s).getValue();
+                System.out.println("ConstCase value name: " + cc.name() + " ID " + cc.getID());
+            }
+            if (s instanceof BreakStmt) {                
+                System.out.println("BreakStmt label: " + s + " null? " + (((BreakStmt)s).getLabel().equals("")));
+            }
+        }     
         return problems;
     }
 
@@ -294,6 +358,13 @@ aspect TypestateCheck {
     syn Collection<Problem> LabeledStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("LabeledStmt label: " + getLabel());
+        return problems;
+    }
+
+    Case contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> Case.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        //this.doPrintFullTraversal();
         return problems;
     }
 
