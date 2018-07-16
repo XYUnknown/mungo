@@ -93,6 +93,11 @@ public class Cat {
 			case FALSE:
 				cat1.bury();
 				break;
+			case "foo": // error
+				cat1.bury(); // error
+				break;
+			default:
+				cat1.close(); // error
 		}
 	}
 }
