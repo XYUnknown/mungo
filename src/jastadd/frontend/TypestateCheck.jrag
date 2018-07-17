@@ -50,11 +50,10 @@ aspect TypestateCheck {
   	syn Collection<Problem> MethodAccess.typestateProblems() {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
-        System.out.println("MethodAccess name: " + name());
-        System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
-        System.out.println("MethodAccess parentDot: " + parentDot() + " " + parentDot().getClass());  
-        Expr va = prevExpr();
-        if(va != null) { // avoid situation such as 1) implicit self reference 2) static method
+        System.out.println("MethodAccess name: " + name());                 
+        if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
+            System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
+            Expr va = prevExpr();
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
@@ -282,6 +281,13 @@ aspect TypestateCheck {
     syn Collection<Problem> Case.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         //this.doPrintFullTraversal();
+        return problems;
+    }
+
+    BreakStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> BreakStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("BreakStmt target: " + targetStmt());
         return problems;
     }
 
