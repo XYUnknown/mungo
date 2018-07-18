@@ -91,7 +91,12 @@ aspect TypestateCheck {
                         // Lookup case label, if the TypestateSwitch does not contains the label, report error.
                         String caseLabel = info.getCaseLabel();                       
                         if (!stateMap.containsKey(caseLabel)) {
-                            problems.add(error("TypestateSwitch does not contains key " + caseLabel));
+                            problems.add(error("TypestateSwitch does not contains label " + caseLabel));
+                            return problems;
+                        }
+                        // Reset state when encounter termination statement
+                        if (!info.hasTermination()) { 
+                            problems.add(error(this + " is in an case without break or continue."));
                             return problems;
                         }
                         // Typestate checking and state updating
@@ -266,7 +271,8 @@ aspect TypestateCheck {
      */
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();      
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("Expr in SwitchStmt: " + getExpr().varDecl()); 
         return problems;
     }
 

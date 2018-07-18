@@ -118,17 +118,6 @@ aspect SwitchCaseAnalysis {
 				}
 			}
 		}
-		// Last case analysis
-		if (!stack.empty()) {
-			Stmt temp;
-			while (!stack.empty()) {
-				temp = stack.pop();
-				if (map.containsKey(temp)){
-					StmtInfo i = map.get(temp);
-					i.setTermination(0);
-				}
-			}
-		}
 		return map;
 	}
 
