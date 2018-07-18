@@ -96,7 +96,8 @@ aspect SwitchCaseCheck {
 						currState = stateMap.get(caseLabel);
 					} else {
 						if (switchStmt.getRecordCaseLabel().equals(caseLabel)) {
-							currState = getSingleStateFromMap(switchStmt.getRecordState());
+							// in same case, restore previous state for typestate checking
+							currState = getSingleStateFromMap(switchStmt.getRecordState()); // if in switch?
 						} else {
 							switchStmt.setRecordCaseLabel(caseLabel);
 							currState = stateMap.get(caseLabel);
@@ -107,9 +108,9 @@ aspect SwitchCaseCheck {
 					if (problems.size() != 0) {
 						return problems;
 					}
-					// Reset state when encounter termination statement
-					switchStmt.setRecordState(va.getState());
-					va.setState(stateMap);					
+					// Reset and record state
+					switchStmt.setRecordState(va.getState()); // record current state
+					va.setState(stateMap); // reset state for next check				
                 }				
 			}			
 		}
