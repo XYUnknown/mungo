@@ -55,9 +55,11 @@ aspect SwitchCaseAnalysis {
 					if (exp.type().isEnumDeclType()){
 						VarAccess value = (VarAccess)((ConstCase)s).getValue();
 						caseLabel = value.getID();
+					} else {
+						caseLabel = ((ConstCase)s).getValue().toString(); // Store information including invalid case label
 					}					
 				} else {
-					caseLabel = "default";
+					caseLabel = "";
 				}
 				StmtInfo info = new StmtInfo(caseLabel);
 				map.put(s, info);
