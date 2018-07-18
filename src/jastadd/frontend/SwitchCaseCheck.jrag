@@ -87,7 +87,7 @@ aspect SwitchCaseCheck {
 					}
 					// Reset state when encounter termination statement
 					if (!info.hasTermination()) { 
-						problems.add(error(this + " is in an case without break or continue."));
+						problems.add(error("MethodAccess: " + this + " is in an case without break or continue."));
 						return problems;
 					}
 					State currState;
@@ -114,7 +114,19 @@ aspect SwitchCaseCheck {
                 }				
 			}			
 		}
+		return problems;		
+	}
+
+	ConstCase contributes each typestateSwitchProblem() to SwitchStmt.collectTypestateProblems();
+	syn Collection<Problem> ConstCase.typestateSwitchProblem() {
+		LinkedList<Problem> problems = new LinkedList<Problem>();
+		SwitchStmt switchStmt = lookupSwitch();
+		HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+		StmtInfo info = infoMap.get(this);
+		if (!info.hasTermination()) {
+			problems.add(error("Case with label: " + getValue() + " in Typestate switch has no break or continue statement."));
+			return problems;
+		}
 		return problems;
-		
 	}
 }
