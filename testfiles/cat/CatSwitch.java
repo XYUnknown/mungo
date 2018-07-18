@@ -34,7 +34,7 @@ class CatSwitch {
 		cat2.initialise();
 		cat2.putInBox();
 		//BooleanChoice result;
-		//result = cat1.openBox();
+		//result = cat2.openBox();
 		switch (cat2.openBox()) {			
 			case FALSE:
 				cat2.bury();
@@ -42,7 +42,7 @@ class CatSwitch {
 			case TRUE:				
 				cat2.giveBirth();
 				cat2.giveBirth();
-				//cat1.bury(); // Error detected
+				cat2.bury(); // Error detected
 				break;
 			case "foo": // Error detected
 				cat2.bury(); // Error detected
