@@ -400,6 +400,22 @@ aspect TypestateAnalysis {
         return getState() != null;
     }
 
+    /** 
+     * SwitchStmt: Stmt :: Expr Block
+     * SwitchStmt might have a TypestateDecl
+     * Depends on its children Expr
+     */
+    syn boolean SwitchStmt.hasTypestateDecl() {
+        Expr expr = getExpr();
+        if (expr instanceof Dot) {
+            return (((Dot)expr).lastAccess() instanceof MethodAccess) ? ((Dot)expr).hasTargetTypestateState() : hasTypestateDecl();
+        } else if (expr instanceof MethodAccess) {
+            return ((MethodAccess) expr).hasTargetTypestateState();
+        } else {
+            return expr.hasTypestateDecl();
+        }
+    }
+
     /**
      * Checking whether a compilation unit is constructed from a typestate protocol
      */
