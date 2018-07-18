@@ -1,0 +1,86 @@
+aspect SwitchCaseCheck {
+	coll LinkedList<Problem> SwitchStmt.collectTypestateProblems() root SwitchStmt;
+	ConstructorDecl contributes {
+		if (checkImplicitConstructorInvocation()) {
+			getImplicitConstructorInvocation().collectContributions();
+		}
+		super.collectContributions();
+	} to SwitchStmt.collectTypestateProblems();
+
+	private boolean SwitchStmt.checked = false;
+
+	public void SwitchStmt.setCheckedTrue() {
+		this.checked = true;
+	} 
+
+	public boolean SwitchStmt.isChecked() {
+		return this.checked;
+	}
+
+	/**
+	 * Determine a MethodAccess is checked or not
+	 */
+	private boolean MethodAccess.checked = false;
+
+	public void MethodAccess.setCheckedTrue() {
+		this.checked = true;
+	} 
+
+	public boolean MethodAccess.isChecked() {
+		return this.checked;
+	}
+
+	MethodAccess contributes each typestateSwitchProblem() to SwitchStmt.collectTypestateProblems(); 
+	syn Collection<Problem> MethodAccess.typestateSwitchProblem() {
+		LinkedList<Problem> problems = new LinkedList<Problem>();
+		if(!isChecked() && hasPrevExpr()) {
+			Expr va = prevExpr();
+			if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
+				problems.add(error("No Init State found in VarAccess " + va));
+				return problems;
+			}
+			if (va.hasTypestateState() && va.hasState()) {
+				MethodDecl md = this.decl();
+				HashMap<String, State> stateMap = va.getState();
+				// Only handle va in typestateswitch here
+				if (stateMap.size() > 1) {
+					SwitchStmt switchStmt = lookupSwitch();                	                	
+					if (switchStmt == null) { // already handled 
+						return new LinkedList<Problem>();
+					}
+
+					HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+					// Lookup information of the Stmt which contains this MethodAccess, if not found report error
+					StmtInfo info = this.lookupInfo(infoMap);
+					if (info == null) {
+						problems.add(error("MethodAccess " + this + " in SwitchStmt does not have valid case label."));
+						return problems;
+					}
+					// Lookup case label, if the TypestateSwitch does not contains the label, report error.
+					String caseLabel = info.getCaseLabel();                      
+					if (!stateMap.containsKey(caseLabel)) {
+						problems.add(error("TypestateSwitch does not contains label " + caseLabel));
+						return problems;
+					}
+					// Reset state when encounter termination statement
+					if (!info.hasTermination()) { 
+						problems.add(error(this + " is in an case without break or continue."));
+						return problems;
+					}	
+					// Typestate checking and state updating
+					State currState = stateMap.get(caseLabel);
+					problems = collectProblems(currState, md, va);
+					if (problems.size() != 0) {
+						return problems;
+					}
+					// Reset state when encounter termination statement
+					if (info.hasTermination()) { 
+						va.setState(stateMap);
+					}
+                }				
+			}			
+		}
+		return problems;
+		
+	}
+}
