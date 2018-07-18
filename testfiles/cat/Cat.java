@@ -79,25 +79,5 @@ public class Cat {
 		Cat neko2;
 		neko2 = neko0.giveBirth();
 		neko2.initialise();
-
-
-		// Switch statement
-		Cat cat1 = new Cat();
-		cat1.initialise();
-		cat1.putInBox();
-		switch (cat1.openBox()) {
-			case TRUE:				
-				cat1.giveBirth();
-				//cat1.bury();
-				break;
-			case FALSE:
-				cat1.bury();
-				break;
-			case "foo": // error
-				cat1.bury(); // error
-				break;
-			default:
-				cat1.close(); // error
-		}
 	}
 }

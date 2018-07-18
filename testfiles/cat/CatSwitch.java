@@ -15,7 +15,6 @@ class CatSwitch {
 			case FALSE:
 				switch (cat0.openBox()){
 					case TRUE:
-						//cat0.bury();
 						cat0.giveBirth();
 						break;
 					case FALSE:
@@ -27,6 +26,30 @@ class CatSwitch {
 			case TRUE:				
 				cat1.giveBirth();
 				break;
-		} 
+		}
+
+
+		// Switch statement
+		Cat cat2 = new Cat();
+		cat2.initialise();
+		cat2.putInBox();
+		//BooleanChoice result;
+		//result = cat1.openBox();
+		switch (cat2.openBox()) {			
+			case FALSE:
+				cat2.bury();
+				break;
+			case TRUE:				
+				cat2.giveBirth();
+				cat2.giveBirth();
+				//cat1.bury(); // Error detected
+				break;
+			case "foo": // Error detected
+				cat2.bury(); // Error detected
+				break;
+			default:
+				cat2.close(); // Error detected
+		}
+		cat2.poison(); // Error detected 
 	}
 }
