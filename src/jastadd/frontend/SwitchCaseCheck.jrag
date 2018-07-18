@@ -26,6 +26,10 @@ aspect SwitchCaseCheck {
 		this.checked = true;
 	} 
 
+	public void MethodAccess.setCheckedFalse() {
+		this.checked = false;
+	}
+
 	public boolean MethodAccess.isChecked() {
 		return this.checked;
 	}
@@ -85,7 +89,7 @@ aspect SwitchCaseCheck {
 						problems.add(error("TypestateSwitch does not contains label " + caseLabel));
 						return problems;
 					}
-					// Reset state when encounter termination statement
+					// Report method in a case without termination problem
 					if (!info.hasTermination()) { 
 						problems.add(error("MethodAccess: " + this + " is in an case without break or continue."));
 						return problems;

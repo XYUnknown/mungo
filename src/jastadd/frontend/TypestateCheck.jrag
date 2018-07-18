@@ -85,6 +85,7 @@ aspect TypestateCheck {
                         System.out.println("Checked? " + switchStmt.isChecked());
                         if (!switchStmt.isChecked()) {
                             switchStmt.setCheckedTrue();
+                            this.setCheckedFalse();// force recheck in switch
                             problems = switchStmt.collectTypestateProblems();
                             if (problems.size() > 0) {
                                 return problems;
