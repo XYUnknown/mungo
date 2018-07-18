@@ -48,6 +48,7 @@ aspect TypestateCheck {
      */
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems() {
+        this.setCheckedTrue();
   		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
         System.out.println("MethodAccess name: " + name());                 
@@ -81,6 +82,17 @@ aspect TypestateCheck {
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
                         return problems;
                     } else {
+                        System.out.println("Checked? " + switchStmt.isChecked());
+                        if (!switchStmt.isChecked()) {
+                            switchStmt.setCheckedTrue();
+                            problems = switchStmt.collectTypestateProblems();
+                            if (problems.size() > 0) {
+                                return problems;
+                            }                            
+                        }    
+                    }
+
+                    /*else {
                         HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
                         // Lookup information of the Stmt which contains this MethodAccess, if not found report error
                         StmtInfo info = this.lookupInfo(infoMap);
@@ -88,6 +100,7 @@ aspect TypestateCheck {
                             problems.add(error("MethodAccess " + this + " in SwitchStmt does not have valid case label."));
                             return problems;
                         }
+                        
                         // Lookup case label, if the TypestateSwitch does not contains the label, report error.
                         String caseLabel = info.getCaseLabel();                       
                         if (!stateMap.containsKey(caseLabel)) {
@@ -109,7 +122,8 @@ aspect TypestateCheck {
                         if (info.hasTermination()) { 
                             va.setState(stateMap);
                         }
-                    }
+                        
+                    }*/
                 }               
             }
         }
@@ -273,6 +287,7 @@ aspect TypestateCheck {
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("Expr in SwitchStmt: " + getExpr().varDecl()); 
+        //problems = this.collectTypestateProblems();
         return problems;
     }
 
