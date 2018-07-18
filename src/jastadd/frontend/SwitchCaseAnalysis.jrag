@@ -151,4 +151,19 @@ aspect SwitchCaseAnalysis {
         }
         return null;
     }
+
+    /**
+     * Lookup a Switch Stmt of the a MethodAccess
+     */
+    syn SwitchStmt Stmt.lookupSwitch() {
+        ASTNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof SwitchStmt) {
+                return (SwitchStmt) node;
+            } else {
+                node = node.getParent();
+            }
+        }
+        return null;
+    }
 }
