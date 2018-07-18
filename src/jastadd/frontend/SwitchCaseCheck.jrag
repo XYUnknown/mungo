@@ -30,6 +30,29 @@ aspect SwitchCaseCheck {
 		return this.checked;
 	}
 
+	/**
+	 * Record result state and case label
+	 */
+	private HashMap<String, State> SwitchStmt.recordState;
+
+	public HashMap<String, State> SwitchStmt.getRecordState() {
+		return this.recordState;
+	}
+
+	public void SwitchStmt.setRecordState(HashMap<String, State> state) {
+		this.recordState = state;
+	}
+
+	private String SwitchStmt.recordCaseLabel;
+
+	public String SwitchStmt.getRecordCaseLabel() {
+		return this.recordCaseLabel;
+	}
+
+	public void SwitchStmt.setRecordCaseLabel(String label) {
+		this.recordCaseLabel = label;
+	}
+
 	MethodAccess contributes each typestateSwitchProblem() to SwitchStmt.collectTypestateProblems(); 
 	syn Collection<Problem> MethodAccess.typestateSwitchProblem() {
 		LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -66,17 +89,27 @@ aspect SwitchCaseCheck {
 					if (!info.hasTermination()) { 
 						problems.add(error(this + " is in an case without break or continue."));
 						return problems;
-					}	
+					}
+					State currState;
+					if (switchStmt.getRecordCaseLabel() == null) {
+						switchStmt.setRecordCaseLabel(caseLabel);
+						currState = stateMap.get(caseLabel);
+					} else {
+						if (switchStmt.getRecordCaseLabel().equals(caseLabel)) {
+							currState = getSingleStateFromMap(switchStmt.getRecordState());
+						} else {
+							switchStmt.setRecordCaseLabel(caseLabel);
+							currState = stateMap.get(caseLabel);
+						}
+					}					
 					// Typestate checking and state updating
-					State currState = stateMap.get(caseLabel);
-					problems = collectProblems(currState, md, va);
+					problems = collectProblems(currState, md, va);					
 					if (problems.size() != 0) {
 						return problems;
 					}
 					// Reset state when encounter termination statement
-					if (info.hasTermination()) { 
-						va.setState(stateMap);
-					}
+					switchStmt.setRecordState(va.getState());
+					va.setState(stateMap);					
                 }				
 			}			
 		}
