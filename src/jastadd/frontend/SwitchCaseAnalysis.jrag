@@ -220,6 +220,43 @@ aspect SwitchCaseAnalysis {
     }
 
     /**
+     * Check if a MethodAccess is the Expr of a SwitchStmt or not
+     */
+    syn boolean MethodAccess.isSwitchStmtExpr() {
+    	return (lookupExprSwitchStmt() != null);
+    }
+
+    syn SwitchStmt MethodAccess.lookupExprSwitchStmt() {
+    	if (hasPrevExpr()) {
+    		Expr va = prevExpr();
+    		Variable v;
+    		if (!va.isVariable()) {
+    			return null;
+    		} else {
+    			v = ((VarAccess) va).decl();
+    		}
+    		ASTNode node = this.getParent();
+        	while (node != null) {
+            	if (node instanceof SwitchStmt) {
+            		//System.out.println("checking switch: " + ((SwitchStmt) node).getRecordVariable());
+            		//System.out.println("checking this: " + v);
+            		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
+            			return (SwitchStmt) node;
+            		} else {
+            			node = node.getParent();
+            		}                	
+            	} else if (node instanceof Block) { //not in expr
+            		return null;
+            	} else {
+                	node = node.getParent();
+            	}
+        	}
+        	return null;
+    	}        
+        return null;
+    }
+
+    /**
      * Lookup a Switch Stmt of the a MethodAccess
      */
     syn SwitchStmt Stmt.lookupSwitch() {
