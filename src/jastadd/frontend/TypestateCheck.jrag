@@ -48,10 +48,9 @@ aspect TypestateCheck {
      */
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems() {
-        this.setCheckedTrue();
   		LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("---------checking------------");
-        System.out.println("MethodAccess name: " + name());                 
+        System.out.println("MethodAccess name: " + name());             
         if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
             System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
             Expr va = prevExpr();
@@ -82,18 +81,6 @@ aspect TypestateCheck {
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
                         return problems;
                     } else {
-                        System.out.println("Checked? " + switchStmt.isChecked());
-                        if (!switchStmt.isChecked()) {
-                            switchStmt.setCheckedTrue();
-                            this.setCheckedFalse();// force recheck in switch
-                            problems = switchStmt.collectTypestateProblems();
-                            if (problems.size() > 0) {
-                                return problems;
-                            }                            
-                        }    
-                    }
-
-                    /*else {
                         HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
                         // Lookup information of the Stmt which contains this MethodAccess, if not found report error
                         StmtInfo info = this.lookupInfo(infoMap);
@@ -114,17 +101,32 @@ aspect TypestateCheck {
                             return problems;
                         }
                         // Typestate checking and state updating
-                        State currState = stateMap.get(caseLabel);
-                        problems = collectProblems(currState, md, va);
+                        State currState;
+                        if (switchStmt.getRecordCaseLabel() == null) {
+                            switchStmt.setRecordCaseLabel(caseLabel);
+                            currState = stateMap.get(caseLabel);
+                        } else {
+                            if (switchStmt.getRecordCaseLabel().equals(caseLabel)) {
+                                // in same case, restore previous state for typestate checking
+                                System.out.println(switchStmt.getRecordVariable() + " " + switchStmt.getRecordCaseLabel() + " " + caseLabel);
+                                System.out.println("Case two");
+                                currState = getSingleStateFromMap(switchStmt.getRecordState()); // if in switch?
+                            } else {
+                                System.out.println("Case three");
+                                switchStmt.setRecordCaseLabel(caseLabel);
+                                currState = stateMap.get(caseLabel);
+                            }
+                        }
+                        // Typestate checking and state updating
+                        System.out.println("break point: " + currState + " " + md + " " + va);
+                        problems = collectProblems(currState, md, va);                  
                         if (problems.size() != 0) {
                             return problems;
                         }
-                        // Reset state when encounter termination statement
-                        if (info.hasTermination()) { 
-                            va.setState(stateMap);
-                        }
-                        
-                    }*/
+                        // Reset and record state
+                        switchStmt.setRecordState(va.getState()); // record current state
+                        va.setState(stateMap); // reset state for next check    
+                    }
                 }               
             }
         }
@@ -133,7 +135,7 @@ aspect TypestateCheck {
             VarAccess arg = getParamWithNullState();
             problems.add(error("No Init State found in MethodAccess argument " + arg));
             return problems;
-        }    
+        } 
   		return problems;
 	}
 
@@ -274,6 +276,23 @@ aspect TypestateCheck {
         return problems;
     }
 
+    ConstCase contributes each typestateProblem() to CompilationUnit.problems();
+    syn Collection<Problem> ConstCase.typestateProblem() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        SwitchStmt switchStmt = lookupSwitch();
+        if (switchStmt != null) {
+            HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+            StmtInfo info = infoMap.get(this);
+            if (info != null){
+                if (!info.hasTermination()) {
+                    problems.add(error("Case with label: " + getValue() + " in Typestate switch has no break or continue statement."));
+                    return problems;
+                }
+            } 
+        }        
+        return problems;
+    }
+
     /**
      * TODO Look up variables, check and update their states.
      *
@@ -287,8 +306,16 @@ aspect TypestateCheck {
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("Expr in SwitchStmt: " + getExpr().varDecl()); 
-        //problems = this.collectTypestateProblems();
+        System.out.println("SwitchStmt Typestate? " + hasTypestateDecl()); 
+        if (hasTypestateDecl()) {
+            if (this.getRecordVariable() == null) {
+                this.initRecordVariable();
+                System.out.println("Record Variable: " + this.getRecordVariable() + " " + this.getRecordVariable().getClass());
+            }   
+            if (this.getRecordVariable() == null) {
+                problems.add(error("Cannot find record variable of this typstate switch statement"));
+            }
+        }
         return problems;
     }
 
