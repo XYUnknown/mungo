@@ -1,4 +1,55 @@
 aspect SwitchCaseAnalysis {
+	/**
+	 * Record result state and case label
+	 */
+	private HashMap<String, State> SwitchStmt.recordState;
+
+	public HashMap<String, State> SwitchStmt.getRecordState() {
+		return this.recordState;
+	}
+
+	public void SwitchStmt.setRecordState(HashMap<String, State> state) {
+		this.recordState = state;
+	}
+
+	private String SwitchStmt.recordCaseLabel;
+
+	public String SwitchStmt.getRecordCaseLabel() {
+		return this.recordCaseLabel;
+	}
+
+	public void SwitchStmt.setRecordCaseLabel(String label) {
+		this.recordCaseLabel = label;
+	}
+
+	/**
+	 * Record Variable
+	 */
+	private Variable SwitchStmt.recordVariable;
+
+	public Variable SwitchStmt.getRecordVariable() {
+		return this.recordVariable;
+	}
+
+	public void SwitchStmt.setRecordVariable(Variable variable) {
+		this.recordVariable = variable;
+	}
+
+	/**
+	 * Set record variable according to Expr
+	 */
+	public void SwitchStmt.initRecordVariable() {
+		Expr expr = getExpr();
+		if (expr instanceof Dot) {
+			Dot d = (Dot) expr;
+			if (d.lastAccess() instanceof MethodAccess) {
+				Expr preExpr = ((MethodAccess)d.lastAccess()).prevExpr();
+				if (preExpr instanceof VarAccess) { // this?
+					setRecordVariable(((VarAccess)preExpr).decl());
+				}
+			}
+		}
+	}
 
 	class StmtInfo {
 		private String caseLabel;
@@ -40,35 +91,6 @@ aspect SwitchCaseAnalysis {
 
 		public boolean hasContinue() {
 			return this.termination == 1;
-		}
-	}
-
-	/**
-	 * Record Variable
-	 */
-	private Variable SwitchStmt.recordVariable;
-
-	public Variable SwitchStmt.getRecordVariable() {
-		return this.recordVariable;
-	}
-
-	public void SwitchStmt.setRecordVariable(Variable variable) {
-		this.recordVariable = variable;
-	}
-
-	/**
-	 * Set record variable according to Expr
-	 */
-	public void SwitchStmt.initRecordVariable() {
-		Expr expr = getExpr();
-		if (expr instanceof Dot) {
-			Dot d = (Dot) expr;
-			if (d.lastAccess() instanceof MethodAccess) {
-				Expr preExpr = ((MethodAccess)d.lastAccess()).prevExpr();
-				if (preExpr instanceof VarAccess) { // this?
-					setRecordVariable(((VarAccess)preExpr).decl());
-				}
-			}
 		}
 	}
 
