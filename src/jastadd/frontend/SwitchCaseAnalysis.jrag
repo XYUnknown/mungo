@@ -43,6 +43,35 @@ aspect SwitchCaseAnalysis {
 		}
 	}
 
+	/**
+	 * Record Variable
+	 */
+	private Variable SwitchStmt.recordVariable;
+
+	public Variable SwitchStmt.getRecordVariable() {
+		return this.recordVariable;
+	}
+
+	public void SwitchStmt.setRecordVariable(Variable variable) {
+		this.recordVariable = variable;
+	}
+
+	/**
+	 * Set record variable according to Expr
+	 */
+	public void SwitchStmt.initRecordVariable() {
+		Expr expr = getExpr();
+		if (expr instanceof Dot) {
+			Dot d = (Dot) expr;
+			if (d.lastAccess() instanceof MethodAccess) {
+				Expr preExpr = ((MethodAccess)d.lastAccess()).prevExpr();
+				if (preExpr instanceof VarAccess) { // this?
+					setRecordVariable(((VarAccess)preExpr).decl());
+				}
+			}
+		}
+	}
+
 	public HashMap<Stmt, StmtInfo> SwitchStmt.getStmtInfoMap() {
 		Stack<Stmt> stack = new Stack<Stmt>();
 		HashMap<Stmt, StmtInfo> map = new HashMap<Stmt, StmtInfo>();
@@ -141,14 +170,30 @@ aspect SwitchCaseAnalysis {
      * Lookup a Switch Stmt of the a MethodAccess
      */
     syn SwitchStmt MethodAccess.lookupSwitch() {
-        ASTNode node = this.getParent();
-        while (node != null) {
-            if (node instanceof SwitchStmt) {
-                return (SwitchStmt) node;
-            } else {
-                node = node.getParent();
-            }
-        }
+    	if (hasPrevExpr()) {
+    		Expr va = prevExpr();
+    		Variable v;
+    		if (!va.isVariable()) {
+    			return null;
+    		} else {
+    			v = ((VarAccess) va).decl();
+    		}
+    		ASTNode node = this.getParent();
+        	while (node != null) {
+            	if (node instanceof SwitchStmt) {
+            		//System.out.println("checking switch: " + ((SwitchStmt) node).getRecordVariable());
+            		//System.out.println("checking this: " + v);
+            		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
+            			return (SwitchStmt) node;
+            		} else {
+            			node = node.getParent();
+            		}                	
+            	} else {
+                	node = node.getParent();
+            	}
+        	}
+        	return null;
+    	}        
         return null;
     }
 
