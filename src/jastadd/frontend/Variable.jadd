@@ -1,0 +1,12 @@
+/**
+ * Add abstract typestate checking method to interface variable
+ */
+aspect Variable {
+	public interface Variable {
+		public boolean hasTypestateDecl();
+		public boolean hasTypestateState();
+		public void setState(HashMap<String, State> typestate);
+		public HashMap<String, State> getState();
+		public boolean hasState();
+	}
+}
