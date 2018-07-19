@@ -1,5 +1,50 @@
 aspect SwitchCaseAnalysis {
 	/**
+	 * A map recording variable-state pairs in each valid case
+	 */
+	private HashMap<String, HashMap<Variable, HashMap<String, State>>> SwitchStmt.stateMap;
+	public HashMap<String, HashMap<Variable, HashMap<String, State>>> SwitchStmt.getStateMap() {
+		return this.stateMap;
+	}
+	public void SwitchStmt.initStateMap() {
+		this.stateMap = new HashMap<String, HashMap<Variable, HashMap<String, State>>>();
+		Block blk = this.getBlock();
+		for (Stmt s: blk.getStmts()) {
+			if (s instanceof ConstCase) {
+				Expr exp = ((ConstCase)s).getValue();
+				if (exp.type().isEnumDeclType()){
+					VarAccess value = (VarAccess)((ConstCase)s).getValue();
+					String caseLabel = value.getID();
+					State st = this.recordSwitchState.get(caseLabel);
+					HashMap<String, State> state = new HashMap<String, State>();
+					state.put(st.getID(), st);
+					HashMap<Variable, HashMap<String, State>> varState = new HashMap<Variable, HashMap<String, State>>();
+					varState.put(this.recordVariable, state);
+					this.stateMap.put(caseLabel, varState);
+				}
+			}
+		}
+	}
+
+	/**
+	 * A map recording statement information
+	 */
+	private HashMap<Stmt, StmtInfo> SwitchStmt.stmtInfoMap;
+
+	/**
+	 * Record the initial switch states of the variable in Expr
+	 */
+	private HashMap<String, State> SwitchStmt.recordSwitchState;
+
+	public HashMap<String, State> SwitchStmt.getRecordTypestateSwitch() {
+		return this.recordSwitchState;
+	}
+
+	public void SwitchStmt.setRecordTypestateSwitch(HashMap<String, State> switchState) {
+		this.recordSwitchState = switchState;
+	}
+
+	/**
 	 * Record result state and case label
 	 */
 	private HashMap<String, State> SwitchStmt.recordState;
@@ -23,7 +68,8 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
-	 * Record Variable
+	 * Record Variable, the variable in Expr of the SwitchStmt
+	 * which the state will be tracked.
 	 */
 	private Variable SwitchStmt.recordVariable;
 
@@ -95,6 +141,9 @@ aspect SwitchCaseAnalysis {
 	}
 
 	public HashMap<Stmt, StmtInfo> SwitchStmt.getStmtInfoMap() {
+		if (this.stmtInfoMap != null) {
+			return stmtInfoMap;
+		}
 		Stack<Stmt> stack = new Stack<Stmt>();
 		HashMap<Stmt, StmtInfo> map = new HashMap<Stmt, StmtInfo>();
 		Block blk = getBlock();
@@ -169,6 +218,7 @@ aspect SwitchCaseAnalysis {
 				}
 			}
 		}
+		this.stmtInfoMap = map;
 		return map;
 	}
 
@@ -203,8 +253,6 @@ aspect SwitchCaseAnalysis {
     		ASTNode node = this.getParent();
         	while (node != null) {
             	if (node instanceof SwitchStmt) {
-            		//System.out.println("checking switch: " + ((SwitchStmt) node).getRecordVariable());
-            		//System.out.println("checking this: " + v);
             		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
             			return (SwitchStmt) node;
             		} else {
@@ -238,9 +286,7 @@ aspect SwitchCaseAnalysis {
     		ASTNode node = this.getParent();
         	while (node != null) {
             	if (node instanceof SwitchStmt) {
-            		//System.out.println("checking switch: " + ((SwitchStmt) node).getRecordVariable());
-            		//System.out.println("checking this: " + v);
-            		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
+            		if (v.equals(((SwitchStmt) node).getRecordVariable())) { // switch stmt match and variable match
             			return (SwitchStmt) node;
             		} else {
             			node = node.getParent();
