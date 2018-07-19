@@ -74,8 +74,13 @@ aspect TypestateCheck {
                     if (problems.size() != 0) {
                         return problems;
                     }
+                    System.out.println(this + " isSwitchStmtExpr? " + this.isSwitchStmtExpr());
                 } else {
-                    // Typestate switch handling                   
+                    // Typestate switch handling
+                    if (this.isSwitchStmtExpr()) {
+                        problems.add(error("MethodAccess " + this + " in TypestateSwitch should not be the Expr of SwitchStmt"));
+                        return problems;
+                    }               
                     SwitchStmt switchStmt = lookupSwitch();
                     if (switchStmt == null) { // TypestateSwitch is not handled, report error.
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
