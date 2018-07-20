@@ -23,6 +23,12 @@ aspect SwitchCaseAnalysis {
 		}
 	}
 
+	public void SwitchStmt.updateRecordState(String label, Variable v, HashMap<String, State> state) {
+		if (this.stateMap.containsKey(label)) {
+			this.stateMap.get(label).put(v, state);
+		}
+	}
+
 	/**
 	 * A map recording statement information
 	 */
@@ -42,18 +48,8 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
-	 * Record result state and case label
+	 * Record case label
 	 */
-	private HashMap<String, State> SwitchStmt.recordState;
-
-	public HashMap<String, State> SwitchStmt.getRecordState() {
-		return this.recordState;
-	}
-
-	public void SwitchStmt.setRecordState(HashMap<String, State> state) {
-		this.recordState = state;
-	}
-
 	private String SwitchStmt.recordCaseLabel;
 
 	public String SwitchStmt.getRecordCaseLabel() {
