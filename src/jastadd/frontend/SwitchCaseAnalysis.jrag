@@ -29,6 +29,58 @@ aspect SwitchCaseAnalysis {
 		}
 	}
 
+	public boolean SwitchStmt.isEndCaseSameState() {
+		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
+		for (String caseLabel: this.stateMap.keySet()) {
+			HashMap<Variable, HashMap<String, State>> map = this.stateMap.get(caseLabel);
+			for (Variable v: this.varList){
+				if (!map.containsKey(v)) {
+					return false;
+				} else {
+					if (!checkMap.containsKey(v)) {
+						checkMap.put(v, map.get(v));
+					} else {
+						if(!checkMap.get(v).equals(map.get(v))){
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * A list record all Variables in the SwitchStmt
+	 */
+	private LinkedList<Variable> SwitchStmt.varList;
+
+	public LinkedList<Variable> SwitchStmt.getVarList() {
+		return this.varList;
+	} 
+
+	public void SwitchStmt.addVariable(Variable v) {
+		if (this.varList == null) {
+			this.varList = new LinkedList<Variable>();
+		}
+		if (!this.varList.contains(v)) {
+			this.varList.add(v);
+		}		
+	}
+
+	/**
+	 * Record Last ExprStmt
+	 */
+	private MethodAccess SwitchStmt.lastMethodAccess;
+
+	public MethodAccess SwitchStmt.getLastMethodAccess() {
+		return this.lastMethodAccess;
+	}
+
+	public void SwitchStmt.setLastMethodAccess(MethodAccess ma) {
+		this.lastMethodAccess = ma;
+	}
+
 	/**
 	 * A map recording statement information
 	 */
@@ -324,4 +376,23 @@ aspect SwitchCaseAnalysis {
         }
         return null;
     }
+
+    /**
+     * Collect all MethodAccess in a SwitchStmt
+     */
+    coll LinkedList<MethodAccess> SwitchStmt.collectMethodAccess() root SwitchStmt;
+	ConstructorDecl contributes {
+		if (checkImplicitConstructorInvocation()) {
+			getImplicitConstructorInvocation().collectContributions();
+		}
+		super.collectContributions();
+	} to SwitchStmt.collectMethodAccess();
+
+	MethodAccess contributes each selfReport() to SwitchStmt.collectMethodAccess();
+	syn LinkedList<MethodAccess> MethodAccess.selfReport() {
+		LinkedList<MethodAccess> list = new LinkedList<MethodAccess>();
+		SwitchStmt hostSwitchStmt = lookupSwitch();
+		list.add(this);				
+		return list;
+	}
 }
