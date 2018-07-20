@@ -75,21 +75,49 @@ aspect TypestateCheck {
                         return problems;
                     }
                     System.out.println(this + " isSwitchStmtExpr? " + this.isSwitchStmtExpr());
+                    if (this.isSwitchStmtExpr()) {
+                        SwitchStmt hostSwitch = this.lookupExprSwitchStmt();
+                        // init all the records and maps here
+                        if (this.getTargetState() == null) {
+                            problems.add(error("MethodAccess " + this + " with null target state should not be the Expr of SwitchStmt."));
+                            return problems;
+                        } else if (this.getTargetState().size() < 2) {
+                            problems.add(error("MethodAccess " + this + " without a target TypestateSwitch should not be the Expr of SwitchStmt."));
+                            return problems;
+                        } else {
+                            hostSwitch.setRecordTypestateSwitch(this.getTargetState());
+                            hostSwitch.initStateMap();
+                            hostSwitch.getStmtInfoMap();
+                            hostSwitch.addVariable(hostSwitch.getRecordVariable());
+                        }
+                    }
                 } else {
                     // Typestate switch handling
                     if (this.isSwitchStmtExpr()) {
                         problems.add(error("MethodAccess " + this + " in TypestateSwitch should not be the Expr of SwitchStmt"));
                         return problems;
                     }               
-                    SwitchStmt switchStmt = lookupSwitch();
-                    if (switchStmt == null) { // TypestateSwitch is not handled, report error.
+                    SwitchStmt hostSwitchStmt = lookupSwitch();
+                    if (hostSwitchStmt == null) { // TypestateSwitch is not handled, report error. Ensured va is Variable here
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State"));
                         return problems;
                     } else {
-                        HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+                        // Load all parent switchstmt
+                        LinkedList<SwitchStmt> switchStmtList = this.lookupAllSwitch();
+
+                        HashMap<Stmt, StmtInfo> infoMap = hostSwitchStmt.getStmtInfoMap();
                         // Lookup information of the Stmt which contains this MethodAccess, if not found report error
                         StmtInfo info = this.lookupInfo(infoMap);
                         if (info == null) {
+                            for (SwitchStmt stmt: switchStmtList) {
+                                if (this.equals(stmt.getLastMethodAccess())) {
+                                    // check end case equal
+                                    System.out.println("Check end: " + stmt.isEndCaseSameState());
+                                    if (!stmt.isEndCaseSameState()) {
+                                        problems.add(error("End of case state not match"));
+                                    }
+                                }
+                            }
                             problems.add(error("MethodAccess " + this + " in SwitchStmt does not have valid case label."));
                             return problems;
                         }
@@ -97,40 +125,90 @@ aspect TypestateCheck {
                         // Lookup case label, if the TypestateSwitch does not contains the label, report error.
                         String caseLabel = info.getCaseLabel();                       
                         if (!stateMap.containsKey(caseLabel)) {
+                            for (SwitchStmt stmt: switchStmtList) {
+                                if (this.equals(stmt.getLastMethodAccess())) {
+                                    // check end case equal
+                                    System.out.println("Check end: " + stmt.isEndCaseSameState());
+                                    if (!stmt.isEndCaseSameState()) {
+                                        problems.add(error("End of case state not match"));
+                                    }
+                                }
+                            }
                             problems.add(error("TypestateSwitch does not contains label " + caseLabel));
                             return problems;
                         }
                         // Reset state when encounter termination statement
-                        if (!info.hasTermination()) { 
+                        if (!info.hasTermination()) {
+                            for (SwitchStmt stmt: switchStmtList) {
+                                if (this.equals(stmt.getLastMethodAccess())) {
+                                    // check end case equal
+                                    System.out.println("Check end: " + stmt.isEndCaseSameState());
+                                    if (!stmt.isEndCaseSameState()) {
+                                        problems.add(error("End of case state not match"));
+                                    }
+                                }
+                            } 
                             problems.add(error(this + " is in an case without break or continue."));
                             return problems;
                         }
+
+                        System.out.println("SwitchStmt record checking...");
+                        System.out.println("SwitchStmt recordTypestateSwitch: " + hostSwitchStmt.getRecordTypestateSwitch());
+                        System.out.println("SwitchStmt stateMap: " + hostSwitchStmt.getStateMap());
+                        System.out.println("SwitchStmt infoMap: " + hostSwitchStmt.getStmtInfoMap().size());
+                        
+                        System.out.println("switchStmtList size : " + switchStmtList.size());
+
                         // Typestate checking and state updating
                         State currState;
-                        if (switchStmt.getRecordCaseLabel() == null) {
-                            switchStmt.setRecordCaseLabel(caseLabel);
+                        if (hostSwitchStmt.getRecordCaseLabel() == null) {
+                            hostSwitchStmt.setRecordCaseLabel(caseLabel);
                             currState = stateMap.get(caseLabel);
                         } else {
-                            if (switchStmt.getRecordCaseLabel().equals(caseLabel)) {
+                            if (hostSwitchStmt.getRecordCaseLabel().equals(caseLabel)) {
                                 // in same case, restore previous state for typestate checking
-                                System.out.println(switchStmt.getRecordVariable() + " " + switchStmt.getRecordCaseLabel() + " " + caseLabel);
-                                System.out.println("Case two");
-                                currState = getSingleStateFromMap(switchStmt.getRecordState()); // if in switch?
+                                Variable v = hostSwitchStmt.getRecordVariable();
+                                HashMap<String, HashMap<Variable, HashMap<String, State>>> hostStateMap = hostSwitchStmt.getStateMap();
+                                HashMap<String, State> recordStateMap = hostStateMap.get(caseLabel).get(v);
+                                currState = getSingleStateFromMap(recordStateMap);
+                                //currState = getSingleStateFromMap(hostSwitchStmt.getRecordState()); // if in switch?
                             } else {
-                                System.out.println("Case three");
-                                switchStmt.setRecordCaseLabel(caseLabel);
+                                // host case label change
+                                hostSwitchStmt.setRecordCaseLabel(caseLabel);
                                 currState = stateMap.get(caseLabel);
                             }
                         }
                         // Typestate checking and state updating
-                        System.out.println("break point: " + currState + " " + md + " " + va);
                         problems = collectProblems(currState, md, va);                  
                         if (problems.size() != 0) {
+                            for (SwitchStmt stmt: switchStmtList) {
+                                if (this.equals(stmt.getLastMethodAccess())) {
+                                    // check end case equal
+                                    System.out.println("Check end: " + stmt.isEndCaseSameState());
+                                    if (!stmt.isEndCaseSameState()) {
+                                        problems.add(error("End of case state not match"));
+                                    }
+                                }
+                            }
                             return problems;
                         }
                         // Reset and record state
-                        switchStmt.setRecordState(va.getState()); // record current state
-                        va.setState(stateMap); // reset state for next check    
+                        //hostSwitchStmt.setRecordState(va.getState()); // record current state
+                        Variable v = hostSwitchStmt.getRecordVariable();
+                        for (SwitchStmt stmt: switchStmtList) {
+                            stmt.updateRecordState(stmt.getRecordCaseLabel(), v, va.getState());
+                            stmt.addVariable(v);
+                            if (this.equals(stmt.getLastMethodAccess())) {
+                                // check end case equal
+                                System.out.println("Check end: " + stmt.isEndCaseSameState());
+                                if (!stmt.isEndCaseSameState()) {
+                                    problems.add(error("End of case state not match"));
+                                }
+                            }
+                        }
+                        if (!this.equals(hostSwitchStmt.getLastMethodAccess())){
+                            va.setState(stateMap); // reset state for next check  
+                        }                          
                     }
                 }               
             }
@@ -316,9 +394,15 @@ aspect TypestateCheck {
             if (this.getRecordVariable() == null) {
                 this.initRecordVariable();
                 System.out.println("Record Variable: " + this.getRecordVariable() + " " + this.getRecordVariable().getClass());
+                System.out.println("Test variable typestate: " + this.getRecordVariable().getState());
             }   
             if (this.getRecordVariable() == null) {
                 problems.add(error("Cannot find record variable of this typstate switch statement"));
+                return problems;
+            } else {
+                LinkedList<MethodAccess> methodList = this.collectMethodAccess();
+                this.setLastMethodAccess(methodList.getLast());
+                System.out.println("Num methods in SwitchStmt: "+ methodList.size() + " last " + this.getLastMethodAccess());
             }
         }
         return problems;
