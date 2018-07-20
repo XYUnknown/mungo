@@ -15,11 +15,8 @@ aspect SwitchCaseAnalysis {
 				if (exp.type().isEnumDeclType()){
 					VarAccess value = (VarAccess)((ConstCase)s).getValue();
 					String caseLabel = value.getID();
-					State st = this.recordSwitchState.get(caseLabel);
-					HashMap<String, State> state = new HashMap<String, State>();
-					state.put(st.getID(), st);
 					HashMap<Variable, HashMap<String, State>> varState = new HashMap<Variable, HashMap<String, State>>();
-					varState.put(this.recordVariable, state);
+					varState.put(this.recordVariable, this.recordSwitchState); // init into typestateswitch state 
 					this.stateMap.put(caseLabel, varState);
 				}
 			}
@@ -266,6 +263,21 @@ aspect SwitchCaseAnalysis {
     	}        
         return null;
     }
+
+    /**
+     * Lookup all Switch Stmt of the a MethodAccess
+     */
+	syn LinkedList<SwitchStmt> MethodAccess.lookupAllSwitch() {
+		LinkedList<SwitchStmt> list = new LinkedList<SwitchStmt>();
+		ASTNode node = this.getParent();
+		while (node != null) {
+			if (node instanceof SwitchStmt) {
+				list.add((SwitchStmt) node);               	
+			}
+			node = node.getParent();
+		}
+		return list;
+	}
 
     /**
      * Check if a MethodAccess is the Expr of a SwitchStmt or not
