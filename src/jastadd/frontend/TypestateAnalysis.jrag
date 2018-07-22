@@ -15,6 +15,19 @@ aspect TypestateAnalysis {
     private HashMap<String, State> ASTNode.typestate = null;
 
     /**
+     * Using for checking dereferenced declarator
+     */
+    private boolean ASTNode.dereferenced = false;
+
+    public boolean ASTNode.isDereferenced() {
+        return this.dereferenced;
+    }
+
+    public void ASTNode.setDereferenced(boolean dereferenced) {
+        this.dereferenced = dereferenced;
+    }
+
+    /**
      * Checking whether a ASTNode has typestate or not
      * TypeDecl and its child nodes might have TypstateDecl
      */

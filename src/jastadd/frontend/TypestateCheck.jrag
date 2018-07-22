@@ -235,6 +235,7 @@ aspect TypestateCheck {
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
                         setState(ins.getState());
+                        setDereferenced(false); // ensure this Declarator is not dereferenced
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
                         if (!va.hasTypestateState()) {
@@ -244,6 +245,8 @@ aspect TypestateCheck {
                         ASTNode d = (ASTNode) va.varDecl();
                         setState(va.getState());
                         d.setState(null); // one typestate object could only have one reference.
+                        d.setDereferenced(true);
+                        setDereferenced(false); // ensure this Declarator is not dereferenced
                     } else if (getInit() instanceof Dot) { // C c = a.get();
                         // TODO: checking return type?
                         Dot d = (Dot) getInit();
@@ -252,6 +255,7 @@ aspect TypestateCheck {
                             return problems;
                         }
                         setState(d.getState());
+                        setDereferenced(false); // ensure this Declarator is not dereferenced
                     } else {
                         // TODO analysing other Expr
                     }
@@ -286,7 +290,8 @@ aspect TypestateCheck {
                 VarAccess va = (VarAccess) getSource();
                 ASTNode d = (ASTNode) va.varDecl();
                 state = va.getState();
-                d.setState(null); // one typestate object could only have one reference. 
+                d.setState(null); // one typestate object could only have one reference.
+                d.setDereferenced(true); 
             } else if (getSource() instanceof ClassInstanceExpr) {
                 ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
                 state = ins.getState(); 
@@ -304,6 +309,7 @@ aspect TypestateCheck {
             if (getDest() instanceof VarAccess) { 
                 VarAccess dva = (VarAccess) getDest();
                 ASTNode dest = (ASTNode)dva.varDecl();
+                dest.setDereferenced(false); // ensure this dest is not dereferenced
                 dest.setState(state);
             } else {
                 problems.add(error("Cannot set state"));
