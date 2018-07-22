@@ -66,6 +66,10 @@ public class ExtensionMain extends JavaChecker {
         }
         // TypstateSematicCheck OK, checking Java syntax.
         int javaCheckCode = super.processCompilationUnit(unit);
+        if (javaCheckCode == 0) {
+            // check end of programme check
+            javaCheckCode = super.processCompilationUnitForEndChecking(unit);
+        }
         return javaCheckCode;
     }
 

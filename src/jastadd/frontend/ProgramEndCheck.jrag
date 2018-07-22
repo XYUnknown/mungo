@@ -1,0 +1,87 @@
+aspect ProgramEndCheck {
+	/**
+     * Processes from-source compilation units by error-checking them.
+     * This method only report semantic errors and warnings.
+     *
+     * @return zero on success, non-zero on error
+     */
+    protected int Frontend.processCompilationUnitForEndChecking(CompilationUnit unit) throws Error {
+		if (unit != null) {
+			try {
+				Collection<Problem> errors = unit.parseErrors();
+				Collection<Problem> warnings = EMPTY_PROBLEM_LIST;
+				if (errors.isEmpty()) {
+					long start = System.nanoTime();
+					errors = unit.endErrors();
+					warnings = unit.endWarnings();
+					program.errorCheckTime += System.nanoTime() - start;
+				} 
+
+				if (!errors.isEmpty()) {
+					processWarnings(errors, unit);
+					return EXIT_ERROR;
+				} else {
+            		if (!warnings.isEmpty() && !program.options().hasOption("-nowarn")) {
+              			processWarnings(warnings, unit);
+            		}
+         		}
+
+			} catch (Error e) {
+				System.err.println("Encountered error while processing " + unit.pathName());
+				throw e;
+			}
+		}
+		return EXIT_SUCCESS;
+    }
+
+    /**
+     * Collect sematic problems of typestate protocol file
+     */
+    coll LinkedList<Problem> CompilationUnit.endProblems() root CompilationUnit;
+
+    syn Collection<Problem> CompilationUnit.endErrors() {
+		Collection<Problem> errors = new LinkedList<Problem>();	
+		for (Problem problem : endProblems()) {
+			if (problem.severity() == Problem.Severity.ERROR) {
+				errors.add(problem);
+			}
+    	}  	
+		return errors;
+	}
+
+	syn Collection<Problem> CompilationUnit.endWarnings() {
+		Collection<Problem> warnings = new LinkedList<Problem>();		
+		for (Problem problem : endProblems()) {		
+			if (problem.severity() == Problem.Severity.WARNING) {
+				warnings.add(problem);
+			}
+		}		
+		return warnings;
+	}
+
+	ConstructorDecl contributes {
+        if (checkImplicitConstructorInvocation()) {
+            getImplicitConstructorInvocation().collectContributions();
+        }
+        super.collectContributions();
+    } to CompilationUnit.endProblems();
+
+    Declarator contributes each notEndStateProblems() to CompilationUnit.endProblems();
+    syn Collection<Problem> Declarator.notEndStateProblems() {
+    	LinkedList<Problem> problems = new LinkedList<Problem>();
+    	if (this.hasTypestateState()) {
+    		if (this.hasState()) {
+    			if (this.getState().size() > 0) {
+    				problems.add(error("Declarator " + this + " should be in end state at the end of program."));
+    				return problems;
+    			}
+    		} else {
+    			if (!this.isDereferenced()) {
+    				problems.add(warning("Declarator " + this + " is never initialised in this program."));
+    				return problems;
+    			}
+    		} 
+    	}
+    	return problems;
+    }
+}
