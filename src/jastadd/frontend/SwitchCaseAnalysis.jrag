@@ -284,7 +284,7 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
-     * Lookup a Switch Stmt of the a MethodAccess
+     * Lookup the host SwitchStmt of the a MethodAccess
      */
     syn SwitchStmt MethodAccess.lookupSwitch() {
     	if (hasPrevExpr()) {
@@ -363,7 +363,7 @@ aspect SwitchCaseAnalysis {
     }
 
     /**
-     * Lookup a Switch Stmt of the a MethodAccess
+     * Lookup a Switch Stmt of the a Stmt
      */
     syn SwitchStmt Stmt.lookupSwitch() {
         ASTNode node = this.getParent();
