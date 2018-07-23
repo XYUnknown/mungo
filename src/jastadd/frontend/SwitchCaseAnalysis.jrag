@@ -16,7 +16,9 @@ aspect SwitchCaseAnalysis {
 					VarAccess value = (VarAccess)((ConstCase)s).getValue();
 					String caseLabel = value.getID();
 					HashMap<Variable, HashMap<String, State>> varState = new HashMap<Variable, HashMap<String, State>>();
-					varState.put(this.recordVariable, this.recordSwitchState); // init into typestateswitch state 
+					HashMap<String, State> initState = new HashMap<String, State>();
+					initState.put(this.recordSwitchState.get(caseLabel).getID(), this.recordSwitchState.get(caseLabel));
+					varState.put(this.recordVariable, initState); // initialise state according to caseLabel
 					this.stateMap.put(caseLabel, varState);
 				}
 			}
