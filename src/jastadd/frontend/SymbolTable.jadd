@@ -1,0 +1,35 @@
+aspect SymbolTable {
+	class SymbolTable {
+		private HashMap <Variable, HashMap<String, State>> globals = new HashMap <Variable, HashMap<String, State>> ();
+		private Stack <HashMap<Variable, HashMap<String, State>>> locals = new Stack <HashMap<Variable, HashMap<String, State>>> ();
+
+		public HashMap <Variable, HashMap<String, State>> getGlobals() {
+			return this.globals;
+		}
+
+		public Stack <HashMap<Variable, HashMap<String, State>>> getLocals() {
+			return this.locals;
+		}
+
+		public void addGlobal(Variable var, HashMap<String, State> state) {
+			this.globals.put(var, state);
+		}
+
+		public HashMap<Variable, HashMap<String, State>> exitLocal() {
+			return this.locals.pop();
+		}
+
+		public HashMap<Variable, HashMap<String, State>> currentLocal() {
+			return this.locals.peek();
+		}
+
+		public void addLocal(HashMap<Variable, HashMap<String, State>> table) {
+			this.locals.push(table);
+		}
+
+		public void addCurrLocal(Variable var, HashMap<String, State> state) {
+			HashMap<Variable, HashMap<String, State>> table = this.locals.peek();
+			table.put(var, state);
+		}
+	}
+}
