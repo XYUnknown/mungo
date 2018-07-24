@@ -244,6 +244,9 @@ aspect TypestateCheck {
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
                         setState(ins.getState());
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        /* *
+                         * Update symbol table, store field declarator state in globals and variable declarators in locals
+                         */
                         if (this instanceof FieldDeclarator) {
                             st.addGlobal(this, this.getState());
                         } else {
@@ -264,6 +267,18 @@ aspect TypestateCheck {
                             st.addGlobal(this, this.getState());
                         } else {
                             st.addCurrLocal(this, this.getState());
+                        }
+                        /*
+                         * Dereference - remove from symbol table
+                         */
+                        if (d instanceof FieldDeclarator) {
+                            if (st.getGlobals().containsKey(d)) {
+                                st.getGlobals().remove(d);
+                            }
+                        } else {
+                            if (st.currentLocal().containsKey(d)) {
+                                st.currentLocal().remove(d);
+                            }
                         }
                     } else if (getInit() instanceof Dot) { // C c = a.get();
                         // TODO: checking return type?
