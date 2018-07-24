@@ -15,10 +15,7 @@ aspect TypestateCheck {
         }
         if (hasTypestateAnnotation() && (td == null)) { // the annotation is found but no AST
             problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
-        }
-        if(td != null){
-            System.out.println("Found TypestateDecl in TypeDecl: " + td.getID());
-        }        
+        }   
         return problems;
     }
 
@@ -36,9 +33,9 @@ aspect TypestateCheck {
         if (hasTypestateAnnotation() && (td == null)) { // the annotation is found but no AST
             problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }
-        if(td != null){
-            System.out.println("Found TypestateDecl in ClassDecl: " + td.getID());
-        }        
+        LinkedList<HashMap<Variable, HashMap<String, State>>> globalSymbolList = this.collectGlobals();
+        this.addAllGlobals(globalSymbolList); 
+        System.out.println("Global symbol table size: " + this.getSymbolTable().getGlobals().size());    
         return problems;
     }
 
