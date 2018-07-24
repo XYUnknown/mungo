@@ -51,6 +51,7 @@ public class ExtensionMain extends JavaChecker {
                             typestateSematicCheckCode = super.processCompilationUnitForTypestate(cu);
                             // Sematic errors found in protocol
                             if (typestateSematicCheckCode != 0) {
+                                cu.setDereferenced(true);
                                 return typestateSematicCheckCode;
                             }
                             // Protocol passes the sematic checking
@@ -64,8 +65,16 @@ public class ExtensionMain extends JavaChecker {
                 throw e;
             }
         }
-        // TypstateSematicCheck OK, checking Java syntax.
-        int javaCheckCode = super.processCompilationUnit(unit);
+        // Checking referencing Typestate Compilation unit vaild or not
+        int javaCheckCode = 0;
+        for (CompilationUnit c: super.program.getCompilationUnitList()) {
+            if (c.isDereferenced()) {
+                javaCheckCode = EXIT_ERROR;
+                return javaCheckCode;
+            }
+        }
+        // TypestateSematicCheck OK, checking Java syntax.
+        javaCheckCode = super.processCompilationUnit(unit);
         if (javaCheckCode == 0) {
             // check end of programme check
             javaCheckCode = super.processCompilationUnitForEndChecking(unit);
