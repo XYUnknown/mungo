@@ -339,26 +339,72 @@ aspect TypestateCheck {
     syn Collection<Problem> MethodDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
-        if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
-            if (hasTypestateDecl() && returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
-                TypestateDecl td = this.hostType().getTypestateDecl();
-                TypestateMethod tm = td.lookupMethod(this);
-                if (tm == null) {
-                    problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        System.out.println("MethodDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
+        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
+        // if not empty, clear it and push the new table on it
+        if (!st.getLocals().empty()) {
+            st.clearLocals();
+        }
+        HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
+        st.addLocal(map);
+
+        if (hasTypestateDecl()) {
+            TypestateDecl td = this.hostType().getTypestateDecl();
+            TypestateMethod tm = td.lookupMethod(this);
+            // Update ParameterDeclaration state and add ParameterDeclaration to local symbol table
+            if (tm != null) {
+                for (int i = 0; i < this.getNumParameter(); i++){
+                    ParameterDeclaration mdParam = getParameter(i);
+                    TType tmParam = tm.getTTypeList().getTType(i);
+                    if (mdParam.hasTypestateState()) {
+                        if (!(tmParam instanceof TTypestate)) {
+                            problems.add(error("Cannot find valid Typestate specification for ParameterDeclaration: " + mdParam));
+                        } else {
+                            TTypestate tt = (TTypestate) tmParam;
+                            Typestate ts = tt.getTypestate();
+                            if (ts instanceof TypestateLabel) {
+                                TypestateLabel tl = (TypestateLabel) ts;
+                                HashMap<String, State> state = new HashMap<String, State>();
+                                state.put(tl.getLabel(), td.lookupState(tl.getLabel()));
+                                mdParam.setState(state); // Update state
+                                st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
+                            } else if (ts instanceof TypestateSwitch) {
+                                // TODO setting ParameterDeclaration state for TypestateSwitch
+                                
+                            }
+                        }
+                    }              
+                }
+                if (problems.size() != 0) {
                     return problems;
                 }
-                if (block != null) { // Do not check return statement of abstract method declaration
-                    for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
-                        if (s instanceof ReturnStmt) {
-                            ReturnStmt rs = (ReturnStmt)s;
-                            if (!tm.isSameReturnState(rs)) { // State mismatch, report error
-                                problems.add(error("ReturnStmt Typestate mismatch"));
+            }
+            System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
+            System.out.println("MethodDecl local size: " + st.currentLocal().size());
+
+
+            // Check return type
+            if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
+                if (returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
+                    if (tm == null) {
+                        problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
+                        return problems;
+                    }
+                    if (block != null) { // Do not check return statement of abstract method declaration
+                        for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
+                            if (s instanceof ReturnStmt) {
+                                ReturnStmt rs = (ReturnStmt)s;
+                                if (!tm.isSameReturnState(rs)) { // State mismatch, report error
+                                    problems.add(error("ReturnStmt Typestate mismatch"));
+                                    return problems;
+                                }
                             }
                         }
                     }
-                }
-            }            
-        }         
+                }            
+            } 
+        }            
         return problems;
     }
 
