@@ -46,8 +46,18 @@ aspect TypestateCheck {
 	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
   	syn Collection<Problem> MethodAccess.typestateProblems() {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
+
+        //-------printing for debug-------//
         System.out.println("---------checking------------");
-        System.out.println("MethodAccess name: " + name());             
+        System.out.println("MethodAccess name: " + name() + " /hostType: " + this.hostType() + " /Type: " + this.type() + " /decl hostType: " + decl().hostType()); 
+        if (((ClassDecl)hostType()).getSymbolTable()!= null){ 
+            System.out.println("SymbolTable info: globals size " + 
+            ((ClassDecl)hostType()).getSymbolTable().getGlobals().size() + " locals size: " + 
+            ((ClassDecl)hostType()).getSymbolTable().getLocals().size() + " current local size: " +
+            ((((ClassDecl)hostType()).getSymbolTable().getLocals().size() == 0) ? 0 : ((ClassDecl)hostType()).getSymbolTable().currentLocal().size()));
+        }
+        //-------end-------//
+
         if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
             System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
             Expr va = prevExpr();
@@ -226,6 +236,7 @@ aspect TypestateCheck {
     syn Collection<Problem> Declarator.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>(); 
         if (hasTypestateState()) {
+            SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // get the symbol table from the host ClassDecl
             if (!hasState()) { // getInit() : Expr
                 if ((getInit() != null ) && !(getInit() instanceof NullLiteral)) { // taking care of C c = null; and C c;
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
@@ -233,6 +244,11 @@ aspect TypestateCheck {
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
                         setState(ins.getState());
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        if (this instanceof FieldDeclarator) {
+                            st.addGlobal(this, this.getState());
+                        } else {
+                            st.addCurrLocal(this, this.getState());
+                        }
                     } else if (getInit() instanceof VarAccess) { // C c1 = new C(); C c = c1;
                         VarAccess va = (VarAccess) getInit();
                         if (!va.hasTypestateState()) {
@@ -244,6 +260,11 @@ aspect TypestateCheck {
                         d.setState(null); // one typestate object could only have one reference.
                         d.setDereferenced(true);
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        if (this instanceof FieldDeclarator) {
+                            st.addGlobal(this, this.getState());
+                        } else {
+                            st.addCurrLocal(this, this.getState());
+                        }
                     } else if (getInit() instanceof Dot) { // C c = a.get();
                         // TODO: checking return type?
                         Dot d = (Dot) getInit();
@@ -253,6 +274,11 @@ aspect TypestateCheck {
                         }
                         setState(d.getState());
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        if (this instanceof FieldDeclarator) {
+                            st.addGlobal(this, this.getState());
+                        } else {
+                            st.addCurrLocal(this, this.getState());
+                        }
                     } else {
                         // TODO analysing other Expr
                     }
