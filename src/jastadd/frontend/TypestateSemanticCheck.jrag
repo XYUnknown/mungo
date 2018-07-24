@@ -162,6 +162,12 @@ aspect TypestateSemanticCheck {
     	TypeDecl t = getAccess().type();
 		if (t.isTypestateDeclType()){
 			problems.add(error(getAccess().toString() + " is not a proper java type."));
+			return problems;
+		}
+
+		if (t.hasTypestateDecl() && ! (this instanceof TTypestate)) {
+			problems.add(error(getAccess().toString() + " missing Typestate specification."));
+			return problems;
 		}
     	return problems;
     }
