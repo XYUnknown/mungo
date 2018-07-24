@@ -147,7 +147,6 @@ TType ttype				=	type.a LSHIFT typestate.t RSHIFT
 								tt = new TTypestate(a, t);
 							}
 //							tt.setStart(LT.getStart());
-							System.out.println(tt);
 							return tt;
 						:}
 
