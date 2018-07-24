@@ -321,6 +321,7 @@ aspect TypestateCheck {
                 + " dest has typestate? " + getDest().hasTypestateState()));
             return problems;
         }
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
         if (getSource().hasTypestateState()) {  
             //State state = null;
             HashMap<String, State> state = null;
@@ -330,6 +331,16 @@ aspect TypestateCheck {
                 state = va.getState();
                 d.setState(null); // one typestate object could only have one reference.
                 d.setDereferenced(true); 
+                // remove from symbol table
+                if (d instanceof FieldDeclarator) {
+                    if (st.getGlobals().containsKey(d)) {
+                        st.getGlobals().remove(d);
+                    }
+                } else {
+                    if (st.currentLocal().containsKey(d)) {
+                        st.currentLocal().remove(d);
+                    }
+                }
             } else if (getSource() instanceof ClassInstanceExpr) {
                 ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
                 state = ins.getState(); 
@@ -344,11 +355,18 @@ aspect TypestateCheck {
             } else {
                 // TODO analysing other Expr
             }
+
+            
             if (getDest() instanceof VarAccess) { 
                 VarAccess dva = (VarAccess) getDest();
                 ASTNode dest = (ASTNode)dva.varDecl();
                 dest.setDereferenced(false); // ensure this dest is not dereferenced
                 dest.setState(state);
+                if (dest instanceof FieldDeclarator) {
+                    st.addGlobal(((Variable)dest), dest.getState());
+                } else {
+                    st.addCurrLocal(((Variable)dest), dest.getState());
+                }
             } else {
                 problems.add(error("Cannot set state"));
             }
