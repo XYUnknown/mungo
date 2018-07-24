@@ -36,6 +36,10 @@ aspect SymbolTable {
 			HashMap<Variable, HashMap<String, State>> table = this.locals.peek();
 			table.put(var, state);
 		}
+
+		public void clearLocals() {
+			this.locals.clear();
+		}
 	}
 
 	private SymbolTable ClassDecl.symbolTable = new SymbolTable();
