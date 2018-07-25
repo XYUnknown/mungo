@@ -58,6 +58,7 @@ aspect TypestateCheck {
         }
         //-------end-------//
 
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol table
         if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
             System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
             Expr va = prevExpr();
@@ -65,7 +66,7 @@ aspect TypestateCheck {
                 problems.add(error("No Init State found in VarAccess " + va));
                 return problems;
             }
-            if(va.hasTypestateState() && va.hasState()) {
+            if (va.hasTypestateState() && va.hasState()) {
                 //ASTNode vd = (ASTNode) va.varDecl();  
                 //TypestateMethod tsMethod = null; // used for lookup method with signature              
                 MethodDecl md = this.decl();
@@ -96,6 +97,14 @@ aspect TypestateCheck {
                             hostSwitch.initStateMap();
                             hostSwitch.getStmtInfoMap();
                             hostSwitch.addVariable(hostSwitch.getRecordVariable());
+                        }
+                    } else { // update SymbolTable locals - MethodDecl block 
+                        if (va.isVariable()) {
+                            if (va.varDecl() instanceof FieldDeclarator) {
+                                st.addGlobal(va.varDecl(), va.getState());
+                            } else {
+                                st.addCurrLocal(va.varDecl(), va.getState());
+                            }
                         }
                     }
                 } else {
