@@ -546,7 +546,7 @@ aspect TypestateCheck {
     syn Collection<Problem> ConstCase.typestateProblem() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SwitchStmt switchStmt = lookupSwitch();
-        if (switchStmt != null) {
+        if ((switchStmt != null) && switchStmt.hasTypestateDecl()) {
             HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
             StmtInfo info = infoMap.get(this);
             if (info != null){
@@ -554,21 +554,15 @@ aspect TypestateCheck {
                     problems.add(error("Case with label: " + getValue() + " in Typestate switch has no break or continue statement."));
                     return problems;
                 }
-            } 
+            }
+            // Push a new table on locals for valid case in a typestate switch stmt
+            SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
+            HashMap<Variable, HashMap<String, State>> caseLocals = new HashMap<Variable, HashMap<String, State>>();
+            st.addLocal(caseLocals);
         }        
         return problems;
     }
 
-    /**
-     * TODO Look up variables, check and update their states.
-     *
-     * switch (a.isFoo()) {...}
-     *
-     * Choice c = a.isFoo();
-     * switch (c) {...}
-     * 
-     * In both cases, state of a need to be updated
-     */
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
