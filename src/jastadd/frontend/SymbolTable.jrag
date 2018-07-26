@@ -40,6 +40,36 @@ aspect SymbolTable {
 		public void clearLocals() {
 			this.locals.clear();
 		}
+
+		public HashMap<String, State> lookupVariableState(Variable v) {
+			HashMap<String, State> state = null;
+			Stack <HashMap<Variable, HashMap<String, State>>> temp = new Stack <HashMap<Variable, HashMap<String, State>>>();
+			// lookup in locals first - from recent to old
+			HashMap<Variable, HashMap<String, State>> current;
+			while (!this.getLocals().empty()) {
+				current = this.currentLocal();
+				if (!current.containsKey(v)) {
+					temp.push(this.exitLocal());
+					if(this.getLocals().empty()) {
+						break;
+					} else {
+						current = this.currentLocal();
+					}
+				} else {
+					state = current.get(v);
+					break;
+				}
+			}
+			// not found in local, look up in globals
+			if (state == null) {
+				state = (this.getGlobals().containsKey(v) ? this.getGlobals().get(v) : null);
+			}
+			// put back locals
+			while (!temp.empty()) {
+				this.addLocal(temp.pop());
+			}
+			return state;
+		}
 	}
 
 	private SymbolTable ClassDecl.symbolTable = new SymbolTable();
