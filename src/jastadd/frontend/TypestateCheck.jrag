@@ -94,6 +94,7 @@ aspect TypestateCheck {
                     HashMap<String, State> stateMap = st.lookupVariableState(variable);
                     if (stateMap == null) {
                         problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
+                        return problems;
                     }
                     //_____________
                     if (stateMap.size() == 0){
@@ -118,14 +119,18 @@ aspect TypestateCheck {
                                 problems.add(error("MethodAccess " + this + " without a target TypestateSwitch should not be the Expr of SwitchStmt."));
                                 return problems;
                             } else {
+                                // SwitchStmt, push a new local table on locals stack
+                                HashMap<Variable, HashMap<String, State>> switchLocals = new HashMap<Variable, HashMap<String, State>>();
+                                st.addLocal(switchLocals);
+                                //st.addCurrLocal(va.varDecl(), va.getState());
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
                                 hostSwitch.initStateMap();
                                 hostSwitch.getStmtInfoMap();
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
-                        } else { // update SymbolTable locals - MethodDecl block 
-                            st.addCurrLocal(va.varDecl(), va.getState());
-                        }
+                        } 
+                        // update SymbolTable locals - MethodDecl block 
+                        st.addCurrLocal(va.varDecl(), va.getState());
                     } else {
                         // Typestate switch handling
                         if (this.isSwitchStmtExpr()) {
