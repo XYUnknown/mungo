@@ -59,6 +59,7 @@ aspect TypestateCheck {
         //-------end-------//
 
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol table
+
         if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
             System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
             Expr va = prevExpr();
@@ -88,7 +89,12 @@ aspect TypestateCheck {
                 } else { // Expr va is a variable
                     // TODO change to SymbolTable implementation later
                     MethodDecl md = this.decl();
-                    HashMap<String, State> stateMap = va.getState();
+                    Variable variable = va.varDecl();
+                    // HashMap<String, State> stateMap = va.getState();
+                    HashMap<String, State> stateMap = st.lookupVariableState(variable);
+                    if (stateMap == null) {
+                        problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
+                    }
                     //_____________
                     if (stateMap.size() == 0){
                         // End of state error reporting
@@ -118,13 +124,7 @@ aspect TypestateCheck {
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
                         } else { // update SymbolTable locals - MethodDecl block 
-                            if (va.isVariable()) {
-                                if (va.varDecl() instanceof FieldDeclarator) {
-                                    st.addGlobal(va.varDecl(), va.getState());
-                                } else {
-                                    st.addCurrLocal(va.varDecl(), va.getState());
-                                }
-                            }
+                            st.addCurrLocal(va.varDecl(), va.getState());
                         }
                     } else {
                         // Typestate switch handling
@@ -362,15 +362,9 @@ aspect TypestateCheck {
                 state = va.getState();
                 d.setState(null); // one typestate object could only have one reference.
                 d.setDereferenced(true); 
-                // remove from symbol table
-                if (d instanceof FieldDeclarator) {
-                    if (st.getGlobals().containsKey(d)) {
-                        st.getGlobals().remove(d);
-                    }
-                } else {
-                    if (st.currentLocal().containsKey(d)) {
-                        st.currentLocal().remove(d);
-                    }
+                // remove from symbol table (only local)
+                if (st.currentLocal().containsKey(d)) {
+                    st.currentLocal().remove(d);
                 }
             } else if (getSource() instanceof ClassInstanceExpr) {
                 ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
@@ -470,7 +464,6 @@ aspect TypestateCheck {
             System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
             System.out.println("MethodDecl local size: " + st.currentLocal().size());
 
-
             // Check return type
             if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
                 if (returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
@@ -492,6 +485,59 @@ aspect TypestateCheck {
                 }            
             } 
         }            
+        return problems;
+    }
+
+    /**
+     * ConstructorDecl does not have return type
+     */
+    ConstructorDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ConstructorDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        Block block = getBlock();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        System.out.println("ConstructorDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
+        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
+        // if not empty, clear it and push the new table on it
+        if (!st.getLocals().empty()) {
+            st.clearLocals();
+        }
+        HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
+        st.addLocal(map);
+
+        /*if (hasTypestateDecl()) {
+            TypestateDecl td = this.hostType().getTypestateDecl();
+            TypestateMethod tm = td.lookupMethod(this);
+            // Update ParameterDeclaration state and add ParameterDeclaration to local symbol table
+            if (tm != null) {
+                for (int i = 0; i < this.getNumParameter(); i++){
+                    ParameterDeclaration mdParam = getParameter(i);
+                    TType tmParam = tm.getTTypeList().getTType(i);
+                    if (mdParam.hasTypestateState()) {
+                        if (!(tmParam instanceof TTypestate)) {
+                            problems.add(error("Cannot find valid Typestate specification for ParameterDeclaration: " + mdParam));
+                        } else {
+                            TTypestate tt = (TTypestate) tmParam;
+                            Typestate ts = tt.getTypestate();
+                            if (ts instanceof TypestateLabel) {
+                                TypestateLabel tl = (TypestateLabel) ts;
+                                HashMap<String, State> state = new HashMap<String, State>();
+                                state.put(tl.getLabel(), td.lookupState(tl.getLabel()));
+                                mdParam.setState(state); // Update state
+                                st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
+                            } else if (ts instanceof TypestateSwitch) {
+                                // TODO setting ParameterDeclaration state for TypestateSwitch                                
+                            }
+                        }
+                    }              
+                }
+                if (problems.size() != 0) {
+                    return problems;
+                }
+            }
+            System.out.println("ConstructorDecl SymbolTable locals size: " + st.getLocals().size());
+            System.out.println("ConstructorDecl local size: " + st.currentLocal().size());
+        }*/            
         return problems;
     }
 
