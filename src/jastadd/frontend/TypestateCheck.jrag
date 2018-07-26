@@ -119,9 +119,6 @@ aspect TypestateCheck {
                                 problems.add(error("MethodAccess " + this + " without a target TypestateSwitch should not be the Expr of SwitchStmt."));
                                 return problems;
                             } else {
-                                // SwitchStmt, push a new local table on locals stack
-                                HashMap<Variable, HashMap<String, State>> switchLocals = new HashMap<Variable, HashMap<String, State>>();
-                                st.addLocal(switchLocals);
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
                                 hostSwitch.initStateMap();
                                 hostSwitch.getStmtInfoMap();
@@ -575,7 +572,8 @@ aspect TypestateCheck {
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("SwitchStmt Typestate? " + hasTypestateDecl()); 
+        System.out.println("SwitchStmt Typestate? " + hasTypestateDecl());
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables 
         if (hasTypestateDecl()) {
             if (this.getRecordVariable() == null) {
                 this.initRecordVariable();
@@ -588,6 +586,9 @@ aspect TypestateCheck {
             } else {
                 LinkedList<MethodAccess> methodList = this.collectMethodAccess();
                 this.setLastMethodAccess(methodList.getLast());
+                // SwitchStmt, push a new local table on locals stack
+                HashMap<Variable, HashMap<String, State>> switchLocals = new HashMap<Variable, HashMap<String, State>>();
+                st.addLocal(switchLocals);
                 System.out.println("Num methods in SwitchStmt: "+ methodList.size() + " last " + this.getLastMethodAccess());
             }
         }
