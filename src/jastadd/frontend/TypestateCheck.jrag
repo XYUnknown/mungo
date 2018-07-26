@@ -342,6 +342,7 @@ aspect TypestateCheck {
     AssignExpr contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> AssignExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("AssignExpr: " + this.lineNumber());
         if (!getDest().isVariable()) {
             problems.add(error("left hand side is not a variable"));
             return problems;
@@ -386,17 +387,14 @@ aspect TypestateCheck {
                 // TODO analysing other Expr
             }
 
-            
             if (getDest() instanceof VarAccess) { 
                 VarAccess dva = (VarAccess) getDest();
                 ASTNode dest = (ASTNode)dva.varDecl();
                 dest.setDereferenced(false); // ensure this dest is not dereferenced
                 dest.setState(state);
-                if (dest instanceof FieldDeclarator) {
-                    st.addGlobal(((Variable)dest), dest.getState());
-                } else {
-                    st.addCurrLocal(((Variable)dest), dest.getState());
-                }
+                // AssignExpr is always within MethodDecl local scope, both FieldDeclarator and VariableDeclarator
+                // states are recorded in locals.
+                st.addCurrLocal(((Variable)dest), dest.getState());
             } else {
                 problems.add(error("Cannot set state"));
             }
