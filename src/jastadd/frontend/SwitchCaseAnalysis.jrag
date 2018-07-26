@@ -195,6 +195,7 @@ aspect SwitchCaseAnalysis {
 		HashMap<Stmt, StmtInfo> map = new HashMap<Stmt, StmtInfo>();
 		Block blk = getBlock();
 		String caseLabel = null;
+		boolean valid = false;
 		for (Stmt s: blk.getStmts()) {			
 			if (s instanceof Case) {
 				if (s instanceof ConstCase) {
@@ -202,6 +203,7 @@ aspect SwitchCaseAnalysis {
 					if (exp.type().isEnumDeclType()){
 						VarAccess value = (VarAccess)((ConstCase)s).getValue();
 						caseLabel = value.getID();
+						valid = true;
 					} else {
 						caseLabel = ((ConstCase)s).getValue().toString(); // Store information including invalid case label
 					}					
@@ -209,6 +211,7 @@ aspect SwitchCaseAnalysis {
 					caseLabel = "";
 				}
 				StmtInfo info = new StmtInfo(caseLabel);
+				s.setDereferenced(true); // initially dereference set true, when break/continue found, might be set false
 				map.put(s, info);
 
 				if (stack.empty()) {
@@ -223,6 +226,7 @@ aspect SwitchCaseAnalysis {
 					StmtInfo info = new StmtInfo(caseLabel);
 					info.setTermination(0);
 					info.setTerminationLabel(label);
+					s.setDereferenced(!valid); // if not valid, dereference stmt
 					map.put(s, info);
 					caseLabel = null; // reset case label
 
@@ -232,17 +236,20 @@ aspect SwitchCaseAnalysis {
 						StmtInfo i = map.get(temp);
 						i.setTermination(0);
 						i.setTerminationLabel(label);
+						temp.setDereferenced(!valid);
 						if (temp instanceof Case) {
 							break;
 						}
 					}
-				}				
+				}
+				valid = false; // reset stmt valid indication				
 			} else if (s instanceof ContinueStmt) {
 				if (caseLabel != null) {
 					String label = ((ContinueStmt)s).hasLabel() ? null : ((ContinueStmt)s).getLabel();
 					StmtInfo info = new StmtInfo(caseLabel);
 					info.setTermination(1);
 					info.setTerminationLabel(label);
+					s.setDereferenced(!valid); // if not valid, dereference stmt
 					map.put(s, info);
 					caseLabel = null; // reset case label
 
@@ -252,11 +259,13 @@ aspect SwitchCaseAnalysis {
 						StmtInfo i = map.get(temp);
 						i.setTermination(1);
 						i.setTerminationLabel(label);
+						temp.setDereferenced(!valid);
 						if (temp instanceof Case) {
 							break;
 						}
 					}
-				}				
+				}
+				valid = false; // reset stmt valid indication				
 			} else {
 				if (caseLabel != null) {
 					StmtInfo info = new StmtInfo(caseLabel);
