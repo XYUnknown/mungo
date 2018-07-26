@@ -122,7 +122,6 @@ aspect TypestateCheck {
                                 // SwitchStmt, push a new local table on locals stack
                                 HashMap<Variable, HashMap<String, State>> switchLocals = new HashMap<Variable, HashMap<String, State>>();
                                 st.addLocal(switchLocals);
-                                //st.addCurrLocal(va.varDecl(), va.getState());
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
                                 hostSwitch.initStateMap();
                                 hostSwitch.getStmtInfoMap();
