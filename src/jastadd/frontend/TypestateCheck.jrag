@@ -521,15 +521,6 @@ aspect TypestateCheck {
         return problems;
     }
 
-    /*DoStmt contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> DoStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
-        HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
-        st.addLocal(doLocals);
-        return problems; 
-    }*/
-
     LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> LabeledStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -549,6 +540,16 @@ aspect TypestateCheck {
     }
 
     /** Unused */
+    /*
+    DoStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> DoStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
+        HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
+        st.addLocal(doLocals);
+        return problems; 
+    }
+
     ReturnStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ReturnStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -583,4 +584,5 @@ aspect TypestateCheck {
         }
         return problems;
     }
+    */
 }
