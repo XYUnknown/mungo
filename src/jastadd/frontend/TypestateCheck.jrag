@@ -87,10 +87,9 @@ aspect TypestateCheck {
                         return problems;
                     }
                 } else { // Expr va is a variable
-                    // TODO change to SymbolTable implementation later
                     MethodDecl md = this.decl();
                     Variable variable = va.varDecl();
-                    // HashMap<String, State> stateMap = va.getState();
+                    // Lookup the state of the variable in symble table
                     HashMap<String, State> stateMap = st.lookupVariableState(variable);
                     if (stateMap == null) {
                         problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
@@ -101,10 +100,10 @@ aspect TypestateCheck {
                         // End of state error reporting
                         problems.add(error("Reach end of state " + va));
                         return problems;
-                    } else if (stateMap.size() == 1) { // No switch
+                    } else if (stateMap.size() == 1) {
                         // Typestate checking and state updating
                         State currState = getSingleStateFromMap(stateMap); 
-                        problems = collectProblems(currState, md, va);
+                        problems = collectProblems(currState, md, va); // 
                         if (problems.size() != 0) {
                             return problems;
                         }
@@ -120,13 +119,13 @@ aspect TypestateCheck {
                                 return problems;
                             } else {
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
-                                hostSwitch.getStmtInfoMap();
+                                hostSwitch.getStmtInfoMap(); // initialise stmt information map
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
                         } 
-                        // update SymbolTable locals - MethodDecl block 
+                        // update SymbolTable locals
                         st.addCurrLocal(va.varDecl(), va.getState());
-                    } else {
+                    } else { // Still in switch state, not processed by valid case, report error
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State."));
                         return problems;
                     }
@@ -465,7 +464,7 @@ aspect TypestateCheck {
                 SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
                 BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
                 if (info.isLastStmt()) {
-                    // TODO: pop, check, store state
+                    // pop, check, store state
                     int size = switchStmt.caseMap().size();
                     System.out.println("BreakStmt size check " + size);
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
