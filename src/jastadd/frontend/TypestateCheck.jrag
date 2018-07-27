@@ -103,7 +103,7 @@ aspect TypestateCheck {
                         return problems;
                     } else if (stateMap.size() == 1) { // No switch
                         // Typestate checking and state updating
-                        State currState = getSingleStateFromMap(stateMap);                 
+                        State currState = getSingleStateFromMap(stateMap); 
                         problems = collectProblems(currState, md, va);
                         if (problems.size() != 0) {
                             return problems;
@@ -120,7 +120,7 @@ aspect TypestateCheck {
                                 return problems;
                             } else {
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
-                                hostSwitch.initStateMap();
+                                hostSwitch.initStateMapList();
                                 hostSwitch.getStmtInfoMap();
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
@@ -458,6 +458,42 @@ aspect TypestateCheck {
     syn Collection<Problem> BreakStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("BreakStmt target: " + targetStmt());
+        SwitchStmt switchStmt = lookupSwitch();
+        if ((switchStmt != null) && switchStmt.hasTypestateDecl()) {
+            HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+            StmtInfo info = infoMap.get(this);
+            if ((info != null) && (!this.isDereferenced())) {
+                SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+                if (info.isLastStmt()) {
+                    // TODO: pop, check, store state
+                    int size = switchStmt.caseMap().size();
+                    System.out.println("BreakStmt size check " + size);
+                    HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
+                    for (Variable v : map.keySet()) {
+                        if ((switchStmt.getVarList() == null) || (!switchStmt.getVarList().contains(v))) {
+                            switchStmt.addVariable(v);
+                        }
+                    }
+                    switchStmt.addRecordState(st.exitLocal());
+                    boolean isSameEndState = switchStmt.isEndCaseSameState();
+                    if (!isSameEndState) {
+                        problems.add(error("Variables end at different state."));
+                        return problems;
+                    }
+                    st.exitLocal(); // exit current switch
+                    st.currentLocal().putAll(switchStmt.getStateMapList().get(0));
+
+                } else {
+                    HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
+                    for (Variable v : map.keySet()) {
+                        if ((switchStmt.getVarList() == null) || (!switchStmt.getVarList().contains(v))) {
+                            switchStmt.addVariable(v);
+                        }
+                    }
+                    switchStmt.addRecordState(st.exitLocal());
+                }
+            }
+        }
         return problems;
     }
 
