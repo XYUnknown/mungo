@@ -120,7 +120,6 @@ aspect TypestateCheck {
                                 return problems;
                             } else {
                                 hostSwitch.setRecordTypestateSwitch(this.getTargetState());
-                                hostSwitch.initStateMapList();
                                 hostSwitch.getStmtInfoMap();
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
@@ -464,33 +463,34 @@ aspect TypestateCheck {
             StmtInfo info = infoMap.get(this);
             if ((info != null) && (!this.isDereferenced())) {
                 SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+                BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
                 if (info.isLastStmt()) {
                     // TODO: pop, check, store state
                     int size = switchStmt.caseMap().size();
                     System.out.println("BreakStmt size check " + size);
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
-                        if ((switchStmt.getVarList() == null) || (!switchStmt.getVarList().contains(v))) {
-                            switchStmt.addVariable(v);
+                        if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
+                            targetStmt.addVariable(v);
                         }
                     }
-                    switchStmt.addRecordState(st.exitLocal());
-                    boolean isSameEndState = switchStmt.isEndCaseSameState();
+                    targetStmt.addRecordState(st.exitLocal());
+                    boolean isSameEndState = targetStmt.isEndCaseSameState();
                     if (!isSameEndState) {
                         problems.add(error("Variables end at different state."));
                         return problems;
                     }
                     st.exitLocal(); // exit current switch
-                    st.currentLocal().putAll(switchStmt.getStateMapList().get(0));
+                    st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
 
                 } else {
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
-                        if ((switchStmt.getVarList() == null) || (!switchStmt.getVarList().contains(v))) {
-                            switchStmt.addVariable(v);
+                        if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
+                            targetStmt.addVariable(v);
                         }
                     }
-                    switchStmt.addRecordState(st.exitLocal());
+                    targetStmt.addRecordState(st.exitLocal());
                 }
             }
         }
@@ -521,20 +521,23 @@ aspect TypestateCheck {
         return problems;
     }
 
-    DoStmt contributes each typestateProblems() to CompilationUnit.problems();
+    /*DoStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
         st.addLocal(doLocals);
         return problems; 
-    }
+    }*/
 
     LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> LabeledStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("LabeledStmt label: " + getLabel());
         System.out.println("LabeledStmt stmt: " + getStmt().getClass());
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
+        HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
+        st.addLocal(doLocals);
         return problems;
     }
 

@@ -11,6 +11,9 @@ aspect SwitchCaseAnalysis {
 	}
 
 	public void BranchTargetStmt.addRecordState(HashMap<Variable, HashMap<String, State>> map) {
+		if (this.stateMapList == null) {
+			initStateMapList();
+		}
 		this.stateMapList.add(map);
 	}
 
