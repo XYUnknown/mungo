@@ -38,6 +38,40 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
+	 * A map recording variable-state pairs in each valid case
+	 */
+	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.continueStateMapList;
+	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getcontinueStateMapList() {
+		return this.continueStateMapList;
+	}
+	public void BranchTargetStmt.initContinueStateMapList() {
+		this.continueStateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
+	}
+
+	public void BranchTargetStmt.addRecordContinueState(HashMap<Variable, HashMap<String, State>> map) {
+		if (this.continueStateMapList == null) {
+			initContinueStateMapList();
+		}
+		this.continueStateMapList.add(map);
+	}
+
+	public boolean BranchTargetStmt.isContinueEndCaseSameState(HashMap<Variable, HashMap<String, State>> initMap) {
+		HashMap<Variable, HashMap<String, State>> checkMap = initMap;
+		for (HashMap<Variable, HashMap<String, State>> map: this.continueStateMapList) {
+			for (Variable v: this.varList){
+				if (!map.containsKey(v)) {
+					return false;
+				} else {
+					if(!checkMap.get(v).equals(map.get(v))){
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * A list record all Variables in the SwitchStmt
 	 */
 	private LinkedList<Variable> BranchTargetStmt.varList;
@@ -261,66 +295,6 @@ aspect SwitchCaseAnalysis {
 		this.stmtInfoMap.get(st).setLastStmt(true);
 	}
 
-	public StmtInfo MethodAccess.lookupInfo(HashMap<Stmt, StmtInfo> infoMap) {
-		ASTNode node = this.getParent();
-        while (node != null) {
-            if (node instanceof Stmt) {
-                if (infoMap.containsKey((Stmt)node)) {
-                	return infoMap.get((Stmt)node);
-                } else {
-                	node = node.getParent();
-                }
-            } else {
-                node = node.getParent();
-            }
-        }
-        return null;
-	}
-
-	/**
-     * Lookup the host SwitchStmt of the a MethodAccess
-     */
-    syn SwitchStmt MethodAccess.lookupSwitch() {
-    	if (hasPrevExpr()) {
-    		Expr va = prevExpr();
-    		Variable v;
-    		if (!va.isVariable()) {
-    			return null;
-    		} else {
-    			v = ((VarAccess) va).decl();
-    		}
-    		ASTNode node = this.getParent();
-        	while (node != null) {
-            	if (node instanceof SwitchStmt) {
-            		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
-            			return (SwitchStmt) node;
-            		} else {
-            			node = node.getParent();
-            		}                	
-            	} else {
-                	node = node.getParent();
-            	}
-        	}
-        	return null;
-    	}        
-        return null;
-    }
-
-    /**
-     * Lookup all Switch Stmt of the a MethodAccess
-     */
-	syn LinkedList<SwitchStmt> MethodAccess.lookupAllSwitch() {
-		LinkedList<SwitchStmt> list = new LinkedList<SwitchStmt>();
-		ASTNode node = this.getParent();
-		while (node != null) {
-			if (node instanceof SwitchStmt) {
-				list.add((SwitchStmt) node);               	
-			}
-			node = node.getParent();
-		}
-		return list;
-	}
-
     /**
      * Check if a MethodAccess is the Expr of a SwitchStmt or not
      */
@@ -371,9 +345,78 @@ aspect SwitchCaseAnalysis {
         return null;
     }
 
+
+    /**
+     * Unused Method
+     */
+
+    /*
+    public StmtInfo MethodAccess.lookupInfo(HashMap<Stmt, StmtInfo> infoMap) {
+		ASTNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof Stmt) {
+                if (infoMap.containsKey((Stmt)node)) {
+                	return infoMap.get((Stmt)node);
+                } else {
+                	node = node.getParent();
+                }
+            } else {
+                node = node.getParent();
+            }
+        }
+        return null;
+	} */
+
+	/**
+     * Lookup the host SwitchStmt of the a MethodAccess
+     */
+    /*
+    syn SwitchStmt MethodAccess.lookupSwitch() {
+    	if (hasPrevExpr()) {
+    		Expr va = prevExpr();
+    		Variable v;
+    		if (!va.isVariable()) {
+    			return null;
+    		} else {
+    			v = ((VarAccess) va).decl();
+    		}
+    		ASTNode node = this.getParent();
+        	while (node != null) {
+            	if (node instanceof SwitchStmt) {
+            		if (v.equals(((SwitchStmt) node).getRecordVariable())) {
+            			return (SwitchStmt) node;
+            		} else {
+            			node = node.getParent();
+            		}                	
+            	} else {
+                	node = node.getParent();
+            	}
+        	}
+        	return null;
+    	}        
+        return null;
+    }*/
+
+    /**
+     * Lookup all Switch Stmt of the a MethodAccess
+     */
+    /*
+	syn LinkedList<SwitchStmt> MethodAccess.lookupAllSwitch() {
+		LinkedList<SwitchStmt> list = new LinkedList<SwitchStmt>();
+		ASTNode node = this.getParent();
+		while (node != null) {
+			if (node instanceof SwitchStmt) {
+				list.add((SwitchStmt) node);               	
+			}
+			node = node.getParent();
+		}
+		return list;
+	} */
+
     /**
      * Collect all MethodAccess in a SwitchStmt
      */
+    /*
     coll LinkedList<MethodAccess> SwitchStmt.collectMethodAccess() root SwitchStmt;
 	ConstructorDecl contributes {
 		if (checkImplicitConstructorInvocation()) {
@@ -389,4 +432,5 @@ aspect SwitchCaseAnalysis {
 		list.add(this);				
 		return list;
 	}
+	*/
 }
