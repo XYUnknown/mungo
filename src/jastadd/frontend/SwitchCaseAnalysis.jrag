@@ -2,39 +2,21 @@ aspect SwitchCaseAnalysis {
 	/**
 	 * A map recording variable-state pairs in each valid case
 	 */
-	private HashMap<String, HashMap<Variable, HashMap<String, State>>> SwitchStmt.stateMap;
-	public HashMap<String, HashMap<Variable, HashMap<String, State>>> SwitchStmt.getStateMap() {
-		return this.stateMap;
+	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.stateMapList;
+	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getStateMapList() {
+		return this.stateMapList;
 	}
-	public void SwitchStmt.initStateMap() {
-		this.stateMap = new HashMap<String, HashMap<Variable, HashMap<String, State>>>();
-		Block blk = this.getBlock();
-		for (Stmt s: blk.getStmts()) {
-			if (s instanceof ConstCase) {
-				Expr exp = ((ConstCase)s).getValue();
-				if (exp.type().isEnumDeclType()){
-					VarAccess value = (VarAccess)((ConstCase)s).getValue();
-					String caseLabel = value.getID();
-					HashMap<Variable, HashMap<String, State>> varState = new HashMap<Variable, HashMap<String, State>>();
-					HashMap<String, State> initState = new HashMap<String, State>();
-					initState.put(this.recordSwitchState.get(caseLabel).getID(), this.recordSwitchState.get(caseLabel));
-					varState.put(this.recordVariable, initState); // initialise state according to caseLabel
-					this.stateMap.put(caseLabel, varState);
-				}
-			}
-		}
+	public void BranchTargetStmt.initStateMapList() {
+		this.stateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
 	}
 
-	public void SwitchStmt.updateRecordState(String label, Variable v, HashMap<String, State> state) {
-		if (this.stateMap.containsKey(label)) {
-			this.stateMap.get(label).put(v, state);
-		}
+	public void BranchTargetStmt.addRecordState(HashMap<Variable, HashMap<String, State>> map) {
+		this.stateMapList.add(map);
 	}
 
-	public boolean SwitchStmt.isEndCaseSameState() {
+	public boolean BranchTargetStmt.isEndCaseSameState() {
 		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
-		for (String caseLabel: this.stateMap.keySet()) {
-			HashMap<Variable, HashMap<String, State>> map = this.stateMap.get(caseLabel);
+		for (HashMap<Variable, HashMap<String, State>> map: this.stateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
 					return false;
@@ -55,13 +37,13 @@ aspect SwitchCaseAnalysis {
 	/**
 	 * A list record all Variables in the SwitchStmt
 	 */
-	private LinkedList<Variable> SwitchStmt.varList;
+	private LinkedList<Variable> BranchTargetStmt.varList;
 
-	public LinkedList<Variable> SwitchStmt.getVarList() {
+	public LinkedList<Variable> BranchTargetStmt.getVarList() {
 		return this.varList;
 	} 
 
-	public void SwitchStmt.addVariable(Variable v) {
+	public void BranchTargetStmt.addVariable(Variable v) {
 		if (this.varList == null) {
 			this.varList = new LinkedList<Variable>();
 		}
