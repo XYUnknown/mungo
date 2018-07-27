@@ -55,4 +55,20 @@ aspect TypstateCheckFunctionality {
 		}
 		return problems;
 	}
+
+	/**
+	 * Look up parent stmt of a MethodAccess
+	 */
+	syn Stmt MethodAccess.lookupStmt() {
+		ASTNode node = this.getParent();
+        while (node != null) {
+            if (node instanceof Stmt) {
+                return (Stmt)node;
+            } else {
+                node = node.getParent();
+            }
+        }
+        return null;
+	}
+
 }
