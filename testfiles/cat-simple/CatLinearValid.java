@@ -1,6 +1,11 @@
 package examples.cat;
 
 class CatLinearValid {
+	private Cat globalCat = new Cat();
+
+	public CatLinearValid () {
+		globalCat.initialise();
+	}
 	public static void main(String [] args) {
 		Cat c1 = new Cat();
 		Cat c2 = new Cat();
