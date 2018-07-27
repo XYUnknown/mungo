@@ -71,19 +71,6 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
-	 * Record Last ExprStmt
-	 */
-	private MethodAccess SwitchStmt.lastMethodAccess;
-
-	public MethodAccess SwitchStmt.getLastMethodAccess() {
-		return this.lastMethodAccess;
-	}
-
-	public void SwitchStmt.setLastMethodAccess(MethodAccess ma) {
-		this.lastMethodAccess = ma;
-	}
-
-	/**
 	 * A map recording statement information
 	 */
 	private HashMap<Stmt, StmtInfo> SwitchStmt.stmtInfoMap;
@@ -99,19 +86,6 @@ aspect SwitchCaseAnalysis {
 
 	public void SwitchStmt.setRecordTypestateSwitch(HashMap<String, State> switchState) {
 		this.recordSwitchState = switchState;
-	}
-
-	/**
-	 * Record case label
-	 */
-	private String SwitchStmt.recordCaseLabel;
-
-	public String SwitchStmt.getRecordCaseLabel() {
-		return this.recordCaseLabel;
-	}
-
-	public void SwitchStmt.setRecordCaseLabel(String label) {
-		this.recordCaseLabel = label;
 	}
 
 	/**
@@ -146,8 +120,9 @@ aspect SwitchCaseAnalysis {
 
 	class StmtInfo {
 		private String caseLabel;
-		int termination = -1; // -1 no termination, 0 break/end block, 1 continue
-		String terminationLabel = null;
+		private int termination = -1; // -1 no termination, 0 break/end block, 1 continue
+		private String terminationLabel = null;
+		private boolean isLast = false;
 		public StmtInfo(String caseLabel) {
 			this.caseLabel = caseLabel;
 		}
@@ -184,6 +159,14 @@ aspect SwitchCaseAnalysis {
 
 		public boolean hasContinue() {
 			return this.termination == 1;
+		}
+
+		public boolean isLastStmt() {
+			return this.isLast;
+		}
+
+		public void setLastStmt(boolean isLast) {
+			this.isLast = isLast;
 		}
 	}
 
@@ -275,7 +258,22 @@ aspect SwitchCaseAnalysis {
 			}
 		}
 		this.stmtInfoMap = map;
+		labelLastTermination(); // last break / continue is labelled here
 		return map;
+	}
+
+	private void SwitchStmt.labelLastTermination() {
+		Block blk = getBlock();
+		LinkedList<Stmt> list = new LinkedList<Stmt>();
+		for (Stmt s: blk.getStmts()) {
+			if ((s instanceof BreakStmt) || (s instanceof ContinueStmt)) {
+				if (!s.isDereferenced()) {
+					list.add(s);
+				}
+			}
+		}
+		Stmt st = list.getLast();
+		this.stmtInfoMap.get(st).setLastStmt(true);
 	}
 
 	public StmtInfo MethodAccess.lookupInfo(HashMap<Stmt, StmtInfo> infoMap) {
