@@ -531,6 +531,8 @@ aspect TypestateCheck {
         return problems;
     }
 
+    /** Unused */
+    /*
     Case contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> Case.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -538,8 +540,6 @@ aspect TypestateCheck {
         return problems;
     }
 
-    /** Unused */
-    /*
     DoStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
