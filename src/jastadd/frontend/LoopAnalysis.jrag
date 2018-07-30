@@ -1,0 +1,11 @@
+aspect LoopAnalysis {
+	private boolean Expr.loopConditionStatus = false;
+
+	public boolean Expr.isLoopCondition() {
+		return this.loopConditionStatus;
+	}
+
+	public void Expr.setIsLoopCondition(boolean status) {
+		this.loopConditionStatus = status;
+	}
+}
