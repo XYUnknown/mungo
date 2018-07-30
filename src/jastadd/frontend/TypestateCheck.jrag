@@ -490,19 +490,7 @@ aspect TypestateCheck {
     syn Collection<Problem> LabeledStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("LabeledStmt label: " + getLabel());
-        System.out.println("LabeledStmt stmt: " + getStmt().getClass());
-        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
-        HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
-        st.addLocal(doLocals);
-        return problems;
-    }
-
-    /** Unused */
-    /*
-    Case contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> Case.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        //this.doPrintFullTraversal();
+        System.out.println("LabeledStmt stmt: " + getStmt().getClass());        
         return problems;
     }
 
@@ -512,7 +500,18 @@ aspect TypestateCheck {
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
         st.addLocal(doLocals);
+        System.out.println("DoStmt: " + this.getCondition());
+        this.getCondition().setIsLoopCondition(true);
         return problems; 
+    }
+
+    /** Unused */
+    /*
+    Case contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> Case.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        //this.doPrintFullTraversal();
+        return problems;
     }
 
     ReturnStmt contributes each typestateProblems() to CompilationUnit.problems();
