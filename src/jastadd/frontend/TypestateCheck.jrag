@@ -386,41 +386,7 @@ aspect TypestateCheck {
             st.clearLocals();
         }
         HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
-        st.addLocal(map);
-
-        /*if (hasTypestateDecl()) {
-            TypestateDecl td = this.hostType().getTypestateDecl();
-            TypestateMethod tm = td.lookupMethod(this);
-            // Update ParameterDeclaration state and add ParameterDeclaration to local symbol table
-            if (tm != null) {
-                for (int i = 0; i < this.getNumParameter(); i++){
-                    ParameterDeclaration mdParam = getParameter(i);
-                    TType tmParam = tm.getTTypeList().getTType(i);
-                    if (mdParam.hasTypestateState()) {
-                        if (!(tmParam instanceof TTypestate)) {
-                            problems.add(error("Cannot find valid Typestate specification for ParameterDeclaration: " + mdParam));
-                        } else {
-                            TTypestate tt = (TTypestate) tmParam;
-                            Typestate ts = tt.getTypestate();
-                            if (ts instanceof TypestateLabel) {
-                                TypestateLabel tl = (TypestateLabel) ts;
-                                HashMap<String, State> state = new HashMap<String, State>();
-                                state.put(tl.getLabel(), td.lookupState(tl.getLabel()));
-                                mdParam.setState(state); // Update state
-                                st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
-                            } else if (ts instanceof TypestateSwitch) {
-                                // TODO setting ParameterDeclaration state for TypestateSwitch                                
-                            }
-                        }
-                    }              
-                }
-                if (problems.size() != 0) {
-                    return problems;
-                }
-            }
-            System.out.println("ConstructorDecl SymbolTable locals size: " + st.getLocals().size());
-            System.out.println("ConstructorDecl local size: " + st.currentLocal().size());
-        }*/            
+        st.addLocal(map);     
         return problems;
     }
 
