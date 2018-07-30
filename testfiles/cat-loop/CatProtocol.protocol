@@ -1,0 +1,24 @@
+package examples.cat;
+
+typestate CatProtocol {
+	Init = {
+		void initialise(): Alive
+	}
+
+	Alive = {
+		void putInBox(): Schrodinger,
+		void playWith(Cat<<Alive>>): Alive,
+		void poison(): Dead,
+		Cat<<Init>> giveBirth(): Alive,
+		void close(): end
+	}
+
+	Dead = {
+		void putInBox() : Schrodinger,
+		void bury(): end
+	}
+
+	Schrodinger = {
+		BooleanChoice openBox() : <TRUE: Alive, FALSE: Dead>
+	}
+}
