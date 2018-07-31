@@ -462,6 +462,50 @@ aspect TypestateCheck {
         return problems;
     }
 
+    ContinueStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ContinueStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        System.out.println("ContinueStmt target: " + targetStmt());
+        SwitchStmt switchStmt = lookupSwitch();
+        if ((switchStmt != null) && switchStmt.hasTypestateDecl()) {
+            HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
+            StmtInfo info = infoMap.get(this);
+            if ((info != null) && (!this.isDereferenced())) {
+                SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+                BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
+                if (info.isLastStmt()) {
+                    // pop, check, store state
+                    int size = switchStmt.caseMap().size();
+                    System.out.println("ContinueStmt size check " + size);
+                    HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
+                    for (Variable v : map.keySet()) {
+                        if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
+                            targetStmt.addVariable(v);
+                        }
+                    }
+                    targetStmt.addRecordContinueState(st.exitLocal());
+                    boolean isSameEndState = targetStmt.isContinueEndCaseSameState();
+                    if (!isSameEndState) {
+                        problems.add(error("Variables end at different state."));
+                        return problems;
+                    }
+                    st.exitLocal(); // exit current switch
+                    st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
+
+                } else {
+                    HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
+                    for (Variable v : map.keySet()) {
+                        if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
+                            targetStmt.addVariable(v);
+                        }
+                    }
+                    targetStmt.addRecordContinueState(st.exitLocal());
+                }
+            }
+        }
+        return problems;
+    }
+
     SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -500,10 +544,38 @@ aspect TypestateCheck {
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
         st.addLocal(doLocals);
-        System.out.println("DoStmt: " + this.getCondition());
+        System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
         this.getCondition().setIsLoopCondition(true);
+        System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
         return problems; 
     }
+
+    /**
+     * End of a DoStmt pop local symbol table.
+     * I am not sure why Literal need to be mentioned explicitly here, otherwise there are bugs
+     */
+    Expr contributes each typestateProblems() when (this.isLoopCondition() || (this instanceof Literal))to CompilationUnit.problems();
+    syn Collection<Problem> Expr.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        if (this.isLoopCondition()) {
+            System.out.println("Condition Expr: " + this);
+            System.out.println("Before Condition Expr local size: " + st.getLocals().size());
+            HashMap<Variable, HashMap<String, State>> loopMap = st.exitLocal();
+            st.currentLocal().putAll(loopMap);
+            System.out.println("After Condition Expr local size: " + st.getLocals().size());
+        }        
+        return problems;
+    }
+
+    /*Literal contributes each typestateProblems() when this.isLoopCondition() to CompilationUnit.problems();
+    syn Collection<Problem> Literal.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();  
+        if (this.isLoopCondition()) {
+            System.out.println("Literal Condition Expr: " + this);
+        }
+        return problems;
+    }*/
 
     /** Unused */
     /*
