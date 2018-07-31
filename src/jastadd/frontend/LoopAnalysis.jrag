@@ -8,4 +8,35 @@ aspect LoopAnalysis {
 	public void Expr.setIsLoopCondition(boolean status) {
 		this.loopConditionStatus = status;
 	}
+
+	private BranchTargetStmt Expr.conditionHostStmt;
+
+	public void Expr.setHostStmt(BranchTargetStmt stmt) {
+		this.conditionHostStmt = stmt;
+	}
+
+	public BranchTargetStmt Expr.getHostStmt() {
+		return this.conditionHostStmt;
+	}
+
+	private HashMap<Variable, HashMap<String, State>> BranchTargetStmt.initialTable;
+
+	public HashMap<Variable, HashMap<String, State>> BranchTargetStmt.getInitialTable() {
+		return this.initialTable;
+	}
+
+	public void BranchTargetStmt.setInitialTable(HashMap<Variable, HashMap<String, State>> table) {
+		this.initialTable = table;
+	}
+
+	public boolean BranchTargetStmt.isValidContinueState(HashMap<Variable, HashMap<String, State>> continueTable) {
+		for (Variable v: continueTable.keySet()) {
+			if (!this.initialTable.keySet().contains(v)) {
+				return false;
+			} else if (!initialTable.get(v).equals(continueTable.get(v))) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
