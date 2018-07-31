@@ -429,6 +429,17 @@ aspect TypestateCheck {
             if ((info != null) && (!this.isDereferenced())) {
                 SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
                 BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
+                // if target is labeled stmt, get the internal statement from it
+                if (targetStmt instanceof LabeledStmt) {
+                    System.out.println("Target is LabeledStmt: " + targetStmt);
+                    Stmt stmt = ((LabeledStmt)targetStmt).getStmt();
+                    if (stmt instanceof BranchTargetStmt) {
+                        targetStmt = (BranchTargetStmt) stmt;
+                    } else {
+                        problems.add(error("Target statement is not branchable"));
+                        return problems;
+                    }
+                }
                 if (info.isLastStmt()) {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
@@ -478,6 +489,17 @@ aspect TypestateCheck {
             if ((info != null) && (!this.isDereferenced())) {
                 SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
                 BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
+                // if target is labeled stmt, get the internal statement from it
+                if (targetStmt instanceof LabeledStmt) {
+                    System.out.println("Target is LabeledStmt: " + targetStmt);
+                    Stmt stmt = ((LabeledStmt)targetStmt).getStmt();
+                    if (stmt instanceof BranchTargetStmt) {
+                        targetStmt = (BranchTargetStmt) stmt;
+                    } else {
+                        problems.add(error("Target statement is not branchable"));
+                        return problems;
+                    }
+                }
                 if (info.isLastStmt()) {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
@@ -500,7 +522,8 @@ aspect TypestateCheck {
                         return problems;
                     }
                     st.exitLocal(); // exit current switch
-                    st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
+                    //st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
+                    st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
 
                 } else {
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
