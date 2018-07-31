@@ -575,10 +575,12 @@ aspect TypestateCheck {
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
+        setInitialTable(st.currentLocal()); // set initial table for continue statement consistency checking
         HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
         st.addLocal(doLocals);
         System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
-        this.getCondition().setIsLoopCondition(true);
+        this.getCondition().setIsLoopCondition(true); // set condition expr label true
+        this.getCondition().setHostStmt(this); // set condition expr host statement
         System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
         return problems; 
     }
@@ -595,6 +597,20 @@ aspect TypestateCheck {
             System.out.println("Condition Expr: " + this);
             System.out.println("Before Condition Expr local size: " + st.getLocals().size());
             HashMap<Variable, HashMap<String, State>> loopMap = st.exitLocal();
+            BranchTargetStmt hostStmt = this.getHostStmt();
+            if (hostStmt == null) {
+                problems.add(error("Cannot find host statement of " + this));
+                return problems;
+            } else {
+                if (hostStmt.hasContinueStateMapList()) {
+                    for (HashMap<Variable, HashMap<String, State>> map: hostStmt.getContinueStateMapList()) {
+                        if (!hostStmt.isValidContinueState(map)) {
+                            problems.add(error("Cannot find host statement of " + this));
+                            return problems;
+                        }
+                    }
+                }
+            }           
             st.currentLocal().putAll(loopMap);
             System.out.println("After Condition Expr local size: " + st.getLocals().size());
         }        
