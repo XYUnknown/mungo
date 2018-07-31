@@ -17,6 +17,10 @@ aspect SwitchCaseAnalysis {
 		this.stateMapList.add(map);
 	}
 
+	public boolean BranchTargetStmt.hasBreakStateMapList() {
+		return this.stateMapList != null;
+	}
+
 	public boolean BranchTargetStmt.isEndCaseSameState() {
 		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
 		for (HashMap<Variable, HashMap<String, State>> map: this.stateMapList) {
@@ -53,6 +57,10 @@ aspect SwitchCaseAnalysis {
 			initContinueStateMapList();
 		}
 		this.continueStateMapList.add(map);
+	}
+
+	public boolean BranchTargetStmt.hasContinueStateMapList() {
+		return this.continueStateMapList != null;
 	}
 
 	public boolean BranchTargetStmt.isContinueEndCaseSameState() {
