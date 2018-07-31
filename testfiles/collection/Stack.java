@@ -51,9 +51,11 @@ public class Stack{
 			System.out.println(n.get());
 			switch(s.isEmpty()) {
 				case TRUE:
+					//s.put(new Node(100));
 					break loop;
 
 				case FALSE:
+					//s.get();
 					continue loop;
 			}
 		} while(true);
