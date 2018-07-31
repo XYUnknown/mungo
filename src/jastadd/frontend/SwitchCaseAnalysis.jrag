@@ -41,7 +41,7 @@ aspect SwitchCaseAnalysis {
 	 * A map recording variable-state pairs in each valid case
 	 */
 	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.continueStateMapList;
-	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getcontinueStateMapList() {
+	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getContinueStateMapList() {
 		return this.continueStateMapList;
 	}
 	public void BranchTargetStmt.initContinueStateMapList() {
@@ -55,15 +55,19 @@ aspect SwitchCaseAnalysis {
 		this.continueStateMapList.add(map);
 	}
 
-	public boolean BranchTargetStmt.isContinueEndCaseSameState(HashMap<Variable, HashMap<String, State>> initMap) {
-		HashMap<Variable, HashMap<String, State>> checkMap = initMap;
+	public boolean BranchTargetStmt.isContinueEndCaseSameState() {
+		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
 		for (HashMap<Variable, HashMap<String, State>> map: this.continueStateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
 					return false;
 				} else {
-					if(!checkMap.get(v).equals(map.get(v))){
-						return false;
+					if (!checkMap.containsKey(v)) {
+						checkMap.put(v, map.get(v));
+					} else {
+						if(!checkMap.get(v).equals(map.get(v))){
+							return false;
+						}
 					}
 				}
 			}
