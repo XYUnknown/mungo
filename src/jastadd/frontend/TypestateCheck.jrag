@@ -605,7 +605,7 @@ aspect TypestateCheck {
                 if (hostStmt.hasContinueStateMapList()) {
                     for (HashMap<Variable, HashMap<String, State>> map: hostStmt.getContinueStateMapList()) {
                         if (!hostStmt.isValidContinueState(map)) {
-                            problems.add(error("Cannot find host statement of " + this));
+                            problems.add(error("Variable's state at the end of contiune statements does not match its state at the beginning of loop."));
                             return problems;
                         }
                     }
