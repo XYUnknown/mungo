@@ -95,6 +95,7 @@ aspect TypestateCheck {
                         problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
                         return problems;
                     }
+                    System.out.println("MethodAccess variable state: " + stateMap);
                     //_____________
                     if (stateMap.size() == 0){
                         // End of state error reporting
@@ -523,7 +524,9 @@ aspect TypestateCheck {
                     }
                     st.exitLocal(); // exit current switch
                     //st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
-                    st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
+                    if (targetStmt.getStateMapList() != null){
+                        st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
+                    }
 
                 } else {
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
