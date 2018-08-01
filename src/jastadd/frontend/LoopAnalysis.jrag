@@ -47,7 +47,12 @@ aspect LoopAnalysis {
 				Expr va = ma.prevExpr();
 				if (va.isVariable()) {
 					if (v.equals(va.varDecl())) {
+						System.out.println("BranchTargetStmt variable access: " + va);
 						State s = getSingleStateFromMap(continueTable.get(v));
+						System.out.println("BranchTargetStmt state: " + s);
+						if (s == null) {
+							return false; // reach end state 
+						}
 						TypestateMethodList list = (TypestateMethodList) s.getTypestate();
 						if (list.lookupMethod(ma.decl()) == null) {
 							return false;
