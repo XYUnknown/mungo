@@ -39,4 +39,48 @@ aspect LoopAnalysis {
 		}
 		return true;
 	}
+
+	public boolean BranchTargetStmt.isValidContinueStateByMethodAccess(HashMap<Variable, HashMap<String, State>> continueTable) {
+		LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
+		for (Variable v: continueTable.keySet()) {
+			for (MethodAccess ma: methodAccessList) {
+				Expr va = ma.prevExpr();
+				if (va.isVariable()) {
+					if (v.equals(va.varDecl())) {
+						State s = getSingleStateFromMap(continueTable.get(v));
+						TypestateMethodList list = (TypestateMethodList) s.getTypestate();
+						if (list.lookupMethod(ma.decl()) == null) {
+							return false;
+						} else {
+							break;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Collect typestate MethodAccess in a BranchTargetStmt
+	 */
+	coll LinkedList<MethodAccess> BranchTargetStmt.collectMethodAccess() root BranchTargetStmt;
+	ConstructorDecl contributes {
+		if (checkImplicitConstructorInvocation()) {
+			getImplicitConstructorInvocation().collectContributions();
+		}
+		super.collectContributions();
+	} to BranchTargetStmt.collectMethodAccess();
+
+	/**
+	 * Report MethodAccess with typestate to BranchTargetStmt
+	 */
+	MethodAccess contributes each reportMethodAccess() to BranchTargetStmt.collectMethodAccess();
+	syn Collection<MethodAccess> MethodAccess.reportMethodAccess() {
+		LinkedList<MethodAccess> list = new LinkedList<MethodAccess>();
+		if (hasTypestateDecl()) {
+			list.add(this);
+		}
+		return list;
+	}
 }
