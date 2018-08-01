@@ -574,6 +574,8 @@ aspect TypestateCheck {
     DoStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
+        LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
+        System.out.println("DoStmt MethodAccess number: " + methodAccessList.size());
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         setInitialTable(st.currentLocal()); // set initial table for continue statement consistency checking
         HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
@@ -604,7 +606,8 @@ aspect TypestateCheck {
             } else {
                 if (hostStmt.hasContinueStateMapList()) {
                     for (HashMap<Variable, HashMap<String, State>> map: hostStmt.getContinueStateMapList()) {
-                        if (!hostStmt.isValidContinueState(map)) {
+                        //if (!hostStmt.isValidContinueState(map)) {
+                        if (!hostStmt.isValidContinueStateByMethodAccess(map)) {
                             problems.add(error("Variable's state at the end of contiune statements does not match its state at the beginning of loop."));
                             return problems;
                         }
