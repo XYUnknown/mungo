@@ -1,3 +1,9 @@
+/**
+ * Fields and Method for typestate checking of loop.
+ * The loops are always in do {...} while(condition) format.
+ * Therefore, we make use the condition statement to identify the  
+ * end of loop.
+ */
 aspect LoopAnalysis {
 	private boolean Expr.loopConditionStatus = false;
 
