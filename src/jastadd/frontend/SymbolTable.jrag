@@ -1,3 +1,10 @@
+/**
+ * A SymbolTable stores Variables and their states within a ClassDecl.
+ * FieldDeclarstors are initially stored in globals.
+ * Variables declared in body blocks are stored in locals.
+ * When entering a block, a new hash map is pushed onto the stack.
+ * When exiting a block, the hash map on the top of the local stack will be popped.
+ */
 aspect SymbolTable {
 	class SymbolTable {
 		private HashMap <Variable, HashMap<String, State>> globals;
@@ -41,6 +48,11 @@ aspect SymbolTable {
 			this.locals.clear();
 		}
 
+		/**
+		 * Lookup a variable's state in the SymbolTable.
+		 * From top to bottom of local stack, if not found in 
+		 * stack, loop it up in globles.
+		 */
 		public HashMap<String, State> lookupVariableState(Variable v) {
 			HashMap<String, State> state = null;
 			Stack <HashMap<Variable, HashMap<String, State>>> temp = new Stack <HashMap<Variable, HashMap<String, State>>>();
@@ -72,6 +84,9 @@ aspect SymbolTable {
 		}
 	}
 
+	/**
+	 * SymbolTable is stored in ClassDecl
+	 */
 	private SymbolTable ClassDecl.symbolTable = new SymbolTable();
 
 	public SymbolTable ClassDecl.getSymbolTable() {
@@ -84,6 +99,9 @@ aspect SymbolTable {
 		}
 	}
 
+	/**
+	 * Initialise globals by collection FieldDeclarators' states from FieldDecl of the ClassDecl
+	 */
 	coll LinkedList<HashMap<Variable, HashMap<String, State>>> ClassDecl.collectGlobals() root ClassDecl;
 	// Add problem contributions from the implicit constructor invocation NTA.
 	ConstructorDecl contributes {
