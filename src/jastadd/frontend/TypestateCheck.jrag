@@ -150,6 +150,10 @@ aspect TypestateCheck {
 
     /**
      * Declarator - C c;
+     * VariableDeclarator and FieldDeclarator are subclasses of Declarator
+     * If the Declarator is a FieldDeclarator, it must be in FieldDecl and the state will be the 
+     * initial state. It will be added in globals
+     * If the Declarator is a normal VariableDeclarator, it will be stored in locals
      */
     Declarator contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> Declarator.typestateProblems() {
@@ -161,11 +165,9 @@ aspect TypestateCheck {
                     System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
-                        setState(ins.getState());
-                        setDereferenced(false); // ensure this Declarator is not dereferenced
-                        /* *
-                         * Update symbol table, store field declarator state in globals and variable declarators in locals
-                         */
+                        setState(ins.getState()); // the state field in ASTNode is updated
+                        setDereferenced(false); // ensure this Declarator is not dereferenced                       
+                        // Update symbol table, store field declarator state in globals and variable declarators in locals
                         if (this instanceof FieldDeclarator) {
                             st.addGlobal(this, this.getState());
                         } else {
@@ -182,14 +184,13 @@ aspect TypestateCheck {
                         d.setState(null); // one typestate object could only have one reference.
                         d.setDereferenced(true);
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        // Update symbol table
                         if (this instanceof FieldDeclarator) {
                             st.addGlobal(this, this.getState());
                         } else {
                             st.addCurrLocal(this, this.getState());
                         }
-                        /*
-                         * Dereference - remove from symbol table
-                         */
+                        // Dereference - remove from symbol table
                         if (d instanceof FieldDeclarator) {
                             if (st.getGlobals().containsKey(d)) {
                                 st.getGlobals().remove(d);
@@ -208,6 +209,7 @@ aspect TypestateCheck {
                         }
                         setState(d.getState());
                         setDereferenced(false); // ensure this Declarator is not dereferenced
+                        // Update symbol table
                         if (this instanceof FieldDeclarator) {
                             st.addGlobal(this, this.getState());
                         } else {
@@ -599,7 +601,7 @@ aspect TypestateCheck {
      * End of a DoStmt pop local symbol table.
      * I am not sure why Literal need to be mentioned explicitly here, otherwise there are bugs
      */
-    Expr contributes each typestateProblems() when (this.isLoopCondition() || (this instanceof Literal))to CompilationUnit.problems();
+    Expr contributes each typestateProblems() when (this.isLoopCondition() || (this instanceof Literal)) to CompilationUnit.problems();
     syn Collection<Problem> Expr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
