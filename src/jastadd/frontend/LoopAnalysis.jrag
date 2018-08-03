@@ -5,6 +5,9 @@
  * end of loop.
  */
 aspect LoopAnalysis {
+	/**
+	 * Field to record whether an Expr is the condition of a do-while loop
+	 */
 	private boolean Expr.loopConditionStatus = false;
 
 	public boolean Expr.isLoopCondition() {
@@ -15,6 +18,9 @@ aspect LoopAnalysis {
 		this.loopConditionStatus = status;
 	}
 
+	/**
+	 * Field to record the do-while loop which this condition expression is associated to
+	 */
 	private BranchTargetStmt Expr.conditionHostStmt;
 
 	public void Expr.setHostStmt(BranchTargetStmt stmt) {
@@ -25,6 +31,11 @@ aspect LoopAnalysis {
 		return this.conditionHostStmt;
 	}
 
+	/**
+	 * The implementation of checking ending state consistency of continue statement
+	 * by checking whether the ending state of continue statement is the same as the state 
+	 * at the beginning of the loop
+	 */
 	private HashMap<Variable, HashMap<String, State>> BranchTargetStmt.initialTable;
 
 	public HashMap<Variable, HashMap<String, State>> BranchTargetStmt.getInitialTable() {
@@ -46,6 +57,11 @@ aspect LoopAnalysis {
 		return true;
 	}
 
+	/**
+	 * The implementation of checking ending state consistency of continue statement
+	 * by checking whether the ending state of continue statement is a valid state for the 
+	 * first method access in the loop
+	 */
 	public boolean BranchTargetStmt.isValidContinueStateByMethodAccess(HashMap<Variable, HashMap<String, State>> continueTable) {
 		LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
 		for (Variable v: continueTable.keySet()) {
