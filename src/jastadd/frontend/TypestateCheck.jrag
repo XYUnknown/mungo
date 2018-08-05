@@ -1,6 +1,7 @@
 /**
  * Typestate checking in each node of the AST
  * Every node contribute typestate problems to compilation unit problem collection
+ * During typestate problem reporting, typestates of variables are also updated
  */
 aspect TypestateCheck {
     /**
