@@ -471,7 +471,6 @@ aspect TypestateAnalysis {
         return null;
     }
 
-
     /**
      * Checking whether a TypeDecl has typestate annotation
      */
@@ -528,12 +527,4 @@ aspect TypestateAnalysis {
         return this.type().hasTypestateDecl();
     }
 
-    /**
-     * Checking whether a VariableDeclarator has typestate or not
-     */
-    syn lazy boolean VariableDeclarator.hasTypestateDecl(){
-        return this.type().hasTypestateDecl();
-    }
-
-    
 }
