@@ -83,6 +83,27 @@ aspect SwitchCaseAnalysis {
 		return true;
 	}
 
+	/** Get the variable with mismatched typestate for problem reporting*/
+	public Variable BranchTargetStmt.reportTypestateMismatchedVariable(LinkedList<HashMap<Variable, HashMap<String, State>>> stateMapList) {
+		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
+		for (HashMap<Variable, HashMap<String, State>> map: stateMapList) {
+			for (Variable v: this.varList){
+				if (!map.containsKey(v)) {
+					return v;
+				} else {
+					if (!checkMap.containsKey(v)) {
+						checkMap.put(v, map.get(v));
+					} else {
+						if(!checkMap.get(v).equals(map.get(v))){
+							return v;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * A list record all Variables in the SwitchStmt
 	 */
