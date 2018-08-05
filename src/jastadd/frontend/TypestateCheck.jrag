@@ -575,14 +575,6 @@ aspect TypestateCheck {
         return problems;
     }
 
-    LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> LabeledStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("LabeledStmt label: " + getLabel());
-        System.out.println("LabeledStmt stmt: " + getStmt().getClass());        
-        return problems;
-    }
-
     DoStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -632,57 +624,12 @@ aspect TypestateCheck {
         return problems;
     }
 
-    /*Literal contributes each typestateProblems() when this.isLoopCondition() to CompilationUnit.problems();
-    syn Collection<Problem> Literal.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();  
-        if (this.isLoopCondition()) {
-            System.out.println("Literal Condition Expr: " + this);
-        }
-        return problems;
-    }*/
-
-    /** Unused */
-    /*
-    Case contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> Case.typestateProblems() {
+    /** Print for debug*/
+    LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> LabeledStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        //this.doPrintFullTraversal();
+        System.out.println("LabeledStmt label: " + getLabel());
+        System.out.println("LabeledStmt stmt: " + getStmt().getClass());        
         return problems;
     }
-
-    ReturnStmt contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> ReturnStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        //System.out.println("ReturnStmt class: " + returnType());
-        //System.out.println("ReturnStmt result: " + getResult() + " " + getResult().getClass());
-        return problems;
-    }
-
-    Dot contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> Dot.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        //System.out.println("varDecl of Dot: " + this + " " + this.varDecl());
-        return problems;
-    }
-
-    VarAccess contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> VarAccess.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        if (hasTypestateDecl() && !hasState() ) {
-            //problems.add(error("No Init State found in VarAccess " + this));
-        }       
-        return problems;
-    }    
-
-    VarDeclStmt contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> VarDeclStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        //System.out.println("VarDeclStmt: " + this + " " +this.lineNumber());
-        //System.out.println("VarDeclStmt Declarators: ");
-        for (VariableDeclarator vd: getDeclarators()){
-            //System.out.println(vd);
-        }
-        return problems;
-    }
-    */
 }
