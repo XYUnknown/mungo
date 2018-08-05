@@ -245,7 +245,6 @@ aspect TypestateCheck {
         }
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
         if (getSource().hasTypestateState()) {  
-            //State state = null;
             HashMap<String, State> state = null;
             if (getSource() instanceof VarAccess) { // c = c1
                 VarAccess va = (VarAccess) getSource();
@@ -297,7 +296,7 @@ aspect TypestateCheck {
             } else if (this.getState().size() > 1) {
                 problems.add(error("ClassInstanceExpr should be in Init state instead of a TypestateSwitch"));
                 return problems;
-            } else { //if (!this.getState().equals(type().getTypestateDecl().getInitState())) {
+            } else {
                 State state = getSingleStateFromMap(this.getState());
                 if (!this.getState().containsKey(type().getTypestateDecl().getInitState().getID())) {
                     problems.add(error("ClassInstanceExpr should be in Init state instead of " + ((state != null) ? state.getID() : "null")));
@@ -381,6 +380,9 @@ aspect TypestateCheck {
 
     /**
      * ConstructorDecl does not have return type
+     * Considered as a special case of MethodDecl
+     * In currrent design, a ConsitructorDecl always has no parameter
+     * Therefore, we do not need to check the typestate of paramaters and the return type  
      */
     ConstructorDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ConstructorDecl.typestateProblems() {
