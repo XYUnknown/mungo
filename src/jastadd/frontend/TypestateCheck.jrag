@@ -461,19 +461,19 @@ aspect TypestateCheck {
                             targetStmt.addVariable(v);
                         }
                     }
-                    targetStmt.addRecordState(st.exitLocal());
+                    targetStmt.addRecordBreakState(st.exitLocal());
                     boolean isSameContinueEndState = targetStmt.hasContinueStateMapList()? targetStmt.isContinueEndCaseSameState(): true;
                     if (!isSameContinueEndState) {
                         problems.add(error("Variables end at different state for ContinueStmts."));
                         return problems;
                     }
-                    boolean isSameEndState = targetStmt.hasBreakStateMapList()? targetStmt.isEndCaseSameState(): true;
+                    boolean isSameEndState = targetStmt.hasBreakStateMapList()? targetStmt.isBreakEndCaseSameState(): true;
                     if (!isSameEndState) {
                         problems.add(error("Variables end at different state for BreakStmts."));
                         return problems;
                     }
                     st.exitLocal(); // exit current switch
-                    st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
+                    st.currentLocal().putAll(targetStmt.getBreakStateMapList().get(0));
 
                 } else {
                     HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
@@ -482,7 +482,7 @@ aspect TypestateCheck {
                             targetStmt.addVariable(v);
                         }
                     }
-                    targetStmt.addRecordState(st.exitLocal());
+                    targetStmt.addRecordBreakState(st.exitLocal());
                 }
             }
         }
@@ -527,15 +527,15 @@ aspect TypestateCheck {
                         problems.add(error("Variables end at different state for ContinueStmts."));
                         return problems;
                     }
-                    boolean isSameEndState = targetStmt.hasBreakStateMapList()? targetStmt.isEndCaseSameState(): true;
+                    boolean isSameEndState = targetStmt.hasBreakStateMapList()? targetStmt.isBreakEndCaseSameState(): true;
                     if (!isSameEndState) {
                         problems.add(error("Variables end at different state for BreakStmts."));
                         return problems;
                     }
                     st.exitLocal(); // exit current switch
                     //st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
-                    if (targetStmt.getStateMapList() != null){
-                        st.currentLocal().putAll(targetStmt.getStateMapList().get(0));
+                    if (targetStmt.getBreakStateMapList() != null){
+                        st.currentLocal().putAll(targetStmt.getBreakStateMapList().get(0));
                     }
 
                 } else {

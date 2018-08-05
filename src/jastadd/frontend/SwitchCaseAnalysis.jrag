@@ -1,29 +1,29 @@
 aspect SwitchCaseAnalysis {
 	/**
-	 * A map recording variable-state pairs in each valid case
+	 * A map recording variable-state pairs in each valid case ends with break statement
 	 */
-	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.stateMapList;
-	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getStateMapList() {
-		return this.stateMapList;
+	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.breakStateMapList;
+	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getBreakStateMapList() {
+		return this.breakStateMapList;
 	}
-	public void BranchTargetStmt.initStateMapList() {
-		this.stateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
+	private void BranchTargetStmt.initBreakStateMapList() {
+		this.breakStateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
 	}
 
-	public void BranchTargetStmt.addRecordState(HashMap<Variable, HashMap<String, State>> map) {
-		if (this.stateMapList == null) {
-			initStateMapList();
+	public void BranchTargetStmt.addRecordBreakState(HashMap<Variable, HashMap<String, State>> map) {
+		if (this.breakStateMapList == null) {
+			initBreakStateMapList();
 		}
-		this.stateMapList.add(map);
+		this.breakStateMapList.add(map);
 	}
 
 	public boolean BranchTargetStmt.hasBreakStateMapList() {
-		return this.stateMapList != null;
+		return this.breakStateMapList != null;
 	}
 
-	public boolean BranchTargetStmt.isEndCaseSameState() {
+	public boolean BranchTargetStmt.isBreakEndCaseSameState() {
 		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
-		for (HashMap<Variable, HashMap<String, State>> map: this.stateMapList) {
+		for (HashMap<Variable, HashMap<String, State>> map: this.breakStateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
 					return false;
@@ -42,13 +42,13 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/**
-	 * A map recording variable-state pairs in each valid case
+	 * A map recording variable-state pairs in each valid case ends with continue statement
 	 */
 	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.continueStateMapList;
 	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getContinueStateMapList() {
 		return this.continueStateMapList;
 	}
-	public void BranchTargetStmt.initContinueStateMapList() {
+	private void BranchTargetStmt.initContinueStateMapList() {
 		this.continueStateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
 	}
 
