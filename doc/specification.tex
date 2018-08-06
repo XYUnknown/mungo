@@ -1,0 +1,68 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%
+% This is where the packages are declared
+
+\documentclass[]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1.5in,letterpaper]{geometry} % modify margins
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{hyperref}
+
+\begin{document}
+
+%
+% = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+\title{Java Typestate Checking Implementation Notes}
+\author{Xueying Qin}
+\date{\small\today}
+
+\maketitle
+
+% = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\section{Structure of ExtendJ}
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\subsection{General Information}
+Information of ExtendJ, which is the extendable Java compiler we used for this project, can be found at \url{https://extendj.org}. \\[0.2cm]
+API documentation can be found at \url{https://extendj.org/doc/}.\\[0.2cm]
+ExtendJ syntax reference can be found at \url{http://jastadd.org/web/documentation/reference-manual.php#jadd}.
+
+\subsection{ExtendJ Problem-Reporting Features}
+ExtendJ uses bottom-up problem reporting design. \\[0.2cm]
+When the compiler is executed, each ASTNode in the Java abstact syntax tree (AST) contributes problems (including warnings and errors) to CompilationUnit. Root of Java AST, which is Program, processes each CompilationUnit to check whether there are problems need to be reported or not.
+
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\section{Typestate Annotation Detecting and Typestate Protocol File Parsing}
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\subsection{Typestate Annotation Detecting}
+After Java source code parsed into AST, similar to collecting problems, the special typestate annotations are reported to Program by nodes in AST. If there are detected typestate annotations, before processing Java syntax checking, protocol files need to be located, parsed and varified.
+
+
+%
+% = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
