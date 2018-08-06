@@ -24,7 +24,6 @@ public class ExtensionMain extends JavaChecker {
             try {
                 LinkedList<Modifier> ms = unit.collectTypestateAnnotations();
                 ms = removeDuplicate(ms);
-                System.out.println("collected annotations:" + ms.size());
                 String sourcePath = unit.pathName();
                 
                 if (ms.size() > 0) {
