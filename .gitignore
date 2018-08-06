@@ -8,7 +8,7 @@
 /.project
 /.settings/
 
-# Generated files
+# Generated files.
 /src/gen/
 /src/gen-res/
 /*.jar
@@ -17,5 +17,11 @@
 # Vim swap files.
 *.swp
 
-# Mac .DS_Store
+# Mac .DS_Store.
 *.DS_Store
+
+# Latex generated files.
+*.log
+*.out
+*.aux
+*.pdf
