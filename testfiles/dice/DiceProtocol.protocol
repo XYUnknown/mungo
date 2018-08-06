@@ -1,0 +1,21 @@
+package examples.dice;
+
+typestate DiceProtocol {
+	Init = {
+		void initialise() : Ready
+	}
+
+	Ready = {
+		Side throwDice() : <ONE: GameOver, TWO: GameOver, THREE: GameOver, FOUR: GameOver, FIVE: GameOver, SIX: Win>
+	}
+
+	GameOver = {
+		void reset() : Ready,
+		void cheat() : Win,
+		void quit(): end 
+	}
+
+	Win = {
+		void close(): end
+	}
+}
