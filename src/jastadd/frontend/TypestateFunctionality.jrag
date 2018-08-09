@@ -106,4 +106,38 @@ aspect TypestateFunctionality {
 		return s + ")";
 	}
 
+	syn TypestateDecl Typestate.typestateDecl() {
+		ASTNode node = this.getParent();
+        while (! (node instanceof TypestateDecl)){
+            node = node.getParent();
+        }
+        return (TypestateDecl) node;
+	}
+
+	/**
+	 * Equals
+	 */
+	public boolean TypestateLabel.equals(Object obj) {
+		if (!(obj instanceof TypestateLabel)) {
+			return false;
+		} else {
+			TypestateLabel tl = (TypestateLabel) obj;
+			if (!tl.typestateDecl().equals(this.typestateDecl())) {
+				return false;
+			} else {
+				return tl.getLabel().equals(this.getLabel());
+			} 
+		}
+		
+	}
+
+	public boolean EndTypestate.equals(Object obj) {
+		if (!(obj instanceof EndTypestate)) {
+			return false;
+		} else {
+			EndTypestate et = (EndTypestate) obj;
+			return et.typestateDecl().equals(this.typestateDecl());
+		}
+	}
+
 }
