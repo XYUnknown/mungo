@@ -2,15 +2,15 @@ aspect SwitchCaseAnalysis {
 	/**
 	 * A map recording variable-state pairs in each valid case ends with break statement
 	 */
-	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.breakStateMapList;
-	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getBreakStateMapList() {
+	private LinkedList<HashMap<Variable, Typestate>> BranchTargetStmt.breakStateMapList;
+	public LinkedList<HashMap<Variable, Typestate>> BranchTargetStmt.getBreakStateMapList() {
 		return this.breakStateMapList;
 	}
 	private void BranchTargetStmt.initBreakStateMapList() {
-		this.breakStateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
+		this.breakStateMapList = new LinkedList<HashMap<Variable, Typestate>>();
 	}
 
-	public void BranchTargetStmt.addRecordBreakState(HashMap<Variable, HashMap<String, State>> map) {
+	public void BranchTargetStmt.addRecordBreakState(HashMap<Variable, Typestate> map) {
 		if (this.breakStateMapList == null) {
 			initBreakStateMapList();
 		}
@@ -22,18 +22,22 @@ aspect SwitchCaseAnalysis {
 	}
 
 	public boolean BranchTargetStmt.isBreakEndCaseSameState() {
-		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
-		for (HashMap<Variable, HashMap<String, State>> map: this.breakStateMapList) {
+		HashMap<Variable, Typestate> checkMap = new HashMap<Variable, Typestate>();
+		for (HashMap<Variable, Typestate> map: this.breakStateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
+					System.out.println("not contains " + v);
 					return false;
 				} else {
 					if (!checkMap.containsKey(v)) {
 						checkMap.put(v, map.get(v));
 					} else {
 						if(!checkMap.get(v).equals(map.get(v))){
+							System.out.println(checkMap.get(v));
+							System.out.println(map.get(v));
+							System.out.println("mismatched");
 							return false;
-						}
+						}											
 					}
 				}
 			}
@@ -44,15 +48,15 @@ aspect SwitchCaseAnalysis {
 	/**
 	 * A map recording variable-state pairs in each valid case ends with continue statement
 	 */
-	private LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.continueStateMapList;
-	public LinkedList<HashMap<Variable, HashMap<String, State>>> BranchTargetStmt.getContinueStateMapList() {
+	private LinkedList<HashMap<Variable, Typestate>> BranchTargetStmt.continueStateMapList;
+	public LinkedList<HashMap<Variable, Typestate>> BranchTargetStmt.getContinueStateMapList() {
 		return this.continueStateMapList;
 	}
 	private void BranchTargetStmt.initContinueStateMapList() {
-		this.continueStateMapList = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
+		this.continueStateMapList = new LinkedList<HashMap<Variable, Typestate>>();
 	}
 
-	public void BranchTargetStmt.addRecordContinueState(HashMap<Variable, HashMap<String, State>> map) {
+	public void BranchTargetStmt.addRecordContinueState(HashMap<Variable, Typestate> map) {
 		if (this.continueStateMapList == null) {
 			initContinueStateMapList();
 		}
@@ -64,16 +68,18 @@ aspect SwitchCaseAnalysis {
 	}
 
 	public boolean BranchTargetStmt.isContinueEndCaseSameState() {
-		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
-		for (HashMap<Variable, HashMap<String, State>> map: this.continueStateMapList) {
+		HashMap<Variable, Typestate> checkMap = new HashMap<Variable, Typestate>();
+		for (HashMap<Variable, Typestate> map: this.continueStateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
 					return false;
 				} else {
 					if (!checkMap.containsKey(v)) {
+						System.out.println("not contains " + v);
 						checkMap.put(v, map.get(v));
 					} else {
 						if(!checkMap.get(v).equals(map.get(v))){
+							System.out.println("mismatched");
 							return false;
 						}
 					}
@@ -84,9 +90,9 @@ aspect SwitchCaseAnalysis {
 	}
 
 	/** Get the variable with mismatched typestate for problem reporting*/
-	public Variable BranchTargetStmt.reportTypestateMismatchedVariable(LinkedList<HashMap<Variable, HashMap<String, State>>> stateMapList) {
-		HashMap<Variable, HashMap<String, State>> checkMap = new HashMap<Variable, HashMap<String, State>>();
-		for (HashMap<Variable, HashMap<String, State>> map: stateMapList) {
+	public Variable BranchTargetStmt.reportTypestateMismatchedVariable(LinkedList<HashMap<Variable, Typestate>> stateMapList) {
+		HashMap<Variable, Typestate> checkMap = new HashMap<Variable, Typestate>();
+		for (HashMap<Variable, Typestate> map: stateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
 					return v;
@@ -130,13 +136,13 @@ aspect SwitchCaseAnalysis {
 	/**
 	 * Record the initial switch states of the variable in Expr
 	 */
-	private HashMap<String, State> SwitchStmt.recordSwitchState;
+	private TypestateSwitch SwitchStmt.recordSwitchState;
 
-	public HashMap<String, State> SwitchStmt.getRecordTypestateSwitch() {
+	public TypestateSwitch SwitchStmt.getRecordTypestateSwitch() {
 		return this.recordSwitchState;
 	}
 
-	public void SwitchStmt.setRecordTypestateSwitch(HashMap<String, State> switchState) {
+	public void SwitchStmt.setRecordTypestateSwitch(TypestateSwitch switchState) {
 		this.recordSwitchState = switchState;
 	}
 
