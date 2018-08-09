@@ -1,0 +1,27 @@
+aspect IfElseAnalysis {
+	/**
+	 * Field to record whether an Expr is the condition of a do-while loop
+	 */
+	private boolean Stmt.elseStmtStatus = false;
+
+	public boolean Stmt.isElseStmt() {
+		return this.elseStmtStatus;
+	}
+
+	public void Stmt.setIsElseStmt(boolean status) {
+		this.elseStmtStatus = status;
+	}
+
+	public void IfStmt.labelElse() {
+		if (this.hasElse()) {
+			Stmt elseStmt = this.getElse();
+			elseStmt.setIsElseStmt(true);
+			while (elseStmt instanceof IfStmt) {
+				if (((IfStmt)elseStmt).hasElse()) {
+					elseStmt = ((IfStmt)elseStmt).getElse();
+					elseStmt.setIsElseStmt(true);
+				}
+			}
+		}
+	}
+}
