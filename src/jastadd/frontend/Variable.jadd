@@ -5,8 +5,8 @@ aspect Variable {
 	public interface Variable {
 		public boolean hasTypestateDecl();
 		public boolean hasTypestateState();
-		public void setState(HashMap<String, State> typestate);
-		public HashMap<String, State> getState();
+		public void setState(Typestate typestate);
+		public Typestate getState();
 		public boolean hasState();
 	}
 }
