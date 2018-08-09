@@ -697,6 +697,36 @@ aspect TypestateCheck {
         return problems;
     }
 
+    IfStmt contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> IfStmt.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        this.labelElse();
+        if (this.isElseStmt()){
+            st.exitLocal();
+        } 
+        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
+        st.addLocal(map);              
+        return problems;
+    }
+
+    /**
+     * I intend to use: 
+     * Block contributes each typestateProblems() when this.isElseStmt() to CompilationUnit.problems();
+     * here but it is not working.
+     */
+    Block contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> Block.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        if (this.isElseStmt()) {
+            SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+            System.out.println("Block else checking: " + st.exitLocal());
+            System.out.println("Block else checking: " + st.currentLocal());
+            HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
+            st.addLocal(map);
+        }                  
+        return problems;
+    }
     /** Print for debug*/
     LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> LabeledStmt.typestateProblems() {
