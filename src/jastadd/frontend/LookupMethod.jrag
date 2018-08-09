@@ -74,7 +74,27 @@ aspect LookupMethod {
                 if (tm.getTTypeList().getTType(i) instanceof TTypestate) {
                     TTypestate tt = (TTypestate) tm.getTTypeList().getTType(i);
                     Typestate ts = tt.getTypestate();
-                    if (ts instanceof TypestateLabel) {
+                    if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
+                        TypestateDecl td = this.decl().hostType().getTypestateDecl();
+                        String label = ((TypestateLabel) ts).getLabel();
+                        if (!(maArg.getState() instanceof TypestateLabel)) {                            
+                            ts = td.lookupState(label).getTypestate();
+                            if (!maArg.getState().equals(ts)) {
+                                return false;
+                            }
+                        } else {
+                            String argLabel = ((TypestateLabel)maArg.getState()).getLabel();
+                            if (!label.equals(argLabel)) {
+                                return false;
+                            }
+                            System.out.println(((TypestateLabel)ts).getLabel());
+                            System.out.println(((TypestateLabel)maArg.getState()).getLabel());
+                            System.out.println("Param State checking using Typestate");                            
+                        }
+                    } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
+                        return false;
+                    }
+                    /*if (ts instanceof TypestateLabel) {
                         TypestateLabel tl = (TypestateLabel) ts;
                         if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
                             if(!maArg.getState().containsKey(tl.getLabel())) { // state mismatch, return false
@@ -86,7 +106,7 @@ aspect LookupMethod {
                     } else if (ts instanceof TypestateSwitch) {
                         // TODO args checking for TypestateSwitch
                         return true;
-                    }                                      
+                    }*/
                 }             
             }
             return true; // nothing happens, return true
@@ -163,7 +183,27 @@ aspect LookupMethod {
             if (rs.getResult() instanceof NullLiteral) {
                 return true; // return null always valid
             }
-            if (ts instanceof TypestateLabel) {
+
+            if (rs.hasTypestateState() && rs.getState() != null) {
+                TypestateDecl td = rs.returnType().getTypestateDecl();
+                String label = ((TypestateLabel) ts).getLabel();
+                if (!(rs.getState() instanceof TypestateLabel)) {                    
+                    ts = td.lookupState(label).getTypestate();
+                    if (!rs.getState().equals(ts)) {
+                        return false;
+                    }
+                } else {
+                    String rsLabel = ((TypestateLabel)rs.getState()).getLabel();
+                    if (!label.equals(rsLabel)) {
+                        return false;
+                    }
+                    System.out.println(rs.getState());
+                    System.out.println(ts);
+                    System.out.println("Return State checking using Typestate");
+                }
+            }
+
+            /*if (ts instanceof TypestateLabel) {
                 TypestateLabel tl = (TypestateLabel) ts;
                 if (rs.hasTypestateState() && rs.getState() != null) { // checking whether typestate are the same
                     if(!rs.getState().containsKey(tl.getLabel())) { // state mismatch, return false
@@ -175,7 +215,7 @@ aspect LookupMethod {
             } else if (ts instanceof TypestateSwitch) {
                 // TODO args checking for TypestateSwitch
                 return true;
-            }
+            }*/
         } else {
             if (rs.hasState()) { // return type in TypestateMethod has no state specification but return statement has state
                 return false;    
