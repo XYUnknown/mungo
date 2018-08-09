@@ -71,7 +71,8 @@ aspect ProgramEndCheck {
     	LinkedList<Problem> problems = new LinkedList<Problem>();
     	if (this.hasTypestateState()) {
     		if (this.hasState()) {
-    			if (this.getState().size() > 0) {
+    			//if (this.getState().size() > 0) {
+          if (!(this.getState() instanceof EndTypestate)) {
     				problems.add(error("Declarator " + this + " should be in end state at the end of program."));
     				return problems;
     			}
