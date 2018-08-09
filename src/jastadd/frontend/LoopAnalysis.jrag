@@ -36,17 +36,17 @@ aspect LoopAnalysis {
 	 * by checking whether the ending state of continue statement is the same as the state 
 	 * at the beginning of the loop
 	 */
-	private HashMap<Variable, HashMap<String, State>> BranchTargetStmt.initialTable;
+	private HashMap<Variable, Typestate> BranchTargetStmt.initialTable;
 
-	public HashMap<Variable, HashMap<String, State>> BranchTargetStmt.getInitialTable() {
+	public HashMap<Variable, Typestate> BranchTargetStmt.getInitialTable() {
 		return this.initialTable;
 	}
 
-	public void BranchTargetStmt.setInitialTable(HashMap<Variable, HashMap<String, State>> table) {
+	public void BranchTargetStmt.setInitialTable(HashMap<Variable, Typestate> table) {
 		this.initialTable = table;
 	}
 
-	public boolean BranchTargetStmt.isValidContinueState(HashMap<Variable, HashMap<String, State>> continueTable) {
+	public boolean BranchTargetStmt.isValidContinueState(HashMap<Variable, Typestate> continueTable) {
 		for (Variable v: continueTable.keySet()) {
 			if (!this.initialTable.keySet().contains(v)) {
 				return false;
@@ -62,7 +62,7 @@ aspect LoopAnalysis {
 	 * by checking whether the ending state of continue statement is a valid state for the 
 	 * first method access in the loop
 	 */
-	public boolean BranchTargetStmt.isValidContinueStateByMethodAccess(HashMap<Variable, HashMap<String, State>> continueTable) {
+	public boolean BranchTargetStmt.isValidContinueStateByMethodAccess(HashMap<Variable, Typestate> continueTable) {
 		LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
 		for (Variable v: continueTable.keySet()) {
 			for (MethodAccess ma: methodAccessList) {
@@ -70,12 +70,17 @@ aspect LoopAnalysis {
 				if (va.isVariable()) {
 					if (v.equals(va.varDecl())) {
 						System.out.println("BranchTargetStmt variable access: " + va);
-						State s = getSingleStateFromMap(continueTable.get(v));
+						//State s = getSingleStateFromMap(continueTable.get(v));
+						Typestate s = continueTable.get(v);
 						System.out.println("BranchTargetStmt state: " + s);
-						if (s == null) {
+						/*if (s == null) {
 							return false; // reach end state 
-						}
-						TypestateMethodList list = (TypestateMethodList) s.getTypestate();
+						}*/
+						if ((s instanceof EndTypestate) || (s instanceof TypestateSwitch)) {
+							return false; // reach end state or switch
+						} 
+
+						TypestateMethodList list = (s instanceof TypestateMethodList)? (TypestateMethodList) s : (TypestateMethodList)((TypestateLabel)s).getTarget().getTypestate();
 						if (list.lookupMethod(ma.decl()) == null) {
 							return false;
 						} else {
