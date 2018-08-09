@@ -87,7 +87,6 @@ aspect TypestateCheck {
                             return problems;
                         }
                     } else if (exprState instanceof TypestateMethodList) {
-                        // TODO implement this
                         problems = collectProblems((TypestateMethodList)exprState, md, va);
                         if (problems.size() != 0) {
                             return problems;
@@ -105,7 +104,6 @@ aspect TypestateCheck {
                     MethodDecl md = this.decl();
                     Variable variable = va.varDecl();
                     // Lookup the state of the variable in symble table
-                    // HashMap<String, State> stateMap = st.lookupVariableState(variable);
                     Typestate stateMap = st.lookupVariableState(variable);
                     if (stateMap == null) {
                         problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
@@ -137,7 +135,6 @@ aspect TypestateCheck {
                             } else {
                                 TypestateSwitch typestateSwitch = (TypestateSwitch) this.getTargetState();
                                 hostSwitch.setRecordTypestateSwitch(typestateSwitch);
-                                //hostSwitch.setRecordTypestateSwitch(this.getTargetState());
                                 hostSwitch.getStmtInfoMap(); // initialise stmt information map
                                 hostSwitch.addVariable(hostSwitch.getRecordVariable());
                             }
@@ -280,7 +277,6 @@ aspect TypestateCheck {
         }
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
         if (getSource().hasTypestateState()) {  
-            // HashMap<String, State> state = null;
             Typestate state = null;
             if (getSource() instanceof VarAccess) { // c = c1
                 VarAccess va = (VarAccess) getSource();
@@ -336,15 +332,6 @@ aspect TypestateCheck {
                     return problems;
                 }
             }
-            /*else if (this.getState().size() > 1) {
-                problems.add(error("ClassInstanceExpr should be in Init state instead of a TypestateSwitch"));
-                return problems;
-            } else {
-                State state = getSingleStateFromMap(this.getState());
-                if (!this.getState().containsKey(type().getTypestateDecl().getInitState().getID())) {
-                    problems.add(error("ClassInstanceExpr should be in Init state instead of " + ((state != null) ? state.getID() : "null")));
-                }                
-            }*/
         }
         return problems;
     }
@@ -360,7 +347,6 @@ aspect TypestateCheck {
         if (!st.getLocals().empty()) {
             st.clearLocals();
         }
-        //HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
         st.addLocal(map);
 
@@ -378,17 +364,6 @@ aspect TypestateCheck {
                         } else {
                             TTypestate tt = (TTypestate) tmParam;
                             Typestate ts = tt.getTypestate();
-                            /*
-                            if (ts instanceof TypestateLabel) {
-                                TypestateLabel tl = (TypestateLabel) ts;
-                                HashMap<String, State> state = new HashMap<String, State>();
-                                state.put(tl.getLabel(), td.lookupState(tl.getLabel()));
-                                mdParam.setState(state); // Update state
-                                st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
-                            } else if (ts instanceof TypestateSwitch) {
-                                // TODO setting ParameterDeclaration state for TypestateSwitch
-                                
-                            }*/
                             mdParam.setState(ts); // Update state
                             st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
                         }
@@ -475,14 +450,6 @@ aspect TypestateCheck {
                             break;
                         }
                     }
-                    /*
-                    HashMap<Variable, HashMap<String, State>> caseLocals = new HashMap<Variable, HashMap<String, State>>();
-                    Variable v = switchStmt.getRecordVariable();
-                    State s = switchStmt.getRecordTypestateSwitch().get(info.getCaseLabel());
-                    HashMap <String, State> state = new HashMap<String, State>();
-                    state.put(s.getID(), s);
-                    caseLocals.put(v, state);
-                    st.addLocal(caseLocals);*/
                 }
             }
         }        
@@ -515,7 +482,6 @@ aspect TypestateCheck {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
                     System.out.println("BreakStmt size check " + size);
-                    // HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -539,7 +505,6 @@ aspect TypestateCheck {
                     st.currentLocal().putAll(targetStmt.getBreakStateMapList().get(0));
 
                 } else {
-                    //HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -579,7 +544,6 @@ aspect TypestateCheck {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
                     System.out.println("ContinueStmt size check " + size);
-                    // HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -600,13 +564,11 @@ aspect TypestateCheck {
                         return problems;
                     }
                     st.exitLocal(); // exit current switch
-                    //st.currentLocal().putAll(targetStmt.getContinueStateMapList().get(0));
                     if (targetStmt.getBreakStateMapList() != null){
                         st.currentLocal().putAll(targetStmt.getBreakStateMapList().get(0));
                     }
 
                 } else {
-                    //HashMap<Variable, HashMap<String, State>> map = st.currentLocal();
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -637,7 +599,6 @@ aspect TypestateCheck {
                 return problems;
             } else {
                 // SwitchStmt, push a new local table on locals stack
-                // HashMap<Variable, HashMap<String, State>> switchLocals = new HashMap<Variable, HashMap<String, State>>();
                 HashMap<Variable, Typestate> switchLocals = new HashMap<Variable, Typestate>();
                 st.addLocal(switchLocals);
             }
@@ -652,7 +613,6 @@ aspect TypestateCheck {
         System.out.println("DoStmt MethodAccess number: " + methodAccessList.size());
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         setInitialTable(st.currentLocal()); // set initial table for continue statement consistency checking
-        //HashMap<Variable, HashMap<String, State>> doLocals = new HashMap<Variable, HashMap<String, State>>();
         HashMap<Variable, Typestate> doLocals = new HashMap<Variable, Typestate>();
         st.addLocal(doLocals);
         System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
@@ -673,7 +633,6 @@ aspect TypestateCheck {
         if (this.isLoopCondition()) {
             System.out.println("Condition Expr: " + this);
             System.out.println("Before Condition Expr local size: " + st.getLocals().size());
-            // HashMap<Variable, HashMap<String, State>> loopMap = st.exitLocal();
             HashMap<Variable, Typestate> loopMap = st.exitLocal();
             BranchTargetStmt hostStmt = this.getHostStmt();
             if (hostStmt == null) {
@@ -681,7 +640,6 @@ aspect TypestateCheck {
                 return problems;
             } else {
                 if (hostStmt.hasContinueStateMapList()) {
-                    // for (HashMap<Variable, HashMap<String, State>> map: hostStmt.getContinueStateMapList()) {
                     for (HashMap<Variable, Typestate> map: hostStmt.getContinueStateMapList()) {
                         //if (!hostStmt.isValidContinueState(map)) {
                         if (!hostStmt.isValidContinueStateByMethodAccess(map)) {
