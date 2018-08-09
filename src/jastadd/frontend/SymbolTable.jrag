@@ -7,40 +7,40 @@
  */
 aspect SymbolTable {
 	class SymbolTable {
-		private HashMap <Variable, HashMap<String, State>> globals;
-		private Stack <HashMap<Variable, HashMap<String, State>>> locals;
+		private HashMap <Variable, Typestate> globals;
+		private Stack <HashMap<Variable, Typestate>> locals;
 
 		public SymbolTable () {
-			this.globals = new HashMap <Variable, HashMap<String, State>> ();
-			this.locals = new Stack <HashMap<Variable, HashMap<String, State>>> ();
+			this.globals = new HashMap <Variable, Typestate> ();
+			this.locals = new Stack <HashMap<Variable, Typestate>> ();
 		}
 
-		public HashMap <Variable, HashMap<String, State>> getGlobals() {
+		public HashMap <Variable, Typestate> getGlobals() {
 			return this.globals;
 		}
 
-		public Stack <HashMap<Variable, HashMap<String, State>>> getLocals() {
+		public Stack <HashMap<Variable, Typestate>> getLocals() {
 			return this.locals;
 		}
 
-		public void addGlobal(Variable var, HashMap<String, State> state) {
+		public void addGlobal(Variable var, Typestate state) {
 			this.globals.put(var, state);
 		}
 
-		public HashMap<Variable, HashMap<String, State>> exitLocal() {
+		public HashMap<Variable, Typestate> exitLocal() {
 			return this.locals.pop();
 		}
 
-		public HashMap<Variable, HashMap<String, State>> currentLocal() {
+		public HashMap<Variable, Typestate> currentLocal() {
 			return this.locals.peek();
 		}
 
-		public void addLocal(HashMap<Variable, HashMap<String, State>> table) {
+		public void addLocal(HashMap<Variable, Typestate> table) {
 			this.locals.push(table);
 		}
 
-		public void addCurrLocal(Variable var, HashMap<String, State> state) {
-			HashMap<Variable, HashMap<String, State>> table = this.locals.peek();
+		public void addCurrLocal(Variable var, Typestate state) {
+			HashMap<Variable, Typestate> table = this.locals.peek();
 			table.put(var, state);
 		}
 
@@ -53,11 +53,11 @@ aspect SymbolTable {
 		 * From top to bottom of local stack, if not found in 
 		 * stack, loop it up in globles.
 		 */
-		public HashMap<String, State> lookupVariableState(Variable v) {
-			HashMap<String, State> state = null;
-			Stack <HashMap<Variable, HashMap<String, State>>> temp = new Stack <HashMap<Variable, HashMap<String, State>>>();
+		public Typestate lookupVariableState(Variable v) {
+			Typestate state = null;
+			Stack <HashMap<Variable, Typestate>> temp = new Stack <HashMap<Variable, Typestate>>();
 			// lookup in locals first - from recent to old
-			HashMap<Variable, HashMap<String, State>> current;
+			HashMap<Variable, Typestate> current;
 			while (!this.getLocals().empty()) {
 				current = this.currentLocal();
 				if (!current.containsKey(v)) {
@@ -93,8 +93,8 @@ aspect SymbolTable {
 		return this.symbolTable;
 	}
 
-	private void ClassDecl.addAllGlobals(LinkedList<HashMap<Variable, HashMap<String, State>>> list) {
-		for (HashMap<Variable, HashMap<String, State>> map: list) {
+	private void ClassDecl.addAllGlobals(LinkedList<HashMap<Variable, Typestate>> list) {
+		for (HashMap<Variable, Typestate> map: list) {
 			this.symbolTable.getGlobals().putAll(map);
 		}
 	}
@@ -102,7 +102,7 @@ aspect SymbolTable {
 	/**
 	 * Initialise globals by collection FieldDeclarators' states from FieldDecl of the ClassDecl
 	 */
-	coll LinkedList<HashMap<Variable, HashMap<String, State>>> ClassDecl.collectGlobals() root ClassDecl;
+	coll LinkedList<HashMap<Variable, Typestate>> ClassDecl.collectGlobals() root ClassDecl;
 	// Add problem contributions from the implicit constructor invocation NTA.
 	ConstructorDecl contributes {
 		if (checkImplicitConstructorInvocation()) {
@@ -112,11 +112,11 @@ aspect SymbolTable {
 	} to ClassDecl.collectGlobals();
 
 	FieldDecl contributes each fieldDeclaratorStateMap() to ClassDecl.collectGlobals();
-	syn LinkedList<HashMap<Variable, HashMap<String, State>>> FieldDecl.fieldDeclaratorStateMap() {
-		LinkedList<HashMap<Variable, HashMap<String, State>>> list = new LinkedList<HashMap<Variable, HashMap<String, State>>>();
+	syn LinkedList<HashMap<Variable, Typestate>> FieldDecl.fieldDeclaratorStateMap() {
+		LinkedList<HashMap<Variable, Typestate>> list = new LinkedList<HashMap<Variable, Typestate>>();
 		for (FieldDeclarator fd: getDeclaratorList()) {
 			if (fd.hasTypestateState()) {
-				HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
+				HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
 				map.put(fd, fd.getState());
 				list.add(map);
 			}
