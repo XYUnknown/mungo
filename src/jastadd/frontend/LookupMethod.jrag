@@ -86,27 +86,11 @@ aspect LookupMethod {
                             String argLabel = ((TypestateLabel)maArg.getState()).getLabel();
                             if (!label.equals(argLabel)) {
                                 return false;
-                            }
-                            System.out.println(((TypestateLabel)ts).getLabel());
-                            System.out.println(((TypestateLabel)maArg.getState()).getLabel());
-                            System.out.println("Param State checking using Typestate");                            
+                            }                          
                         }
                     } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
                         return false;
                     }
-                    /*if (ts instanceof TypestateLabel) {
-                        TypestateLabel tl = (TypestateLabel) ts;
-                        if (maArg.hasTypestateState() && maArg.getState() != null) { // checking whether typestate are the same
-                            if(!maArg.getState().containsKey(tl.getLabel())) { // state mismatch, return false
-                                return false;
-                            }
-                        } else { // the argument of MethodAccess does not have state, this does not match the TTypestate
-                            return false;
-                        }
-                    } else if (ts instanceof TypestateSwitch) {
-                        // TODO args checking for TypestateSwitch
-                        return true;
-                    }*/
                 }             
             }
             return true; // nothing happens, return true
@@ -197,25 +181,8 @@ aspect LookupMethod {
                     if (!label.equals(rsLabel)) {
                         return false;
                     }
-                    System.out.println(rs.getState());
-                    System.out.println(ts);
-                    System.out.println("Return State checking using Typestate");
                 }
             }
-
-            /*if (ts instanceof TypestateLabel) {
-                TypestateLabel tl = (TypestateLabel) ts;
-                if (rs.hasTypestateState() && rs.getState() != null) { // checking whether typestate are the same
-                    if(!rs.getState().containsKey(tl.getLabel())) { // state mismatch, return false
-                        return false;
-                    }
-                } else { // the return type does not have state, this does not match the TTypestate
-                    return false;
-                }
-            } else if (ts instanceof TypestateSwitch) {
-                // TODO args checking for TypestateSwitch
-                return true;
-            }*/
         } else {
             if (rs.hasState()) { // return type in TypestateMethod has no state specification but return statement has state
                 return false;    

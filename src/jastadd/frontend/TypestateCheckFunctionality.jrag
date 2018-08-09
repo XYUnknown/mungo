@@ -21,17 +21,7 @@ aspect TypestateCheckFunctionality {
 				 * lable is different from the State name
 				 * For example TRUE: Empty
 				 */
-				//HashMap<String, State> newState = new HashMap<String, State>();
 				TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
-				/*for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
-					if (!(c.getTypestate() instanceof TypestateLabel)) {
-						problems.add(error("TypestateSwitchCase should not have TypestateSwitch as target state."));
-						return problems;
-					}
-					String label = c.getLabel();
-					State state = ((TypestateLabel) c.getTypestate()).getTarget();
-					newState.put(label, state);
-				}*/
 				va.setState(tsw);
 			} else {
 				va.setState(tsMethod.getTypestate());
@@ -61,15 +51,6 @@ aspect TypestateCheckFunctionality {
 				 * For example TRUE: Empty
 				 */
 				TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
-				/*for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
-					if (!(c.getTypestate() instanceof TypestateLabel)) {
-						problems.add(error("TypestateSwitchCase should not have TypestateSwitch as target state."));
-						return problems;
-					}
-					String label = c.getLabel();
-					State state = ((TypestateLabel) c.getTypestate()).getTarget();
-					newState.put(label, state);
-				}*/
 				va.setState(tsw);
 			} else {
 				va.setState(tsMethod.getTypestate());
