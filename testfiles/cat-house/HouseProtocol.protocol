@@ -1,0 +1,12 @@
+package examples.cat;
+
+typestate HouseProtocol {
+	Init = {
+		void createCat(): HasCat
+	}
+
+	HasCat = {
+		void killCat(): HasCat, // error
+		void close(): end
+	}
+}
