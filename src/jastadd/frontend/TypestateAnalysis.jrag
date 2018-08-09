@@ -11,8 +11,8 @@ aspect TypestateAnalysis {
     /**
      * Adding a field state to ASTNode
      */
-    //private State ASTNode.typestate = null;
-    private HashMap<String, State> ASTNode.typestate = null;
+    //private HashMap<String, State> ASTNode.typestate = null;
+    private Typestate ASTNode.typestate = null;
 
     /**
      * Using for checking dereferenced declarator
@@ -43,13 +43,13 @@ aspect TypestateAnalysis {
         return false;
     }
 
-    public void ASTNode.setState(HashMap<String, State> typestate) {
+    public void ASTNode.setState(Typestate typestate) {
         if (hasTypestateState()) {
             this.typestate = typestate;
         }        
     }
 
-    public HashMap<String, State> ASTNode.getState() {
+    public Typestate ASTNode.getState() {
         return this.typestate;
     }
 
@@ -83,7 +83,7 @@ aspect TypestateAnalysis {
         return false;
     }
 
-    public HashMap<String, State> Expr.getTargetState() {
+    public Typestate Expr.getTargetState() {
         return null;
     }
 
@@ -175,7 +175,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> VarAccess.getState() {
+    public Typestate VarAccess.getState() {
         ASTNode node = (ASTNode) varDecl();
         return node.getState();
     }
@@ -186,7 +186,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public void VarAccess.setState(HashMap<String, State> typestate) {
+    public void VarAccess.setState(Typestate typestate) {
         ASTNode node = (ASTNode) varDecl();
         node.setState(typestate);     
     }
@@ -210,11 +210,12 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> ClassInstanceExpr.getState() {
+    public Typestate ClassInstanceExpr.getState() {
         if (hasTypestateState()) {
-            HashMap<String, State> state = new HashMap<String, State>();
-            state.put(type().getTypestateDecl().getInitState().getID(), type().getTypestateDecl().getInitState());
+            //HashMap<String, State> state = new HashMap<String, State>();
+            //state.put(type().getTypestateDecl().getInitState().getID(), type().getTypestateDecl().getInitState());
             //super.setState(type().getTypestateDecl().getInitState());
+            Typestate state = type().getTypestateDecl().getInitState().getTypestate();
             super.setState(state);
         }
         return super.getState();
@@ -242,7 +243,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> MethodAccess.getTargetState() {
+    public Typestate MethodAccess.getTargetState() {
         if (hasTargetTypestateState()) {
             MethodDecl md = decl();
             return md.getTargetState();
@@ -251,7 +252,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> MethodAccess.getState() { // get the target State
+    public Typestate MethodAccess.getState() { // get the target State
         if (hasTypestateState()) {
             return decl().getReturnState();
         }
@@ -264,7 +265,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public void MethodAccess.setState(HashMap<String, State> state) {
+    public void MethodAccess.setState(Typestate state) {
         // do nothing
     }
 
@@ -289,7 +290,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> Dot.getTargetState() {
+    public Typestate Dot.getTargetState() {
         if (lastAccess() instanceof MethodAccess) {
             return ((MethodAccess) lastAccess()).getTargetState();
         }
@@ -297,7 +298,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> Dot.getState() {
+    public Typestate Dot.getState() {
         return lastAccess().getState();
     }
 
@@ -307,7 +308,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public void Dot.setState(HashMap<String, State> state) {
+    public void Dot.setState(Typestate state) {
         lastAccess().setState(state);
     }
 
@@ -338,29 +339,31 @@ aspect TypestateAnalysis {
         return false;
     }
 
-    public HashMap<String, State> MethodDecl.getReturnState() {
+    public Typestate MethodDecl.getReturnState() {
         if (returnHasTypestateDecl()) {
             TypestateDecl td = this.getTypeAccess().type().getTypestateDecl();
             TypestateMethod tm = td.lookupMethod(this);
             if ((tm != null) && (tm.getTType() instanceof TTypestate)) {
                 Typestate ts = ((TTypestate)tm.getTType()).getTypestate();
-                if (ts instanceof TypestateLabel) {
+                /*if (ts instanceof TypestateLabel) {
                     HashMap<String, State> state = new HashMap<String, State>();
                     String label = ((TypestateLabel)ts).getLabel();
                     state.put(label, td.lookupState(label));
                     return state;
-                }
+                }*/
+                return ts;
                 
             }
         }
         return null;
     }
 
-    public HashMap<String, State> MethodDecl.getTargetState() {
+    public Typestate MethodDecl.getTargetState() {
         if (hasTypestateDecl()) {
             TypestateDecl td = this.hostType().getTypestateDecl();
             TypestateMethod tm = td.lookupMethod(this);
             if (tm != null) {
+                /*
                 if (tm.getTypestate() instanceof TypestateLabel) {
                     TypestateLabel tl = (TypestateLabel) tm.getTypestate();
                     HashMap<String, State> targetState = new HashMap<String, State>();
@@ -375,7 +378,8 @@ aspect TypestateAnalysis {
                         targetState.put(label, state);
                     }
                     return targetState;
-                }
+                }*/
+                return tm.getTypestate();
             }
 
         }
@@ -404,7 +408,7 @@ aspect TypestateAnalysis {
     }
 
     @Override
-    public HashMap<String, State> ReturnStmt.getState() {
+    public Typestate ReturnStmt.getState() {
         return getResult().getState();
     }
 
