@@ -106,8 +106,19 @@ aspect TypestateCheck {
                     // Lookup the state of the variable in symble table
                     Typestate stateMap = st.lookupVariableState(variable);
                     if (stateMap == null) {
-                        problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
-                        return problems;
+                        if (variable instanceof FieldDeclarator) {
+                            // Set typestate for first access of a FieldDeclarator in a local block
+                            TypestateMethod tm = md.hostType().getTypestateDecl().lookupMethod(md);
+                            if (tm != null) {
+                                va.setState(tm.getTypestate());
+                                st.addCurrLocal(va.varDecl(), va.getState());
+                                System.out.println("MethodAccess FieldDeclarator: " + tm);
+                                System.out.println("MethodAccess FieldDeclarator: " + va.getState());
+                            }
+                        } else {
+                            problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
+                            return problems;
+                        }                        
                     }
                     System.out.println("MethodAccess variable state: " + stateMap);
                     //_____________
@@ -163,9 +174,11 @@ aspect TypestateCheck {
                         }
                         // update SymbolTable locals
                         st.addCurrLocal(va.varDecl(), va.getState());
-                    } else { // Still in switch state, not processed by valid case, report error
+                    } else if (stateMap instanceof TypestateSwitch) { // Still in switch state, not processed by valid case, report error
                         problems.add(error("Invalid MethodAccess " + this + " in TypestateSwitch State."));
                         return problems;
+                    } else {
+                        // Maybe other cases?
                     }
                     //_____________
                 }              
