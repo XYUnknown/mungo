@@ -131,6 +131,10 @@ aspect TypestateFunctionality {
 		
 	}
 
+	public int TypestateLabel.hashCode() {
+		return Objects.hash(this.getLabel(), this.typestateDecl());
+	}
+
 	public boolean EndTypestate.equals(Object obj) {
 		if (!(obj instanceof EndTypestate)) {
 			return false;
@@ -138,6 +142,10 @@ aspect TypestateFunctionality {
 			EndTypestate et = (EndTypestate) obj;
 			return et.typestateDecl().equals(this.typestateDecl());
 		}
+	}
+
+	public int EndTypestate.hashCode() {
+		return Objects.hash(this.typestateDecl());
 	}
 
 }
