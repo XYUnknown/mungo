@@ -31,6 +31,8 @@ aspect TypestateConsistencyCheck {
 					LinkedList<Typestate> list = td.getTypestateList();
 					if (list.contains(ts)) {
 						System.out.println("Consistency check: " + this + " checking map");
+						// somehow hashmap using Typestate as key does not work.
+						// even the hashCode() method is override explicitly
 						HashMap<Variable, Typestate> map = list.get(list.indexOf(ts)).getFieldDeclaratorMap();
 						System.out.println("Consistency check map: " + map);
 						for (Variable v: variables) {
