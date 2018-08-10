@@ -1,0 +1,75 @@
+aspect TypestateConsistencyCheck {
+	coll LinkedList<Variable> MethodDecl.collectFieldDeclarators() root MethodDecl;
+	ConstructorDecl contributes {
+		if (checkImplicitConstructorInvocation()) {
+			getImplicitConstructorInvocation().collectContributions();
+		}
+		super.collectContributions();
+	} to MethodDecl.collectFieldDeclarators();
+
+	MethodDecl contributes each typestateConsistencyProblems() to CompilationUnit.problems();
+	syn Collection<Problem> MethodDecl.typestateConsistencyProblems() {
+		LinkedList<Problem> problems = new LinkedList<Problem>();
+		if (hasTypestateDecl()){
+			LinkedList<Variable> variables = this.collectFieldDeclarators();
+			System.out.println("Consistency check: " + this + " "+ variables.size());
+			TypestateDecl td = this.hostType().getTypestateDecl();
+			Typestate ts = td.lookupMethod(this).getTypestate();
+			System.out.println("Consistency check: " + this + " target " + ts);
+			if (ts.hasFieldDeclaratorMap()) {
+				System.out.println("Consistency check: " + this + " checking map");
+				HashMap<Variable, Typestate> map = ts.getFieldDeclaratorMap();
+				for (Variable v: variables) {
+					if (map.containsKey(v)) {
+						if (!map.get(v).equals(((FieldDeclarator)v).getRecordState())) {
+							problems.add(error("Variable " + v + " has inconsistency typestate in same state"));
+							return problems;
+						}
+					} else {
+
+					} 
+				}
+			} else {
+				System.out.println("Consistency check: " + this + " initialising map");
+				ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
+				for (Variable v: variables) {
+					if (!ts.getFieldDeclaratorMap().containsKey(v)) {
+						ts.addToFieldDeclaratorMap(v, ((FieldDeclarator)v).getRecordState());
+					}
+				} 
+			}
+		}
+		return problems;
+	}
+
+	MethodAccess contributes each findFieldDeclarator() to MethodDecl.collectFieldDeclarators();
+	syn Collection<Variable> MethodAccess.findFieldDeclarator() {
+		LinkedList<Variable> list = new LinkedList<Variable>();
+		Expr va = prevExpr();
+		if (va.hasTypestateState() && va.isVariable()) {
+			if (va.varDecl() instanceof FieldDeclarator) {
+				MethodDecl md = this.decl();
+				FieldDeclarator fd = (FieldDeclarator) va.varDecl();
+				fd.setRecordState(md.hostType().getTypestateDecl().lookupMethod(md).getTypestate());
+				list.add(fd);
+			}
+		}
+		return list;
+	}
+
+	AssignExpr contributes each findFieldDeclarator() to MethodDecl.collectFieldDeclarators();
+    syn Collection<Variable> AssignExpr.findFieldDeclarator() {
+    	LinkedList<Variable> list = new LinkedList<Variable>();
+		if (getDest().isVariable()) {
+			if (getDest().hasTypestateState() 
+				&& getSource().hasTypestateState() 
+				&& (getDest().varDecl() instanceof FieldDeclarator)) {
+				FieldDeclarator fd = (FieldDeclarator) getDest().varDecl();
+				fd.setRecordState(getSource().getState()); 
+				list.add(fd);
+			}
+		}
+		return list;
+    }
+
+}
