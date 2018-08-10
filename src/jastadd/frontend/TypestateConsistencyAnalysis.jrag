@@ -20,6 +20,28 @@ aspect TypestateConsistencyAnalysis {
 		return (this.fieldDeclaratorMap != null);
 	}
 
+	private LinkedList<Typestate> TypestateDecl.typestateList;
+
+	public LinkedList<Typestate> TypestateDecl.getTypestateList() {
+		return this.typestateList;
+	}
+
+	public void TypestateDecl.setTypestateList(LinkedList<Typestate> list) {
+		this.typestateList = list;
+	}
+
+	public void TypestateDecl.addToTypestateList(Typestate t) {
+		if (this.typestateList == null) {
+			this.typestateList= new LinkedList<Typestate>();
+		}
+		this.typestateList.add(t);
+	}
+
+	public boolean TypestateDecl.hasTypestateList() {
+		return (this.typestateList != null);
+	}
+
+
 	private Typestate FieldDeclarator.recordState;
 
 	public Typestate FieldDeclarator.getRecordState() {
