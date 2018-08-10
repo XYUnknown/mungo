@@ -15,29 +15,47 @@ aspect TypestateConsistencyCheck {
 			System.out.println("Consistency check: " + this + " "+ variables.size());
 			TypestateDecl td = this.hostType().getTypestateDecl();
 			Typestate ts = td.lookupMethod(this).getTypestate();
-			System.out.println("Consistency check: " + this + " target " + ts);
-			if (ts.hasFieldDeclaratorMap()) {
-				System.out.println("Consistency check: " + this + " checking map");
-				HashMap<Variable, Typestate> map = ts.getFieldDeclaratorMap();
-				for (Variable v: variables) {
-					if (map.containsKey(v)) {
-						if (!map.get(v).equals(((FieldDeclarator)v).getRecordState())) {
-							problems.add(error("Variable " + v + " has inconsistency typestate in same state"));
-							return problems;
+			if (variables.size() > 0) {
+				System.out.println("Consistency check: " + this + " target " + ts);
+				if (!td.hasTypestateList()) {
+					td.setTypestateList(new LinkedList<Typestate>());
+					System.out.println("Consistency check: " + this + " initialising list and map");
+					ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
+					for (Variable v: variables) {
+						if (!ts.getFieldDeclaratorMap().containsKey(v)) {
+							ts.addToFieldDeclaratorMap(v, ((FieldDeclarator)v).getRecordState());
+						}
+					} 
+					td.addToTypestateList(ts);
+				} else {
+					LinkedList<Typestate> list = td.getTypestateList();
+					if (list.contains(ts)) {
+						System.out.println("Consistency check: " + this + " checking map");
+						HashMap<Variable, Typestate> map = list.get(list.indexOf(ts)).getFieldDeclaratorMap();
+						System.out.println("Consistency check map: " + map);
+						for (Variable v: variables) {
+							if (map.containsKey(v)) {
+								if (!map.get(v).equals(((FieldDeclarator)v).getRecordState())) {
+									problems.add(error("Variable " + v + " has inconsistency typestate in same state"));
+									return problems;
+								}
+							} else {
+
+							} 
 						}
 					} else {
-
-					} 
+						System.out.println("Consistency check: " + this + " initialising map");
+						ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
+						for (Variable v: variables) {
+							if (!ts.getFieldDeclaratorMap().containsKey(v)) {
+								ts.addToFieldDeclaratorMap(v, ((FieldDeclarator)v).getRecordState());
+							}
+						} 
+						td.addToTypestateList(ts);
+					}				
 				}
-			} else {
-				System.out.println("Consistency check: " + this + " initialising map");
-				ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
-				for (Variable v: variables) {
-					if (!ts.getFieldDeclaratorMap().containsKey(v)) {
-						ts.addToFieldDeclaratorMap(v, ((FieldDeclarator)v).getRecordState());
-					}
-				} 
 			}
+			 
 		}
 		return problems;
 	}
