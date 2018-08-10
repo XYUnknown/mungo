@@ -1,0 +1,32 @@
+aspect TypestateConsistencyAnalysis {
+	private HashMap<Variable, Typestate> Typestate.fieldDeclaratorMap;
+
+	public HashMap<Variable, Typestate> Typestate.getFieldDeclaratorMap() {
+		return this.fieldDeclaratorMap;
+	}
+
+	public void Typestate.setFieldDeclaratorMap(HashMap<Variable, Typestate> map) {
+		this.fieldDeclaratorMap = map;
+	}
+
+	public void Typestate.addToFieldDeclaratorMap(Variable v, Typestate t) {
+		if (this.fieldDeclaratorMap == null) {
+			this.fieldDeclaratorMap = new HashMap<Variable, Typestate>();
+		}
+		this.fieldDeclaratorMap.put(v, t);
+	}
+
+	public boolean Typestate.hasFieldDeclaratorMap() {
+		return (this.fieldDeclaratorMap != null);
+	}
+
+	private Typestate FieldDeclarator.recordState;
+
+	public Typestate FieldDeclarator.getRecordState() {
+		return this.recordState;
+	}
+
+	public void FieldDeclarator.setRecordState(Typestate t) {
+		this.recordState = t;
+	}
+}
