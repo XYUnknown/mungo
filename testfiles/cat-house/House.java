@@ -13,6 +13,7 @@ public class House {
 	}
 
 	public void killCat() {
+		c.giveBirth();
 		c.poison();
 		System.out.println("Your cat is killed");
 	}
