@@ -10,7 +10,7 @@ aspect TypestateConsistencyCheck {
 	MethodDecl contributes each typestateConsistencyProblems() to CompilationUnit.problems();
 	syn Collection<Problem> MethodDecl.typestateConsistencyProblems() {
 		LinkedList<Problem> problems = new LinkedList<Problem>();
-		if (hasTypestateDecl()){
+		if (hasTypestateDecl() && (this.hostType().getTypestateDecl().lookupMethod(this) != null)){
 			LinkedList<Variable> variables = this.collectFieldDeclarators();
 			System.out.println("Consistency check: " + this + " "+ variables.size());
 			TypestateDecl td = this.hostType().getTypestateDecl();
