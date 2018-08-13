@@ -7,7 +7,7 @@ aspect TypestateConsistencyCheck {
 		super.collectContributions();
 	} to MethodDecl.collectFieldDeclarators();
 
-	MethodDecl contributes each typestateConsistencyProblems() to CompilationUnit.problems();
+	//MethodDecl contributes each typestateConsistencyProblems() to CompilationUnit.problems();
 	syn Collection<Problem> MethodDecl.typestateConsistencyProblems() {
 		LinkedList<Problem> problems = new LinkedList<Problem>();
 		if (hasTypestateDecl() && (this.hostType().getTypestateDecl().lookupMethod(this) != null)){
