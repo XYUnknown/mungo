@@ -505,6 +505,31 @@ aspect TypestateAnalysis {
     }
 
     /**
+     * Getting the TypeDecl of a TypestateDecl from compilation units
+     */
+    syn lazy TypeDecl TypestateDecl.getTypeDecl() {
+        String id = this.getID();
+        ASTNode node = this.getParent();
+        while (! (node instanceof Program)){
+            node = node.getParent();
+        }   
+        Program program = (Program) node;
+        for (CompilationUnit cu: program.getCompilationUnitList()){
+            if(!cu.isTypestateCompilationUnit()) {
+                for(TypeDecl td: cu.getTypeDecls()) {
+                    if (td.hasTypestateAnnotation()) {
+                        TypestateAnnotation ta = td.getTypestateAnnotation();
+                        if(ta.getID().equals(id)) {
+                            return td;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * A TypeDecl could have at most one typestate annotation
      */
     public boolean TypeDecl.validNumTypestateAnnotation() {

@@ -155,6 +155,20 @@ aspect LookupMethod {
         return result;
     }
 
+    /** 
+     * Lookup a MethodDecl in TypeDecl for a TypestateMethod
+     */
+    syn MethodDecl TypeDecl.lookupMethod(TypestateMethod tm) {
+        MethodDecl result = null;        
+        for (MethodDecl md: this.methods()) {
+            if (md.isSameSignature(tm)) {
+                result = md;
+                return result;
+            }            
+        }
+        return result;
+    }
+
     /**
      * Checking whether a return statement has same state as the 
      * return state of the TypestateMethod with same signature 
