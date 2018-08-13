@@ -1,0 +1,73 @@
+aspect TypestateGraph {
+	private LinkedList<Typestate> TypestateDecl.checkedList;
+
+	public LinkedList<Typestate> TypestateDecl.getCheckedList() {
+		return this.checkedList;
+	}
+	
+	public void TypestateDecl.addChecked(Typestate t) {
+		if (this.checkedList == null) {
+			this.checkedList = new LinkedList<Typestate>();
+		}
+		this.checkedList.add(t);
+	}
+
+	public boolean Typestate.isChecked() {
+		return (this.typestateDecl().getCheckedList() == null) ? false : this.typestateDecl().getCheckedList().contains(this);
+	}
+
+	public void Typestate.setIsChecked() {
+		this.typestateDecl().addChecked(this);
+	}
+
+	public void TypestateDecl.travelsalMethodCheck() {
+		TypestateMethodList init = (TypestateMethodList) getInitState().getTypestate();
+		init.doMethodTravelsal();
+	}
+
+	public void TypestateMethodList.doMethodTravelsal() {
+		if (!this.isChecked()) {
+			this.setIsChecked();
+			for (int i = 0; i < getNumTypestateMethod(); i++) {
+				TypestateMethod tm = getTypestateMethod(i);
+				System.out.println(tm.getID());
+				Typestate t = tm.getTypestate();				
+				if (t instanceof TypestateLabel) {
+					t.setIsChecked();
+					TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
+					tml.doMethodTravelsal();
+				} else if (t instanceof TypestateMethodList) {
+					((TypestateMethodList) t).doMethodTravelsal();
+				} else if (t instanceof TypestateSwitch) {
+					TypestateSwitch tsw = (TypestateSwitch) t;
+					tsw.setIsChecked();
+					tsw.doTypestateSwitchMethodTravelsal();
+				} else { // EndTypestate
+					t.setIsChecked();
+					System.out.println("End Typestate");
+				}
+			}
+		}
+	}
+
+	public void TypestateSwitch.doTypestateSwitchMethodTravelsal() {
+		for (int i = 0; i < getNumTypestateSwitchCase(); i++) {
+			TypestateSwitchCase tc = getTypestateSwitchCase(i);
+			Typestate t = tc.getTypestate();
+			if (t instanceof TypestateLabel) {
+				t.setIsChecked();
+				TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
+				tml.doMethodTravelsal();
+			} else if (t instanceof TypestateMethodList) {
+				((TypestateMethodList) t).doMethodTravelsal();
+			} else if (t instanceof TypestateSwitch) {
+				TypestateSwitch tsw = (TypestateSwitch) t;
+				tsw.setIsChecked();
+				tsw.doTypestateSwitchMethodTravelsal();
+			} else { // EndTypestate
+				t.setIsChecked();
+				System.out.println("End Typestate");
+			}
+		}
+	}
+}
