@@ -64,6 +64,33 @@ aspect TypestateCheck {
         return problems;
     }*/
 
+    /**
+     * ConstructorDecl does not have return type
+     * Considered as a special case of MethodDecl
+     * In currrent design, a ConsitructorDecl always has no parameter
+     * Therefore, we do not need to check the typestate of paramaters and the return type  
+     */
+    ConstructorDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> ConstructorDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        Block block = getBlock();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        System.out.println("ConstructorDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
+        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
+        // if not empty, clear it and push the new table on it
+        if (!st.getLocals().empty()) {
+            st.clearLocals();
+        }
+        //HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
+        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
+        st.addLocal(map);     
+        return problems;
+    }
+
+    /**
+     * Each MethodDecl collects problems from child nodes and then report to CompilationUnit
+     * Force to check Typestate in order
+     */
     coll LinkedList<Problem> MethodDecl.collectTypestateProblems() root MethodDecl;
     ConstructorDecl contributes {
         if (checkImplicitConstructorInvocation()) {
@@ -72,7 +99,69 @@ aspect TypestateCheck {
         super.collectContributions();
     } to MethodDecl.collectTypestateProblems();
 
+    MethodDecl contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
+    syn Collection<Problem> MethodDecl.typestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        Block block = getBlock();
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        System.out.println("MethodDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
+        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
+        // if not empty, clear it and push the new table on it
+        if (!st.getLocals().empty()) {
+            st.clearLocals();
+        }
+        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
+        st.addLocal(map);
 
+        if (hasTypestateDecl()) {
+            TypestateDecl td = this.hostType().getTypestateDecl();
+            TypestateMethod tm = td.lookupMethod(this);
+            // Update ParameterDeclaration state and add ParameterDeclaration to local symbol table
+            if (tm != null) {
+                for (int i = 0; i < this.getNumParameter(); i++){
+                    ParameterDeclaration mdParam = getParameter(i);
+                    TType tmParam = tm.getTTypeList().getTType(i);
+                    if (mdParam.hasTypestateState()) {
+                        if (!(tmParam instanceof TTypestate)) {
+                            problems.add(error("Cannot find valid Typestate specification for ParameterDeclaration: " + mdParam));
+                        } else {
+                            TTypestate tt = (TTypestate) tmParam;
+                            Typestate ts = tt.getTypestate();
+                            mdParam.setState(ts); // Update state
+                            st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
+                        }
+                    }              
+                }
+                if (problems.size() != 0) {
+                    return problems;
+                }
+            }
+            System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
+            System.out.println("MethodDecl local size: " + st.currentLocal().size());
+
+            // Check return type
+            if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
+                if (returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
+                    if (tm == null) {
+                        problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
+                        return problems;
+                    }
+                    if (block != null) { // Do not check return statement of abstract method declaration
+                        for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
+                            if (s instanceof ReturnStmt) {
+                                ReturnStmt rs = (ReturnStmt)s;
+                                if (!tm.isSameReturnState(rs)) { // State mismatch, report error
+                                    problems.add(error("ReturnStmt Typestate mismatch"));
+                                    return problems;
+                                }
+                            }
+                        }
+                    }
+                }            
+            } 
+        }            
+        return problems;
+    }
 
     /**
      * MethodAccess: c.foo()
@@ -382,92 +471,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    MethodDecl contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
-    syn Collection<Problem> MethodDecl.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        Block block = getBlock();
-        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-        System.out.println("MethodDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
-        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
-        // if not empty, clear it and push the new table on it
-        if (!st.getLocals().empty()) {
-            st.clearLocals();
-        }
-        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
-        st.addLocal(map);
-
-        if (hasTypestateDecl()) {
-            TypestateDecl td = this.hostType().getTypestateDecl();
-            TypestateMethod tm = td.lookupMethod(this);
-            // Update ParameterDeclaration state and add ParameterDeclaration to local symbol table
-            if (tm != null) {
-                for (int i = 0; i < this.getNumParameter(); i++){
-                    ParameterDeclaration mdParam = getParameter(i);
-                    TType tmParam = tm.getTTypeList().getTType(i);
-                    if (mdParam.hasTypestateState()) {
-                        if (!(tmParam instanceof TTypestate)) {
-                            problems.add(error("Cannot find valid Typestate specification for ParameterDeclaration: " + mdParam));
-                        } else {
-                            TTypestate tt = (TTypestate) tmParam;
-                            Typestate ts = tt.getTypestate();
-                            mdParam.setState(ts); // Update state
-                            st.addCurrLocal(mdParam, mdParam.getState()); // Update symbol table
-                        }
-                    }              
-                }
-                if (problems.size() != 0) {
-                    return problems;
-                }
-            }
-            System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
-            System.out.println("MethodDecl local size: " + st.currentLocal().size());
-
-            // Check return type
-            if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
-                if (returnHasTypestateDecl()) { // Both hostType and return type has TypestateDecl
-                    if (tm == null) {
-                        problems.add(error("Cannot find corresponding TypestateMethod in TypestateDecl"));
-                        return problems;
-                    }
-                    if (block != null) { // Do not check return statement of abstract method declaration
-                        for (Stmt s: block.getStmts()) { // All statements in MethodDecl block
-                            if (s instanceof ReturnStmt) {
-                                ReturnStmt rs = (ReturnStmt)s;
-                                if (!tm.isSameReturnState(rs)) { // State mismatch, report error
-                                    problems.add(error("ReturnStmt Typestate mismatch"));
-                                    return problems;
-                                }
-                            }
-                        }
-                    }
-                }            
-            } 
-        }            
-        return problems;
-    }
-
-    /**
-     * ConstructorDecl does not have return type
-     * Considered as a special case of MethodDecl
-     * In currrent design, a ConsitructorDecl always has no parameter
-     * Therefore, we do not need to check the typestate of paramaters and the return type  
-     */
-    ConstructorDecl contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
-    syn Collection<Problem> ConstructorDecl.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        Block block = getBlock();
-        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-        System.out.println("ConstructorDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
-        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
-        // if not empty, clear it and push the new table on it
-        if (!st.getLocals().empty()) {
-            st.clearLocals();
-        }
-        //HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
-        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
-        st.addLocal(map);     
-        return problems;
-    }
+    
 
     ConstCase contributes each typestateProblem() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ConstCase.typestateProblem() {
