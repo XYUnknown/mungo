@@ -40,14 +40,114 @@ aspect IfElseAnalysis {
 		this.ifElseLastStmt = status;
 	}
 
+	private IfStmt Stmt.parentIfStmt;
+
+	public IfStmt Stmt.getParentIfStmt() {
+		return this.parentIfStmt;
+	}
+
+	public void Stmt.setParentIfStmt(IfStmt stmt) {
+		this.parentIfStmt = stmt;
+	}
+
+	public boolean Stmt.hasParentIfStmt() {
+		return this.parentIfStmt != null;
+	}
+
+	private LinkedList<HashMap<Variable, Typestate>> IfStmt.branchStateMapList;
+
+	public LinkedList<HashMap<Variable, Typestate>> IfStmt.getBranchStateMapList() {
+		return this.branchStateMapList;
+	}
+	private void IfStmt.initBranchStateMapList() {
+		this.branchStateMapList = new LinkedList<HashMap<Variable, Typestate>>();
+	}
+
+	public void IfStmt.addRecordBranchState(HashMap<Variable, Typestate> map) {
+		if (this.branchStateMapList == null) {
+			initBranchStateMapList();
+		}
+		this.branchStateMapList.add(map);
+	}
+
+	public boolean IfStmt.hasBranchStateMapList() {
+		return this.branchStateMapList != null;
+	}
+
+	public boolean IfStmt.isBranchEndCaseSameState() {
+		HashMap<Variable, Typestate> checkMap = new HashMap<Variable, Typestate>();
+		for (HashMap<Variable, Typestate> map: this.branchStateMapList) {
+			for (Variable v: this.varList){
+				if (!map.containsKey(v)) {
+					return false;
+				} else {
+					if (!checkMap.containsKey(v)) {
+						System.out.println("not contains " + v);
+						checkMap.put(v, map.get(v));
+					} else {
+						if(!checkMap.get(v).equals(map.get(v))){
+							System.out.println("mismatched");
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	/** Get the variable with mismatched typestate for problem reporting*/
+	public Variable IfStmt.reportTypestateMismatchedVariable(LinkedList<HashMap<Variable, Typestate>> stateMapList) {
+		HashMap<Variable, Typestate> checkMap = new HashMap<Variable, Typestate>();
+		for (HashMap<Variable, Typestate> map: stateMapList) {
+			for (Variable v: this.varList){
+				if (!map.containsKey(v)) {
+					return v;
+				} else {
+					if (!checkMap.containsKey(v)) {
+						checkMap.put(v, map.get(v));
+					} else {
+						if(!checkMap.get(v).equals(map.get(v))){
+							return v;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+
+	/**
+	 * A list record all Variables in the if-else branches
+	 */
+	private LinkedList<Variable> IfStmt.varList;
+
+	public LinkedList<Variable> IfStmt.getVarList() {
+		return this.varList;
+	} 
+
+	public void IfStmt.addVariable(Variable v) {
+		if (this.varList == null) {
+			this.varList = new LinkedList<Variable>();
+		}
+		if (!this.varList.contains(v)) {
+			this.varList.add(v);
+		}		
+	}
+
 	public void IfStmt.labelElse() {
 		if (this.hasElse()) {
 			Stmt elseStmt = this.getElse();
 			elseStmt.setIsElseStmt(true);
+			elseStmt.setParentIfStmt(this);
 			while (elseStmt instanceof IfStmt) {
 				if (((IfStmt)elseStmt).hasElse()) {
 					elseStmt = ((IfStmt)elseStmt).getElse();
 					elseStmt.setIsElseStmt(true);
+					elseStmt.setParentIfStmt(this);
+				} else {
+					break;
 				}
 			}
 		}
@@ -66,15 +166,19 @@ aspect IfElseAnalysis {
 			Block blk = (Block)((IfStmt)stmt).getThen();
 			if (!blk.hasStmts()) {
 				blk.setIfElseLastStmt(true);
+				blk.setParentIfStmt(this);
 			} else {
 				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
+				blk.getStmt(blk.getNumStmt() - 1).setParentIfStmt(this);
 			}
 		} else {
 			Block blk = (Block) stmt;
 			if (!blk.hasStmts()) {
 				blk.setIfElseLastStmt(true);
+				blk.setParentIfStmt(this);
 			} else {
 				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
+				blk.getStmt(blk.getNumStmt() - 1).setParentIfStmt(this);
 			}
 		}
 	}
