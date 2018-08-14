@@ -73,6 +73,7 @@ public class ExtensionMain extends JavaChecker {
             }
         }
         // TypestateSematicCheck OK, checking Java syntax.
+        unit.preprocess(); // Label special statements first
         javaCheckCode = super.processCompilationUnit(unit);
         if (javaCheckCode == 0) {
             // check end of programme check
