@@ -35,6 +35,7 @@ aspect TypestateGraph {
 				System.out.println(tm.getID());
 				// MethodDecl problem collection
 				MethodDecl md = this.typestateDecl().getTypeDecl().lookupMethod(tm);
+				problems.addAll(md.collectTypestateProblems());
 				problems.addAll(md.typestateConsistencyProblems());
 				//
 				Typestate t = tm.getTypestate();				
