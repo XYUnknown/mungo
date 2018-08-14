@@ -1,6 +1,24 @@
 aspect IfElseAnalysis {
+	coll LinkedList<Stmt> CompilationUnit.preprocess() root CompilationUnit;
+	ConstructorDecl contributes {
+		if (checkImplicitConstructorInvocation()) {
+			getImplicitConstructorInvocation().collectContributions();
+		}
+		super.collectContributions();
+	} to CompilationUnit.preprocess();
+
+	IfStmt contributes each labelStmts() to CompilationUnit.preprocess();
+	syn Collection<Stmt> IfStmt.labelStmts() {
+		LinkedList<Stmt> list = new LinkedList<Stmt>();
+		if (!this.isElseStmt()) {
+			this.labelElse();
+			this.labelLastStmt();
+    	}             
+        return list;
+    }
+
 	/**
-	 * Field to record whether an Expr is the condition of a do-while loop
+	 * Methods and fields for analysing if-else statement
 	 */
 	private boolean Stmt.elseStmtStatus = false;
 
@@ -12,6 +30,16 @@ aspect IfElseAnalysis {
 		this.elseStmtStatus = status;
 	}
 
+	private boolean Stmt.ifElseLastStmt = false;
+
+	public boolean Stmt.isIfElseLastStmt() {
+		return this.ifElseLastStmt;
+	}
+
+	public void Stmt.setIfElseLastStmt(boolean status) {
+		this.ifElseLastStmt = status;
+	}
+
 	public void IfStmt.labelElse() {
 		if (this.hasElse()) {
 			Stmt elseStmt = this.getElse();
@@ -21,6 +49,32 @@ aspect IfElseAnalysis {
 					elseStmt = ((IfStmt)elseStmt).getElse();
 					elseStmt.setIsElseStmt(true);
 				}
+			}
+		}
+	}
+
+	public void IfStmt.labelLastStmt() {
+		Stmt stmt = this;
+		while (stmt instanceof IfStmt) {
+			if (((IfStmt)stmt).hasElse()) {
+				stmt = ((IfStmt)stmt).getElse();
+			} else {
+				break;
+			}
+		}
+		if (stmt instanceof IfStmt) {
+			Block blk = (Block)((IfStmt)stmt).getThen();
+			if (!blk.hasStmts()) {
+				blk.setIfElseLastStmt(true);
+			} else {
+				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
+			}
+		} else {
+			Block blk = (Block) stmt;
+			if (!blk.hasStmts()) {
+				blk.setIfElseLastStmt(true);
+			} else {
+				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
 			}
 		}
 	}
