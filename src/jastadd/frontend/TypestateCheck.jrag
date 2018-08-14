@@ -709,30 +709,38 @@ aspect TypestateCheck {
     syn Collection<Problem> IfStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-        this.labelElse();
+        //this.labelElse();
+        //this.labelLastStmt();
         if (this.isElseStmt()){
             st.exitLocal();
-        } 
+        }
+        System.out.println("If statement"); 
+        //this.doPrintFullTraversalClass();
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
         st.addLocal(map);              
         return problems;
     }
 
     /**
-     * I intend to use: 
-     * Block contributes each typestateProblems() when this.isElseStmt() to CompilationUnit.problems();
-     * here but it is not working.
+     * If-else typestate checking
      */
-    Block contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
-    syn Collection<Problem> Block.typestateProblems() {
+    Block contributes each branchTypestateProblems() when this.isElseStmt() to MethodDecl.collectTypestateProblems();
+    syn Collection<Problem> Block.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        if (this.isElseStmt()) {
-            SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-            System.out.println("Block else checking: " + st.exitLocal());
-            System.out.println("Block else checking: " + st.currentLocal());
-            HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
-            st.addLocal(map);
-        }                  
+        SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        System.out.println("Block else checking: " + st.exitLocal()); // do not delete
+        System.out.println("Block else checking: " + st.currentLocal());
+        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
+        st.addLocal(map);
+        return problems;
+    }
+
+    Stmt contributes each branchTypestateProblems() when this.isIfElseLastStmt() to MethodDecl.collectTypestateProblems();
+    syn Collection<Problem> Stmt.branchTypestateProblems() {
+        LinkedList<Problem> problems = new LinkedList<Problem>();
+        if (this.isIfElseLastStmt()){
+            System.out.println("*************Last if-else stmt: " + this); 
+        }                      
         return problems;
     }
     /** Print for debug*/
