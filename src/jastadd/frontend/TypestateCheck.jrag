@@ -7,7 +7,7 @@ aspect TypestateCheck {
     /**
      * Typestate checking in TypeDecl
      */
-    TypeDecl contributes each typestateProblems() to CompilationUnit.problems();
+    /*TypeDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> TypeDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         TypestateDecl td = this.getTypestateDecl();
@@ -18,7 +18,7 @@ aspect TypestateCheck {
             problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
         }   
         return problems;
-    }
+    }*/
 
     /**
      * Typestate checking in ClassDecl
@@ -27,7 +27,7 @@ aspect TypestateCheck {
     ClassDecl contributes each typestateProblems() to CompilationUnit.problems();
     syn Collection<Problem> ClassDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        TypestateDecl td = this.getTypestateDecl();
+        TypestateDecl td = this.getTypestateDecl();        
         if (!validNumTypestateAnnotation()) { // a ClassDecl could have at most one typestate annotation
             problems.add(error("A ClassDecl could have at most one typestate annotation."));
         }
@@ -37,15 +37,48 @@ aspect TypestateCheck {
         // Collect FieldDeclarators's state from FieldDecl and add them to SymbolTable globals
         LinkedList<HashMap<Variable, Typestate>> globalSymbolList = this.collectGlobals();
         this.addAllGlobals(globalSymbolList); 
-        System.out.println("Global symbol table size: " + this.getSymbolTable().getGlobals().size());    
+        System.out.println("Global symbol table size: " + this.getSymbolTable().getGlobals().size()); 
+        if (hasTypestateAnnotation() && (td != null)) { // the annotation is found but no AST
+            System.out.println("TypestateDecl method traversal");
+            problems.addAll(td.traversalMethodCheck());
+            System.out.println("TypestateDecl traversal check number of consistencyProblems: " + problems.size());
+            for (MethodDecl md: this.methods()) {
+                if (td.lookupMethod(md) == null) {
+                    problems.addAll(md.collectTypestateProblems());
+                }
+            }
+        }
+        if (!hasTypestateAnnotation()){
+            for (MethodDecl md: this.methods()) {
+                problems.addAll(md.collectTypestateProblems());                
+            }
+        }
         return problems;
     }
+
+    /*TypestateDecl contributes each typestateProblems() to CompilationUnit.problems();
+    syn Collection<Problem> TypestateDecl.typestateProblems() {
+        System.out.println("TypestateDecl method traversal");
+        LinkedList<Problem> problems = this.traversalMethodCheck();
+        System.out.println("TypestateDecl traversal check number of consistencyProblems: " + problems.size());
+        return problems;
+    }*/
+
+    coll LinkedList<Problem> MethodDecl.collectTypestateProblems() root MethodDecl;
+    ConstructorDecl contributes {
+        if (checkImplicitConstructorInvocation()) {
+            getImplicitConstructorInvocation().collectContributions();
+        }
+        super.collectContributions();
+    } to MethodDecl.collectTypestateProblems();
+
+
 
     /**
      * MethodAccess: c.foo()
      * From a MethodAccess we could get VariableAccess and MethodDecl
      */
-	MethodAccess contributes each typestateProblems() to CompilationUnit.problems();
+	MethodAccess contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
   	syn Collection<Problem> MethodAccess.typestateProblems() {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
 
@@ -200,7 +233,7 @@ aspect TypestateCheck {
      * initial state. It will be added in globals
      * If the Declarator is a normal VariableDeclarator, it will be stored in locals
      */
-    Declarator contributes each typestateProblems() to CompilationUnit.problems();
+    Declarator contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> Declarator.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>(); 
         if (hasTypestateState()) {
@@ -275,7 +308,7 @@ aspect TypestateCheck {
     /**
      * AssignExpr - c1 = c2;
      */
-    AssignExpr contributes each typestateProblems() to CompilationUnit.problems();
+    AssignExpr contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> AssignExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("AssignExpr: " + this.lineNumber());
@@ -331,7 +364,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    ClassInstanceExpr contributes each typestateProblems() to CompilationUnit.problems();
+    ClassInstanceExpr contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ClassInstanceExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         if (this.hasTypestateState()) {
@@ -349,7 +382,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    MethodDecl contributes each typestateProblems() to CompilationUnit.problems();
+    MethodDecl contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> MethodDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
@@ -419,7 +452,7 @@ aspect TypestateCheck {
      * In currrent design, a ConsitructorDecl always has no parameter
      * Therefore, we do not need to check the typestate of paramaters and the return type  
      */
-    ConstructorDecl contributes each typestateProblems() to CompilationUnit.problems();
+    ConstructorDecl contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ConstructorDecl.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
@@ -436,7 +469,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    ConstCase contributes each typestateProblem() to CompilationUnit.problems();
+    ConstCase contributes each typestateProblem() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ConstCase.typestateProblem() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SwitchStmt switchStmt = lookupSwitch();
@@ -469,7 +502,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    BreakStmt contributes each typestateProblems() to CompilationUnit.problems();
+    BreakStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> BreakStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("BreakStmt target: " + targetStmt());
@@ -531,7 +564,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    ContinueStmt contributes each typestateProblems() to CompilationUnit.problems();
+    ContinueStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ContinueStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("ContinueStmt target: " + targetStmt());
@@ -595,7 +628,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    SwitchStmt contributes each typestateProblems() to CompilationUnit.problems();
+    SwitchStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         System.out.println("SwitchStmt Typestate? " + hasTypestateDecl());
@@ -619,7 +652,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    DoStmt contributes each typestateProblems() to CompilationUnit.problems();
+    DoStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
@@ -639,7 +672,7 @@ aspect TypestateCheck {
      * End of a DoStmt pop local symbol table.
      * I am not sure why Literal need to be mentioned explicitly here, otherwise there are bugs
      */
-    Expr contributes each typestateProblems() when (this.isLoopCondition() || (this instanceof Literal)) to CompilationUnit.problems();
+    Expr contributes each typestateProblems() when (this.isLoopCondition() || (this instanceof Literal)) to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> Expr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
@@ -668,7 +701,7 @@ aspect TypestateCheck {
         return problems;
     }
 
-    IfStmt contributes each typestateProblems() to CompilationUnit.problems();
+    IfStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> IfStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
@@ -686,7 +719,7 @@ aspect TypestateCheck {
      * Block contributes each typestateProblems() when this.isElseStmt() to CompilationUnit.problems();
      * here but it is not working.
      */
-    Block contributes each typestateProblems() to CompilationUnit.problems();
+    Block contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> Block.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         if (this.isElseStmt()) {
