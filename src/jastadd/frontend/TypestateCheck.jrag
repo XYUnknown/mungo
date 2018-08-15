@@ -5,22 +5,6 @@
  */
 aspect TypestateCheck {
     /**
-     * Typestate checking in TypeDecl
-     */
-    /*TypeDecl contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> TypeDecl.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        TypestateDecl td = this.getTypestateDecl();
-        if (!validNumTypestateAnnotation()) { // a TypeDecl could have at most one typestate annotation
-            problems.add(error("A TypeDecl could have at most one typestate annotation."));
-        }
-        if (hasTypestateAnnotation() && (td == null)) { // the annotation is found but no AST
-            problems.add(error("There is no AST contructed from typestate protocol: " + getTypestateAnnotation().getID()));
-        }   
-        return problems;
-    }*/
-
-    /**
      * Typestate checking in ClassDecl
      * ClassDecl: TypeDecl
      */
@@ -55,14 +39,6 @@ aspect TypestateCheck {
         }
         return problems;
     }
-
-    /*TypestateDecl contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> TypestateDecl.typestateProblems() {
-        System.out.println("TypestateDecl method traversal");
-        LinkedList<Problem> problems = this.traversalMethodCheck();
-        System.out.println("TypestateDecl traversal check number of consistencyProblems: " + problems.size());
-        return problems;
-    }*/
 
     /**
      * ConstructorDecl does not have return type
@@ -471,8 +447,6 @@ aspect TypestateCheck {
         return problems;
     }
 
-    
-
     ConstCase contributes each typestateProblem() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ConstCase.typestateProblem() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -712,6 +686,11 @@ aspect TypestateCheck {
         //this.labelElse();
         //this.labelLastStmt();
         if (this.isElseStmt()){
+            IfStmt parentIfStmt = this.getParentIfStmt();
+            parentIfStmt.addRecordBranchState(st.currentLocal());
+            for (Variable v: st.currentLocal().keySet()) {
+                parentIfStmt.addVariable(v);
+            }
             st.exitLocal();
         }
         System.out.println("If statement"); 
@@ -728,6 +707,11 @@ aspect TypestateCheck {
     syn Collection<Problem> Block.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+        IfStmt parentIfStmt = this.getParentIfStmt();
+        parentIfStmt.addRecordBranchState(st.currentLocal());
+        for (Variable v: st.currentLocal().keySet()) {
+            parentIfStmt.addVariable(v);
+        }
         System.out.println("Block else checking: " + st.exitLocal()); // do not delete
         System.out.println("Block else checking: " + st.currentLocal());
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
@@ -738,7 +722,7 @@ aspect TypestateCheck {
     Stmt contributes each branchTypestateProblems() when this.isIfElseLastStmt() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> Stmt.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        if (this.isIfElseLastStmt()){
+        if (this.isIfElseLastStmt()) {
             System.out.println("*************Last if-else stmt: " + this); 
         }                      
         return problems;
