@@ -163,15 +163,21 @@ aspect IfElseAnalysis {
 			}
 		}
 		if (stmt instanceof IfStmt) {
-			Block blk = (Block)((IfStmt)stmt).getThen();
-			if (!blk.hasStmts()) {
-				blk.setIfElseLastStmt(true);
-				blk.setParentIfStmt(this);
+			Stmt then = ((IfStmt)stmt).getThen();
+			if (then instanceof Block){
+				Block blk = (Block)((IfStmt)stmt).getThen();
+				if (!blk.hasStmts()) {
+					blk.setIfElseLastStmt(true);
+					blk.setParentIfStmt(this);
+				} else {
+					blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
+					blk.getStmt(blk.getNumStmt() - 1).setParentIfStmt(this);
+				}
 			} else {
-				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
-				blk.getStmt(blk.getNumStmt() - 1).setParentIfStmt(this);
-			}
-		} else {
+				then.setIfElseLastStmt(true);
+				then.setParentIfStmt(this);
+			}			
+		} else if (stmt instanceof Block){
 			Block blk = (Block) stmt;
 			if (!blk.hasStmts()) {
 				blk.setIfElseLastStmt(true);
@@ -180,6 +186,9 @@ aspect IfElseAnalysis {
 				blk.getStmt(blk.getNumStmt() - 1).setIfElseLastStmt(true);
 				blk.getStmt(blk.getNumStmt() - 1).setParentIfStmt(this);
 			}
+		} else { // single stmt
+			stmt.setIfElseLastStmt(true);
+			stmt.setParentIfStmt(this);
 		}
 	}
 
