@@ -28,12 +28,14 @@ aspect TypestateCheck {
             System.out.println("TypestateDecl traversal check number of consistencyProblems: " + problems.size());
             for (MethodDecl md: this.methods()) {
                 if (td.lookupMethod(md) == null) {
+                    md.initialiseLocalSymbolTable();
                     problems.addAll(md.collectTypestateProblems());
                 }
             }
         }
         if (!hasTypestateAnnotation()){
             for (MethodDecl md: this.methods()) {
+                md.initialiseLocalSymbolTable();
                 problems.addAll(md.collectTypestateProblems());                
             }
         }
@@ -80,15 +82,6 @@ aspect TypestateCheck {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-        System.out.println("MethodDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
-        // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
-        // if not empty, clear it and push the new table on it
-        if (!st.getLocals().empty()) {
-            st.clearLocals();
-        }
-        HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
-        st.addLocal(map);
-
         if (hasTypestateDecl()) {
             TypestateDecl td = this.hostType().getTypestateDecl();
             TypestateMethod tm = td.lookupMethod(this);
@@ -112,8 +105,8 @@ aspect TypestateCheck {
                     return problems;
                 }
             }
-            System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
-            System.out.println("MethodDecl local size: " + st.currentLocal().size());
+            //System.out.println("MethodDecl SymbolTable locals size: " + st.getLocals().size());
+            //System.out.println("MethodDecl local size: " + st.currentLocal().size());
 
             // Check return type
             if (!(this.getTypeAccess() instanceof PrimitiveTypeAccess)) { // PrimitiveTypeAccess will not have TypestateDecl
@@ -204,19 +197,8 @@ aspect TypestateCheck {
                     // Lookup the state of the variable in symble table
                     Typestate stateMap = st.lookupVariableState(variable);
                     if (stateMap == null) {
-                        if (variable instanceof FieldDeclarator) {
-                            // Set typestate for first access of a FieldDeclarator in a local block
-                            TypestateMethod tm = md.hostType().getTypestateDecl().lookupMethod(md);
-                            if (tm != null) {
-                                va.setState(tm.getTypestate());
-                                st.addCurrLocal(va.varDecl(), va.getState());
-                                System.out.println("MethodAccess FieldDeclarator: " + tm);
-                                System.out.println("MethodAccess FieldDeclarator: " + va.getState());
-                            }
-                        } else {
-                            problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
-                            return problems;
-                        }                        
+                        problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
+                        return problems;                       
                     }
                     System.out.println("MethodAccess variable state: " + stateMap);
                     //_____________
