@@ -182,4 +182,20 @@ aspect IfElseAnalysis {
 			}
 		}
 	}
+
+	syn Stmt ASTNode.lookupBranchLastStmt() {
+		ASTNode node = this.getParent();
+		while (node != null) {
+			if (node instanceof Stmt) {
+				if (((Stmt)node).isIfElseLastStmt()) {
+					return (Stmt) node;
+				} else {
+					node = node.getParent();
+				}
+			} else {
+				node = node.getParent();
+			}
+		}
+		return null;
+	}
 }
