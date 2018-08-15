@@ -153,6 +153,11 @@ aspect TypestateSemanticCheck {
 				}
 			}
 		}
+		MethodDecl md = this.typestateDecl().getTypeDecl().lookupMethod(this);
+		if (md == null) {
+			problems.add(error("Method " + signature() + " is not declared."));
+			return problems;
+		}
 		return problems;
     }
 
