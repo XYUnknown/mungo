@@ -20,9 +20,32 @@ aspect TypestateGraph {
 		this.typestateDecl().addChecked(this);
 	}
 
+	private HashMap<Variable, Typestate> Typestate.fieldDeclaratorRecord;
+
+	private void Typestate.initFieldDeclaratorRecord() {
+		this.fieldDeclaratorRecord = new HashMap<Variable, Typestate>();
+	}
+
+	public HashMap<Variable, Typestate> Typestate.getFieldDeclaratorRecord() {
+		return this.fieldDeclaratorRecord;
+	}
+
+	public void Typestate.addToFieldDeclaratorRecord(Variable v, Typestate t) {
+		if (this.fieldDeclaratorRecord == null) {
+			this.initFieldDeclaratorRecord();
+		}
+		this.fieldDeclaratorRecord.put(v, t);
+	}
+
+	public void Typestate.setFieldDeclaratorRecord(HashMap<Variable, Typestate> record) {
+		this.fieldDeclaratorRecord = record;	
+	}
+
 	public LinkedList<Problem> TypestateDecl.traversalMethodCheck() {
 		LinkedList<Problem> problems = new LinkedList<Problem>();
 		TypestateMethodList init = (TypestateMethodList) getInitState().getTypestate();
+		SymbolTable st = ((ClassDecl)this.getTypeDecl()).getSymbolTable();
+		init.setFieldDeclaratorRecord(st.getGlobals()); // FieldDeclarator typestate in globals
 		problems = init.doMethodTraversal(problems);
 		return problems;
 	}
@@ -35,22 +58,41 @@ aspect TypestateGraph {
 				System.out.println(tm.getID());
 				// MethodDecl problem collection
 				MethodDecl md = this.typestateDecl().getTypeDecl().lookupMethod(tm);
+
+				// initialise local symbol table
+				md.initialiseLocalSymbolTable();
+				// initiallise current fieldDeclarator record
+				SymbolTable st = ((ClassDecl)md.hostType()).getSymbolTable();
+				st.currentLocal().putAll(this.getFieldDeclaratorRecord());
+
 				problems.addAll(md.collectTypestateProblems());
 				problems.addAll(md.typestateConsistencyProblems());
+
+				// get the typestate of vd after finished typestate checking for the md
+				HashMap <Variable, Typestate> targetFieldDeclaratorTypestate = new HashMap<Variable, Typestate>();
+				for (Variable v: st.currentLocal().keySet()) {
+					if (v instanceof FieldDeclarator) {
+						targetFieldDeclaratorTypestate.put(v, st.currentLocal().get(v));
+					}
+				}
 				//
 				Typestate t = tm.getTypestate();				
 				if (t instanceof TypestateLabel) {
 					t.setIsChecked();
 					TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
+					tml.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate); // set record
 					problems = tml.doMethodTraversal(problems);
 				} else if (t instanceof TypestateMethodList) {
+					t.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate);
 					problems = ((TypestateMethodList) t).doMethodTraversal(problems);
 				} else if (t instanceof TypestateSwitch) {
 					TypestateSwitch tsw = (TypestateSwitch) t;
+					tsw.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate);
 					tsw.setIsChecked();
 					problems = tsw.doTypestateSwitchMethodTraversal(problems);
 				} else { // EndTypestate
 					t.setIsChecked();
+					t.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate);
 					System.out.println("End Typestate");
 				}
 			}
@@ -65,15 +107,19 @@ aspect TypestateGraph {
 			if (t instanceof TypestateLabel) {
 				t.setIsChecked();
 				TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
+				tml.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
 				problems = tml.doMethodTraversal(problems);
 			} else if (t instanceof TypestateMethodList) {
+				t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
 				problems = ((TypestateMethodList) t).doMethodTraversal(problems);
 			} else if (t instanceof TypestateSwitch) {
 				TypestateSwitch tsw = (TypestateSwitch) t;
 				tsw.setIsChecked();
+				tsw.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
 				problems = tsw.doTypestateSwitchMethodTraversal(problems);
 			} else { // EndTypestate
 				t.setIsChecked();
+				t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
 				System.out.println("End Typestate");				
 			}
 		}
