@@ -1,23 +1,15 @@
 aspect TypestateGraph {
-	private LinkedList<Typestate> TypestateDecl.checkedList;
 
-	public LinkedList<Typestate> TypestateDecl.getCheckedList() {
-		return this.checkedList;
-	}
-	
-	public void TypestateDecl.addChecked(Typestate t) {
-		if (this.checkedList == null) {
-			this.checkedList = new LinkedList<Typestate>();
-		}
-		this.checkedList.add(t);
-	}
+	private boolean Typestate.checked = false;
 
 	public boolean Typestate.isChecked() {
-		return (this.typestateDecl().getCheckedList() == null) ? false : this.typestateDecl().getCheckedList().contains(this);
+		//return (this.typestateDecl().getCheckedList() == null) ? false : this.typestateDecl().getCheckedList().contains(this);
+		return this.checked;
 	}
 
 	public void Typestate.setIsChecked() {
-		this.typestateDecl().addChecked(this);
+		//this.typestateDecl().addChecked(this);
+		this.checked = true;
 	}
 
 	private HashMap<Variable, Typestate> Typestate.fieldDeclaratorRecord;
@@ -88,7 +80,6 @@ aspect TypestateGraph {
 				} else if (t instanceof TypestateSwitch) {
 					TypestateSwitch tsw = (TypestateSwitch) t;
 					tsw.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate);
-					tsw.setIsChecked();
 					problems = tsw.doTypestateSwitchMethodTraversal(problems);
 				} else { // EndTypestate
 					t.setIsChecked();
@@ -101,28 +92,30 @@ aspect TypestateGraph {
 	}
 
 	public LinkedList<Problem> TypestateSwitch.doTypestateSwitchMethodTraversal(LinkedList<Problem> problems) {
-		for (int i = 0; i < getNumTypestateSwitchCase(); i++) {
-			TypestateSwitchCase tc = getTypestateSwitchCase(i);
-			Typestate t = tc.getTypestate();
-			if (t instanceof TypestateLabel) {
-				t.setIsChecked();
-				TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
-				tml.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
-				problems = tml.doMethodTraversal(problems);
-			} else if (t instanceof TypestateMethodList) {
-				t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
-				problems = ((TypestateMethodList) t).doMethodTraversal(problems);
-			} else if (t instanceof TypestateSwitch) {
-				TypestateSwitch tsw = (TypestateSwitch) t;
-				tsw.setIsChecked();
-				tsw.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
-				problems = tsw.doTypestateSwitchMethodTraversal(problems);
-			} else { // EndTypestate
-				t.setIsChecked();
-				t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
-				System.out.println("End Typestate");				
+		if(!this.isChecked()){
+			for (int i = 0; i < getNumTypestateSwitchCase(); i++) {
+				TypestateSwitchCase tc = getTypestateSwitchCase(i);
+				Typestate t = tc.getTypestate();
+				if (t instanceof TypestateLabel) {
+					t.setIsChecked();
+					TypestateMethodList tml = (TypestateMethodList)((TypestateLabel) t).getTarget().getTypestate();
+					tml.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
+					problems = tml.doMethodTraversal(problems);
+				} else if (t instanceof TypestateMethodList) {
+					t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
+					problems = ((TypestateMethodList) t).doMethodTraversal(problems);
+				} else if (t instanceof TypestateSwitch) {
+					TypestateSwitch tsw = (TypestateSwitch) t;
+					tsw.setIsChecked();
+					tsw.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
+					problems = tsw.doTypestateSwitchMethodTraversal(problems);
+				} else { // EndTypestate
+					t.setIsChecked();
+					t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
+					System.out.println("End Typestate");				
+				}
 			}
-		}
+		}		
 		return problems;
 	}
 }
