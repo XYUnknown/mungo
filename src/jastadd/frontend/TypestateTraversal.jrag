@@ -1,4 +1,4 @@
-aspect TypestateGraph {
+aspect TypestateTraversal {
 
 	private boolean Typestate.checked = false;
 
