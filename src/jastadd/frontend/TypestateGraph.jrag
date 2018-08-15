@@ -3,12 +3,10 @@ aspect TypestateGraph {
 	private boolean Typestate.checked = false;
 
 	public boolean Typestate.isChecked() {
-		//return (this.typestateDecl().getCheckedList() == null) ? false : this.typestateDecl().getCheckedList().contains(this);
 		return this.checked;
 	}
 
 	public void Typestate.setIsChecked() {
-		//this.typestateDecl().addChecked(this);
 		this.checked = true;
 	}
 
