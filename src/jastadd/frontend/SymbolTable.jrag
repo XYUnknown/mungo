@@ -99,6 +99,20 @@ aspect SymbolTable {
 		}
 	}
 
+	/** 
+	 * Add local SymbolTable for MethodDecl
+	 */ 
+	public void MethodDecl.initialiseLocalSymbolTable() {
+		SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
+		// if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
+		// if not empty, clear it and push the new table on it
+		if (!st.getLocals().empty()) {
+			st.clearLocals();
+		}
+		HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
+		st.addLocal(map);
+	}
+
 	/**
 	 * Initialise globals by collection FieldDeclarators' states from FieldDecl of the ClassDecl
 	 */
