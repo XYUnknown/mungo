@@ -2,13 +2,12 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 %
-% This is where the packages are declared
 
 \documentclass[]{article}
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
-\usepackage[margin=1.5in,letterpaper]{geometry} % modify margins
+\usepackage[margin=1.5in,letterpaper]{geometry}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
@@ -48,7 +47,7 @@ ExtendJ syntax reference can be found at \url{http://jastadd.org/web/documentati
 
 \subsection{ExtendJ Problem-Reporting Features}
 ExtendJ uses bottom-up problem reporting design. \\[0.2cm]
-When the compiler is executed, each \texttt{ASTNode} in the Java abstact syntax tree (AST) contributes problems (including warnings and errors) to \texttt{CompilationUnit}. Root of Java AST, which is \texttt{Program}, processes each \texttt{CompilationUnit} to check whether there are problems need to be reported or not.
+When the method \texttt{processingCompilationUnit()} is called, all \texttt{ASTNode}s in the Java abstact syntax tree (AST) contribute problems (including warnings and errors) such as type problems, name problems etc. to \texttt{CompilationUnit}. The order of problem reporting is according to node's position in source code. Root of Java AST, which is \texttt{Program}, processes each \texttt{CompilationUnit} to check whether there are problems need to be reported or not.
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
@@ -82,8 +81,33 @@ Notice that a protocol file is parsed as a part of the Java AST. If a traversal 
 %------------------------------------------------------------------------------------------------------------
 In current design, typestate information is stored in two formats. In an \texttt{ASTNode} with typestate specifcation, typestate information is stored as a field. In each \texttt{ClassDecl}, there will be a \texttt{SymbolTable} storing global and local variables' typestates.\\[0.2cm]
 The original idea was to only store typestate in field, however this design caused difficulties in nested switch statement checking. Using a \texttt{SymbolTable} to store typestate information is a good solution to this issue.\\[0.2cm]
-Although using \texttt{SymbolTable} could handle variable typestate checking and updating, storing information in ASTNode is still necessary in current design. Since some \texttt{ASTNode} with typestate cannot be stored in the \texttt{SymbolTable}. For instance, the return typestate of a \texttt{MethodDecl}, the typestate of a \texttt{Dot} and so on. \\[0.2cm]
+Although using \texttt{SymbolTable} could handle variable typestate checking and updating, storing information in \texttt{ASTNode} is still necessary in current design. Since some \texttt{ASTNode} with typestate cannot be stored in the \texttt{SymbolTable}. For instance, the return typestate of a \texttt{MethodDecl}, the typestate of a \texttt{Dot} and so on. \\[0.2cm]
 Update of typestate state is done during typestate checking, i.e., problems reporting. Although it is not a good design to perform typestate checking and state updating at the same time, it is the best way to implement this type checking under ExtendJ framework.
+
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\section{Typestate Checking}
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+
+\subsection{Depth-First Search Traversing Typestate AST for Collecting Problems}
+Using the ExtendJ problems reporting design makes typestate checking slightly complex. As we disscussed in several meetings, the Visitor Pattern is more suitable for typestate checking. \\[0.2cm]
+However, it is still possible to make some modification to this framework. One of the major modification is that instead of reporting problems according to the order of position in source code, performing typestate checking according to Depth-first search (DFS) traversal order is implemented. \\[0.2cm]
+The reason of forcing typestate checking into this order is that typestate consistency checking of field declarators within method declarations requires method declarations are checked according to correct transition order specified in protocol files. \\[0.2cm]
+Base on this modification, in current design, problems are collected by each \texttt{MethodDecl}. \texttt{MethodDecl}s report problems to the \texttt{CompilationUnit} according to the DFS traversal order in typestate protocol AST. 
+
+\subsection{Switch-Case Typestate Checking}
+
+
+
+
+
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\section{Existing Issues}
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+\subsection{If-Else Branch Statement Typestate Checking}
 
 
 %
