@@ -11,7 +11,6 @@ aspect TypestateAnalysis {
     /**
      * Adding a field state to ASTNode
      */
-    //private HashMap<String, State> ASTNode.typestate = null;
     private Typestate ASTNode.typestate = null;
 
     /**
@@ -169,7 +168,6 @@ aspect TypestateAnalysis {
     }
 
     syn boolean VarAccess.hasTypestateState() {
-        //Declarator vd = (Declarator) varDecl(); 
         ASTNode node = (ASTNode) varDecl();
         return node.hasTypestateState();
     }
@@ -212,9 +210,6 @@ aspect TypestateAnalysis {
     @Override
     public Typestate ClassInstanceExpr.getState() {
         if (hasTypestateState()) {
-            //HashMap<String, State> state = new HashMap<String, State>();
-            //state.put(type().getTypestateDecl().getInitState().getID(), type().getTypestateDecl().getInitState());
-            //super.setState(type().getTypestateDecl().getInitState());
             Typestate state = type().getTypestateDecl().getInitState().getTypestate();
             super.setState(state);
         }
@@ -345,12 +340,6 @@ aspect TypestateAnalysis {
             TypestateMethod tm = td.lookupMethod(this);
             if ((tm != null) && (tm.getTType() instanceof TTypestate)) {
                 Typestate ts = ((TTypestate)tm.getTType()).getTypestate();
-                /*if (ts instanceof TypestateLabel) {
-                    HashMap<String, State> state = new HashMap<String, State>();
-                    String label = ((TypestateLabel)ts).getLabel();
-                    state.put(label, td.lookupState(label));
-                    return state;
-                }*/
                 return ts;
                 
             }
@@ -363,22 +352,6 @@ aspect TypestateAnalysis {
             TypestateDecl td = this.hostType().getTypestateDecl();
             TypestateMethod tm = td.lookupMethod(this);
             if (tm != null) {
-                /*
-                if (tm.getTypestate() instanceof TypestateLabel) {
-                    TypestateLabel tl = (TypestateLabel) tm.getTypestate();
-                    HashMap<String, State> targetState = new HashMap<String, State>();
-                    targetState.put(tl.getTarget().getID(), tl.getTarget());
-                    return targetState;
-                } else if (tm.getTypestate() instanceof TypestateSwitch) {
-                    HashMap<String, State> targetState = new HashMap<String, State>();
-                    TypestateSwitch tsw = (TypestateSwitch) tm.getTypestate();
-                    for(TypestateSwitchCase c: tsw.getTypestateSwitchCases()) {
-                        String label = c.getLabel();
-                        State state = ((TypestateLabel) c.getTypestate()).getTarget();
-                        targetState.put(label, state);
-                    }
-                    return targetState;
-                }*/
                 return tm.getTypestate();
             }
 
