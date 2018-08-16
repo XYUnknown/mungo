@@ -1,5 +1,9 @@
 /**
  * Helper methods for typestate checking
+ * The typestate field is updated
+ * This might cause incosistency of the typestate in symbol table and typestate field
+ * in typestate checking in different branches (switch, if-else)
+ * However in the end of branches, they will be set to the same automatically.
  */
 aspect TypestateCheckFunctionality {
 	/**
@@ -16,11 +20,6 @@ aspect TypestateCheckFunctionality {
 				return problems;
 			}
 			if (tsMethod.getTypestate() instanceof TypestateSwitch){
-				/**
-				 * Update state - Store label and State in the state map
-				 * lable is different from the State name
-				 * For example TRUE: Empty
-				 */
 				TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
 				va.setState(tsw);
 			} else {
@@ -45,11 +44,6 @@ aspect TypestateCheckFunctionality {
 				return problems;
 			}
 			if (tsMethod.getTypestate() instanceof TypestateSwitch){
-				/**
-				 * Update state - Store label and State in the state map
-				 * lable is different from the State name
-				 * For example TRUE: Empty
-				 */
 				TypestateSwitch tsw = (TypestateSwitch) tsMethod.getTypestate();
 				va.setState(tsw);
 			} else {

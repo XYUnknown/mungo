@@ -5,7 +5,6 @@
  */
 aspect AnnotationsCheck {
     coll LinkedList<Modifier> CompilationUnit.collectTypestateAnnotations() root CompilationUnit;
-    // Add problem contributions from the implicit constructor invocation NTA.
     ConstructorDecl contributes {
         if (checkImplicitConstructorInvocation()) {
             getImplicitConstructorInvocation().collectContributions();

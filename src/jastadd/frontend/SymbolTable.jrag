@@ -117,7 +117,6 @@ aspect SymbolTable {
 	 * Initialise globals by collection FieldDeclarators' states from FieldDecl of the ClassDecl
 	 */
 	coll LinkedList<HashMap<Variable, Typestate>> ClassDecl.collectGlobals() root ClassDecl;
-	// Add problem contributions from the implicit constructor invocation NTA.
 	ConstructorDecl contributes {
 		if (checkImplicitConstructorInvocation()) {
 			getImplicitConstructorInvocation().collectContributions();

@@ -115,7 +115,7 @@ aspect TypestateFunctionality {
 	}
 
 	/**
-	 * Equals
+	 * Override equals
 	 */
 	public boolean TypestateLabel.equals(Object obj) {
 		if (!(obj instanceof TypestateLabel)) {
