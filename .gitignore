@@ -25,3 +25,6 @@
 *.out
 *.aux
 *.pdf
+
+# Local tests
+/localtests/
