@@ -1,3 +1,7 @@
+/**
+ * Together with TypestateConsistencyAnalysis.jrag
+ * Handle if some MethodDecls have same target state (A protocol), a FieldDeclarator should also end up at same state(B protocol)
+ */
 aspect TypestateConsistencyCheck {
 	coll LinkedList<Variable> MethodDecl.collectFieldDeclarators() root MethodDecl;
 	ConstructorDecl contributes {
@@ -23,6 +27,7 @@ aspect TypestateConsistencyCheck {
 					ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
 					for (Variable v: variables) {
 						if (!ts.getFieldDeclaratorMap().containsKey(v)) {
+							// Typestate of a variable will updated into the typestate after the last change
 							ts.addToFieldDeclaratorMap(v, ((FieldDeclarator)v).getRecordState());
 						}
 					} 
@@ -31,11 +36,13 @@ aspect TypestateConsistencyCheck {
 					LinkedList<Typestate> list = td.getTypestateList();
 					if (list.contains(ts)) {
 						System.out.println("Consistency check: " + this + " checking map");
-						// somehow hashmap using Typestate as key does not work.
+						// somehow hash map using Typestate as key does not work.
 						// even the hashCode() method is override explicitly
 						HashMap<Variable, Typestate> map = list.get(list.indexOf(ts)).getFieldDeclaratorMap();
 						System.out.println("Consistency check map: " + map);
-						for (Variable v: variables) {
+						for (Variable v: variables) { 
+							// although same variable can be added for several times
+							// the typestate of same varibale should be the same - typestate after last change
 							if (map.containsKey(v)) {
 								if (!map.get(v).equals(((FieldDeclarator)v).getRecordState())) {
 									problems.add(error("Variable " + v + " has inconsistency typestate in same state"));

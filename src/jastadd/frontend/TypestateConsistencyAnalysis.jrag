@@ -1,3 +1,20 @@
+/**
+ * Fields and methods for checking typestate consistency.
+ * This part is separate from the main typestate check, althought those two parts together 
+ * handle typestate consistency checking.
+ *
+ * The main concern of typestate consistency is following situation:
+ * When a MethodDecl has typestate specification in, for example, A.protocol.
+ * Within this MethodDecl, FieldDeclarators b, which has host class B with B.protocol definiting its typestates.
+ * We need to check within A class MethodDecls, typestate transistion of B FieldDeclarator is not violated.
+ * 
+ * This checking can be separated into two parts:
+ * 0. When entering next state (A protocol), a FieldDeclarator is in the suitable state for next method access(B protocol)
+ * 1. If some MethodDecls have same target state (A protocol), a FieldDeclarator should also end up at same state(B protocol)
+ *
+ * 0 is handled by regular typestate checking
+ * 1 is handle by method in this file and TypestateConsistencyCheck.jrag
+ */
 aspect TypestateConsistencyAnalysis {
 	private HashMap<Variable, Typestate> Typestate.fieldDeclaratorMap;
 
