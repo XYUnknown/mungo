@@ -1,3 +1,8 @@
+/**
+ * Perform dfs traversal in a protocol ast
+ * By doing this allows the MethodDecls are checked in order acorrding to state transition 
+ * specified in protocol files  
+ */
 aspect TypestateTraversal {
 
 	private boolean Typestate.checked = false;
@@ -10,6 +15,10 @@ aspect TypestateTraversal {
 		this.checked = true;
 	}
 
+	/**
+	 * Record typestate of FieldDeclarators in current state 
+	 * Will be reused in the next state
+	 */
 	private HashMap<Variable, Typestate> Typestate.fieldDeclaratorRecord;
 
 	private void Typestate.initFieldDeclaratorRecord() {
@@ -65,7 +74,7 @@ aspect TypestateTraversal {
 						targetFieldDeclaratorTypestate.put(v, st.currentLocal().get(v));
 					}
 				}
-				//
+
 				Typestate t = tm.getTypestate();				
 				if (t instanceof TypestateLabel) {
 					t.setIsChecked();
