@@ -1,6 +1,8 @@
 # A Type Checking Tool Extending ExtendJ 
 
-This project uses project `Extension Base` as a starting point. 
+This project uses project `Extension Base` as a starting point.
+
+Source code of revious version Mungo can be found at: https://github.com/Dimitris-Kouzapas/javatypestate
 
 ## Cloning and Building this Project
 To clone this project, use this command:
@@ -21,6 +23,21 @@ Notice that all relevant java source files should be passed into command line, s
 An example command to run the typechecker:
 
 `java -jar Typestate.jar testfiles/collection/*.java`
+
+## Upgrading ExtendJ
+
+If you want to update to the latest ExtendJ version, you can use these commands:
+
+    cd extendj
+    git fetch origin
+    git reset --hard origin/master
+
+
+This may be necessary if a bugfix that you need was committed to ExtendJ in a version
+later than the version that this repository links to.
+
+It is recommended that you use a test suite to ensure that your extension
+functionality is preserved after upgrading the core ExtendJ compiler.
 
 
 ## README Documentation from Extension Base
