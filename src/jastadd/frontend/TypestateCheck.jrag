@@ -53,13 +53,11 @@ aspect TypestateCheck {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         Block block = getBlock();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
-        System.out.println("ConstructorDecl " + this +  " host class SymbolTable globals size: " + st.getGlobals().size());
         // if SymbolTable local stack is empty, push new table with ParameterDeclarator information on it
         // if not empty, clear it and push the new table on it
         if (!st.getLocals().empty()) {
             st.clearLocals();
         }
-        //HashMap<Variable, HashMap<String, State>> map = new HashMap<Variable, HashMap<String, State>>();
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate>();
         st.addLocal(map);     
         return problems;
@@ -358,7 +356,6 @@ aspect TypestateCheck {
     AssignExpr contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> AssignExpr.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("AssignExpr: " + this.lineNumber());
         if (!getDest().isVariable()) {
             problems.add(error("left hand side is not a variable"));
             return problems;
@@ -385,7 +382,6 @@ aspect TypestateCheck {
                 ClassInstanceExpr ins = (ClassInstanceExpr) getSource();
                 state = ins.getState(); 
             } else if (getSource() instanceof Dot) { // c = c1.foo();
-                // TODO: checking return type?
                 Dot d = (Dot) getSource();
                 if (!d.hasTypestateState()) {
                     problems.add(error("Typestate mismatch, no typestate found in source dot " + d));
@@ -616,15 +612,12 @@ aspect TypestateCheck {
     syn Collection<Problem> DoStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         LinkedList<MethodAccess> methodAccessList = this.collectMethodAccess();
-        System.out.println("DoStmt MethodAccess number: " + methodAccessList.size());
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables
         setInitialTable(st.currentLocal()); // set initial table for continue statement consistency checking
         HashMap<Variable, Typestate> doLocals = new HashMap<Variable, Typestate>();
         st.addLocal(doLocals);
-        System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
         this.getCondition().setIsLoopCondition(true); // set condition expr label true
         this.getCondition().setHostStmt(this); // set condition expr host statement
-        System.out.println("DoStmt: " + this.getCondition() + " " + this.getCondition().isLoopCondition());
         return problems; 
     }
 
@@ -661,6 +654,12 @@ aspect TypestateCheck {
         return problems;
     }
 
+    /**
+     * If-else typestate checking
+     * This part currently not working and might affact the typestate checking process
+     * The idea is firstly label the end of if-else branch, when the end label is reached,
+     * start checking whether all variables ended at the same states for different branches
+     */
     IfStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> IfStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -675,16 +674,11 @@ aspect TypestateCheck {
             }
             st.exitLocal();
         }
-        System.out.println("If statement"); 
-        //this.doPrintFullTraversalClass();
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
         st.addLocal(map);              
         return problems;
     }
 
-    /**
-     * If-else typestate checking
-     */
     Block contributes each branchTypestateProblems() when this.isElseStmt() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> Block.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
@@ -694,8 +688,7 @@ aspect TypestateCheck {
         for (Variable v: st.currentLocal().keySet()) {
             parentIfStmt.addVariable(v);
         }
-        System.out.println("Block else checking: " + st.exitLocal()); // do not delete
-        System.out.println("Block else checking: " + st.currentLocal());
+        st.exitLocal();
         HashMap<Variable, Typestate> map = new HashMap<Variable, Typestate> ();
         st.addLocal(map);
         return problems;
@@ -705,16 +698,8 @@ aspect TypestateCheck {
     syn Collection<Problem> Stmt.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         if (this.isIfElseLastStmt()) {
-            System.out.println("*************Last if-else stmt: " + this); 
+            System.out.println("Last if-else stmt: " + this); 
         }                      
-        return problems;
-    }
-    /** Print for debug*/
-    LabeledStmt contributes each typestateProblems() to CompilationUnit.problems();
-    syn Collection<Problem> LabeledStmt.typestateProblems() {
-        LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("LabeledStmt label: " + getLabel());
-        System.out.println("LabeledStmt stmt: " + getStmt().getClass());        
         return problems;
     }
 }
