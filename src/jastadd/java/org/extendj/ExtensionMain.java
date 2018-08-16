@@ -20,6 +20,11 @@ public class ExtensionMain extends JavaChecker {
         }
     }
 
+    /**
+     * Override Frontend.run(String[] args, BytecodeReader reader, JavaParser parser)
+     * All protocol files need to be parsed and checked before processing java source 
+     * compilation units
+     */
     @Override
     public int run(String[] args, BytecodeReader reader, org.extendj.ast.JavaParser parser) {
 
@@ -208,29 +213,8 @@ public class ExtensionMain extends JavaChecker {
     }
 
     /**
-     * Debug only - print protocol file content before processing CompilationUnit checking
-     * Used for looking up the approprate point of parsing typstate protocol
+     * Parse protocol files into a CompilationUnit
      */
-    private void printProtocolFile(String protocolFileName, String sourcePath){
-        int lastIdx = sourcePath.lastIndexOf('/');
-        String dir = sourcePath.substring(0, lastIdx + 1);
-        System.out.println("Path: " + dir);
-        String protocolFile =  dir + protocolFileName;
-        String line = null;
-        try {
-            FileReader fileReader = new FileReader(protocolFile);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            while((line = bufferedReader.readLine()) != null) {
-                System.out.println(line);
-            }   
-            bufferedReader.close();         
-        } catch(FileNotFoundException ex) {
-            System.out.println("Unable to open file '" + protocolFile + "'");                
-        } catch(IOException ex) { 
-            System.out.println("Error reading file '" + protocolFile + "'");                  
-        }
-    }
-
     private CompilationUnit parseProtocol(String protocolFileName, String sourcePath) throws FileNotFoundException{
         int lastIdx = sourcePath.lastIndexOf('/');
         String dir = sourcePath.substring(0, lastIdx + 1);
@@ -262,6 +246,30 @@ public class ExtensionMain extends JavaChecker {
             }
         }
         return result;
+    }
+
+    /**
+     * Debug only - print protocol file content before processing CompilationUnit checking
+     * Used for looking up the approprate point of parsing typstate protocol
+     */
+    private void printProtocolFile(String protocolFileName, String sourcePath){
+        int lastIdx = sourcePath.lastIndexOf('/');
+        String dir = sourcePath.substring(0, lastIdx + 1);
+        System.out.println("Path: " + dir);
+        String protocolFile =  dir + protocolFileName;
+        String line = null;
+        try {
+            FileReader fileReader = new FileReader(protocolFile);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            while((line = bufferedReader.readLine()) != null) {
+                System.out.println(line);
+            }   
+            bufferedReader.close();         
+        } catch(FileNotFoundException ex) {
+            System.out.println("Unable to open file '" + protocolFile + "'");                
+        } catch(IOException ex) { 
+            System.out.println("Error reading file '" + protocolFile + "'");                  
+        }
     }
   
 }
