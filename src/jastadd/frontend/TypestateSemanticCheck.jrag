@@ -9,10 +9,8 @@ aspect TypestateSemanticCheck {
      * @return zero on success, non-zero on error
      */
     protected int Frontend.processCompilationUnitForTypestate(CompilationUnit unit) throws Error {
-    	System.out.println("start");
 		if (unit != null) {
 			try {
-				System.out.println("processing...");
 				Collection<Problem> errors = unit.parseErrors();
 				Collection<Problem> warnings = EMPTY_PROBLEM_LIST;
 				if (errors.isEmpty()) {
