@@ -195,7 +195,7 @@ public class ExtensionMain extends JavaChecker {
             }
         }
         // TypestateSematicCheck OK, checking Java syntax.
-        unit.preprocess(); // Label special statements first
+        unit.preprocess(); // Label special statements first, might causes some error.
         javaCheckCode = super.processCompilationUnit(unit);
         if (javaCheckCode == 0) {
             // check end of programme, all Variables should be in end state
