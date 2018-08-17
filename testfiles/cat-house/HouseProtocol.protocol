@@ -6,7 +6,7 @@ typestate HouseProtocol {
 	}
 
 	HasCat = {
-		void killCat(): HasCat, // error
+		void killCat(): HasCat, // cause error
 		void close(): end
 	}
 }

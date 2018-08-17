@@ -19,6 +19,6 @@ class CatLinearValid {
 		c1.close();
 		c3.bury();
 		c4.close();
-		c2 = new Cat();
+		c2 = new Cat(); // error reported
 	}
 }

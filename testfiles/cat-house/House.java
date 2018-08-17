@@ -9,7 +9,7 @@ public class House {
 	}
 
 	public void killCat() {
-		c.giveBirth();
+		c.giveBirth(); // error reported
 		c.poison();
 		System.out.println("Your cat is killed");
 	}
@@ -20,6 +20,6 @@ public class House {
 	}
 
 	public void close() {
-		c.close();
+		c.close(); // error reported
 	}
 }
