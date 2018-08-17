@@ -154,7 +154,7 @@ There are some restrictions in switch statements for typestate checking:
 	\item There must be a break or continue statement at the end of a case.
 	\item All variables must have same typestate at break statemets with same target label. Same for continue statements.
 \end{enumerate}
-The typestate checking process works as this:
+The typestate checking works in this way:
 \begin{enumerate}
 	\item A \texttt{SwitchStmt} will push a new local symbol table on the local symbol stack.
 	\item All statements in the \texttt{SwitchStmt} will be labelled. Problem will be reported for invalid cases (violating above restrictions). The last break or continue statement will be labelled for consistency checking.
@@ -163,7 +163,7 @@ The typestate checking process works as this:
 	\item The last break or continue statement will check whether all variables have same typestate at break statemets with same target label at the end of \texttt{SwitchStmt} and report problems.
 \end{enumerate}
 
-\subsection{Loop Typstate Checking}
+\subsection{Loop Typestate Checking}
 The loop for typestate checking will always be a do-while loop controlled by break and continue statements. For example:
 \begin{lstlisting}
 loop: do {
