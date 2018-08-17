@@ -11,7 +11,37 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
+
+% for linking table of content with specific page number
 \usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, 
+    linktoc=all,
+    linkcolor=black,
+}
+
+% for inserting code
+\usepackage{listings}
+\definecolor{j_dkgreen}{rgb}{0,0.6,0}
+\definecolor{j_gray}{rgb}{0.5,0.5,0.5}
+\definecolor{j_mauve}{rgb}{0.58,0,0.82}
+\lstset{
+  frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{j_gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{j_dkgreen},
+  stringstyle=\color{j_mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4
+}
 
 \begin{document}
 
@@ -78,7 +108,6 @@ Here is an example command:
 java -jar Typestate.jar testfiles/collection/*.java
 \end{verbatim}
 
-
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
 \section{Typestate Annotation Detecting and Typestate Protocol File Parsing}
@@ -113,7 +142,37 @@ However, it is still possible to make some modification to this framework. One o
 The reason of forcing typestate checking into this order is that typestate consistency checking of field declarators within method declarations requires method declarations are checked according to correct transition order specified in protocol files. \\[0.2cm]
 Base on this modification, in current design, problems are collected by each \texttt{MethodDecl}. \texttt{MethodDecl}s report problems to the \texttt{CompilationUnit} according to the DFS traversal order in typestate protocol AST. 
 
-\subsection{Switch-Case Typestate Checking}
+\subsection{Switch-Case Statements Typestate Checking}
+There are some restrictions in switch statements for typestate checking:
+\begin{enumerate}
+	\item Case labels must match the labels in \texttt{TypestateSwitch} and \texttt{default} case is not allowed.
+	\item There must be a break or continue statement at the end of a case.
+	\item All variables must have same typestate at break statemets with same target label. Same for continue statements.
+\end{enumerate}
+The typestate checking process works as this:
+\begin{enumerate}
+	\item A \texttt{SwitchStmt} will push a new local symbol table on the local symbol stack.
+	\item All statements in the \texttt{SwitchStmt} will be labelled. Problem will be reported for invalid cases (violating above restrictions). The last break or continue statement will be labelled for consistency checking.
+	\item Each \texttt{ConstCase} will push a new local symbol tabel on the local symbol stack.
+	\item Each \texttt{BreakStmt} or \texttt{ContinueStmt} will pop a symbol table from the local symbol table stack and store it in a field.
+	\item The last break or continue statement will check whether all variables have same typestate at break statemets with same target label at the end of \texttt{SwitchStmt} and report problems.
+\end{enumerate}
+
+\subsection{Loop Typstate Checking}
+The loop for typestate checking will always be a do-while loop controlled by break and continue statements. For example:
+\begin{lstlisting}
+loop: do {
+			Node n = s.get();
+			switch(s.isEmpty()) {
+				case TRUE:
+					break loop;
+
+				case FALSE:
+					continue loop;
+			}
+		} while(true);
+\end{lstlisting}
+The typestate checking on loop is similiar to checking swiich statements. Variables at break/continue statements with same target labels should at same state. Moreover, at \texttt{conitinue loop}, variables should be in the same state as the beginning of this loop.
 
 
 
@@ -124,7 +183,7 @@ Base on this modification, in current design, problems are collected by each \te
 \section{Existing Issues}
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
-\subsection{If-Else Branch Statement Typestate Checking}
+\subsection{If-Else Statements Typestate Checking}
 
 
 %
