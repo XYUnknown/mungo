@@ -5,8 +5,8 @@
  *
  * The main concern of typestate consistency is following situation:
  * When a MethodDecl has typestate specification in, for example, A.protocol.
- * Within this MethodDecl, FieldDeclarators b, which has host class B with B.protocol definiting its typestates.
- * We need to check within A class MethodDecls, typestate transistion of B FieldDeclarator is not violated.
+ * Within this MethodDecl, FieldDeclarator b, which has host class B with B.protocol defining its typestates.
+ * We need to check within A class MethodDecls, whether typestate transistion of B FieldDeclarator is violated or not.
  * 
  * This checking can be separated into two parts:
  * 0. When entering next state (A protocol), a FieldDeclarator is in the suitable state for next method access(B protocol)

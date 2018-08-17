@@ -9,8 +9,6 @@ TypestateAnnotation : ABSTypestateAnnotation;
  * Contructing AST from .protocol file. 
  * Adapted from old mungo version.
  */
-//TypestateClassDecl	:	ClassDecl	::=	TypestateArg: Access; (Not useful currently)
-
 TypestateDecl		:	TypeDecl	::=	InitState State*;
 
 State								::=	<ID: String> Typestate;
@@ -27,6 +25,7 @@ TypestateLabel		:	Typestate	::=	<Label: String>;
 
 TypestateSwitchCase					::=	<Label: String> Typestate;
 
+// Specifying the type of TypestateMethod's parameters, return types etc.
 TType								::=	Access;
 TTypestate			:	TType		::=	Typestate;
 
