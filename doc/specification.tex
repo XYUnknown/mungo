@@ -203,17 +203,13 @@ There are some existing issues:
 \begin{enumerate}
 	\item As mentioned in previous section, if-else statement typestate checking is only partially implemented and not functioning.
 	\item Try-catch statement typestate checking is not implemented.
-	\item Because of reordering typestate checking, the line numbers of reported problems might not in order.
+	\item Because of reordering typestate checking, the line numbers of reported problems might not be in order.
 	\item In current stage, there is no unit test for this project. Because of lack of test cases, there might be some unhandled boundary conditions. 
-	\item Because of this bottom-up problems reporting together with typestate updating, there might be some cases that interrupt this process and lead variable into wrong state. However because of lack of testing, these problems are not discovered yet.
+	\item Because of this bottom-up problems reporting together with typestate updating, there might be some cases that interrupt this process and lead variable into wrong state and affact the correctness of subsequent checking. However because of lack of testing, these problems are not discovered yet.
 	\item Some field/method names can be confusing.
 	\item There might be some typos and grammar mistakes in this note, though the logic and idea are correct.
 \end{enumerate}
 If someone (or myself) is going to do some more implemention base on current design, please try to think about a better way to do the end of branches typestate consistency checking for not only if-else statements but also switch statements and loop statements. Moreover, please try to make this program more structured. \\[0.2cm]
-
-%------------------------------------------------------------------------------------------------------------
-%------------------------------------------------------------------------------------------------------------
-
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
