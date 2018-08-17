@@ -122,9 +122,14 @@ Notice that a protocol file is parsed as a part of the Java AST. If a traversal 
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
-\section{Storing and Updating Typestate Information}
+\section{Some Explanation on Typestate}
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
+\subsection{Subclasses of Typestate}
+According to the grammar specifiation in previous version, \texttt{Typestate} is an abstract class, \texttt{TypestateMethodList}, \texttt{EndTypestate}, \texttt{TypestateMethod}, \texttt{TypestateSwitch}, \texttt{TypestateLabel}and \texttt{TTypestate} are all subclasses of it. \\[0.2cm]
+Therefore it is important to always make the down casting of variable's typestate is correct during typestate checking.
+
+\subsection{Storing and Updating Typestate Information}
 In current design, typestate information is stored in two formats. In an \texttt{ASTNode} with typestate specifcation, typestate information is stored as a field. In each \texttt{ClassDecl}, there will be a \texttt{SymbolTable} storing global and local variables' typestates.\\[0.2cm]
 The original idea was to only store typestate in field, however this design caused difficulties in nested switch statement checking. Using a \texttt{SymbolTable} to store typestate information is a good solution to this issue.\\[0.2cm]
 Although using \texttt{SymbolTable} could handle variable typestate checking and updating, storing information in \texttt{ASTNode} is still necessary in current design. Since some \texttt{ASTNode} with typestate cannot be stored in the \texttt{SymbolTable}. For instance, the return typestate of a \texttt{MethodDecl}, the typestate of a \texttt{Dot} and so on. \\[0.2cm]
@@ -172,10 +177,20 @@ loop: do {
 			}
 		} while(true);
 \end{lstlisting}
-The typestate checking on loop is similiar to checking swiich statements. Variables at break/continue statements with same target labels should at same state. Moreover, at \texttt{conitinue loop}, variables should be in the same state as the beginning of this loop.
+The typestate checking on loop is similar to checking switch statements. Variables at break/continue statements with same target labels should at same state. Moreover, at \texttt{conitinue loop}, variables should be in the same state as the beginning of this loop.
+
+\subsection{If-Else Statements Typestate Checking}
+The idea of if-else statements typestate checking is also similar to checking switch statements. The idea is firstly label the end of if-else branch, when the end label is reached, start checking whether same variable ended the same state for different branches. However this part currently is not implemented yet since the labelled end statement might report problems before the last variable state update.
 
 
-
+\subsection{Typestate Consistency Checking}
+The main concern of typestate consistency is the following situation.When a MethodDecl has typestate specification in, for example, A.protocol. Within this MethodDecl, there is a FieldDeclarator b, which has host class B with B.protocol defining its typestates. We need to check within A class MethodDecls, whether typestate transistion of B FieldDeclarator is violated or not.\\[0.2cm]
+This checking can be separated into two parts:
+\begin{enumerate}
+	\item When entering next state (A protocol), a FieldDeclarator is in the suitable state for next method access(B protocol)
+	\item If some MethodDecls have same target state (A protocol), a FieldDeclarator should also end up at same state(B protocol)
+\end{enumerate}
+The first part is handled by regular typestate checking and the second part is handle by methods declared in \texttt{TypestateConsistencyAnalysis.jrag} and \texttt{TypestateConsistencyCheck.jrag}
 
 
 %------------------------------------------------------------------------------------------------------------
@@ -183,7 +198,24 @@ The typestate checking on loop is similiar to checking swiich statements. Variab
 \section{Existing Issues}
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
-\subsection{If-Else Statements Typestate Checking}
+There are some existing issues:
+\begin{enumerate}
+	\item As mentioned in previous section, if-else statement typestate checking is only partially implemented and not functioning.
+	\item Try-catch statement typestate checking is not implemented.
+	\item Because of reordering typestate checking, the line numbers of reported problems might not in order.
+	\item In current stage, there is no unit test for this project. Because of lack of test cases, there might be some unhandled boundary conditions. 
+	\item Because of this bottom-up problems reporting together with typestate updating, there might be some cases that interrupt this process and lead variable into wrong state. However because of lack of testing, these problems are not discovered yet.
+	\item Some field/method names can be confusing.
+	\item There might be some typos and grammar mistakes in this note, though the logic and idea are correct.
+\end{enumerate}
+If someone (or myself) is going to do some more implemention base on current design, please try to think about a better way to do the end of branches typestate consistency checking for not only if-else statements but also switch statements and loop statements. Moreover, please try to make this program more structured. \\[0.2cm]
+
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
+
+
+%------------------------------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------------------------------------
 
 
 %
