@@ -54,7 +54,6 @@ aspect TypestateTraversal {
 			this.setIsChecked();
 			for (int i = 0; i < getNumTypestateMethod(); i++) {
 				TypestateMethod tm = getTypestateMethod(i);
-				System.out.println(tm.getID());
 				// MethodDecl problem collection
 				MethodDecl md = this.typestateDecl().getTypeDecl().lookupMethod(tm);
 
@@ -91,7 +90,7 @@ aspect TypestateTraversal {
 				} else { // EndTypestate
 					t.setIsChecked();
 					t.setFieldDeclaratorRecord(targetFieldDeclaratorTypestate);
-					System.out.println("End Typestate");
+					//System.out.println("End Typestate");
 				}
 			}
 		}
@@ -119,7 +118,7 @@ aspect TypestateTraversal {
 				} else { // EndTypestate
 					t.setIsChecked();
 					t.setFieldDeclaratorRecord(this.getFieldDeclaratorRecord());
-					System.out.println("End Typestate");				
+					//System.out.println("End Typestate");				
 				}
 			}
 		}		

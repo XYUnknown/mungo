@@ -18,7 +18,6 @@ aspect AnnotationsCheck {
         LinkedList<Modifier> ms = new LinkedList<Modifier>();
         for(Modifier m: this.getModifiers().getModifierList()){
             if(m instanceof TypestateAnnotation){
-                System.out.println("collecting: Typestate modifier found in TypeDecl");
                 ms.add(m);
             }
         }
@@ -31,7 +30,6 @@ aspect AnnotationsCheck {
         LinkedList<Modifier> ms = new LinkedList<Modifier>();
         for(Modifier m: this.getModifiers().getModifierList()){
             if(m instanceof TypestateAnnotation){
-                System.out.println("collecting: Typestate modifier found in ClassDecl");
                 ms.add(m);
             }
         }
@@ -43,9 +41,7 @@ aspect AnnotationsCheck {
     syn Collection<Modifier> Modifiers.typestateAnnotations(){
         LinkedList<Modifier> ms = new LinkedList<Modifier>();
         for(Modifier m: getModifierList()){
-            // System.out.println(m.getID());
             if(m instanceof TypestateAnnotation){
-                System.out.println("collecting: Typestate modifier found in Modifiers");
                 ms.add(m);
             }
         }

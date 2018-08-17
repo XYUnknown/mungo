@@ -16,14 +16,11 @@ aspect TypestateConsistencyCheck {
 		LinkedList<Problem> problems = new LinkedList<Problem>();
 		if (hasTypestateDecl() && (this.hostType().getTypestateDecl().lookupMethod(this) != null)){
 			LinkedList<Variable> variables = this.collectFieldDeclarators();
-			System.out.println("Consistency check: " + this + " "+ variables.size());
 			TypestateDecl td = this.hostType().getTypestateDecl();
 			Typestate ts = td.lookupMethod(this).getTypestate();
 			if (variables.size() > 0) {
-				System.out.println("Consistency check: " + this + " target " + ts);
 				if (!td.hasTypestateList()) {
 					td.setTypestateList(new LinkedList<Typestate>());
-					System.out.println("Consistency check: " + this + " initialising list and map");
 					ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
 					for (Variable v: variables) {
 						if (!ts.getFieldDeclaratorMap().containsKey(v)) {
@@ -35,11 +32,9 @@ aspect TypestateConsistencyCheck {
 				} else {
 					LinkedList<Typestate> list = td.getTypestateList();
 					if (list.contains(ts)) {
-						System.out.println("Consistency check: " + this + " checking map");
 						// somehow hash map using Typestate as key does not work.
 						// even the hashCode() method is override explicitly
 						HashMap<Variable, Typestate> map = list.get(list.indexOf(ts)).getFieldDeclaratorMap();
-						System.out.println("Consistency check map: " + map);
 						for (Variable v: variables) { 
 							// although same variable can be added for several times
 							// the typestate of same varibale should be the same - typestate after last change
@@ -53,7 +48,6 @@ aspect TypestateConsistencyCheck {
 							} 
 						}
 					} else {
-						System.out.println("Consistency check: " + this + " initialising map");
 						ts.setFieldDeclaratorMap(new HashMap<Variable, Typestate>());
 						for (Variable v: variables) {
 							if (!ts.getFieldDeclaratorMap().containsKey(v)) {

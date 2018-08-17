@@ -20,12 +20,9 @@ aspect TypestateCheck {
         }
         // Collect FieldDeclarators's state from FieldDecl and add them to SymbolTable globals
         LinkedList<HashMap<Variable, Typestate>> globalSymbolList = this.collectGlobals();
-        this.addAllGlobals(globalSymbolList); 
-        System.out.println("Global symbol table size: " + this.getSymbolTable().getGlobals().size()); 
+        this.addAllGlobals(globalSymbolList);  
         if (hasTypestateAnnotation() && (td != null)) { // the annotation is found but no AST
-            System.out.println("TypestateDecl method traversal");
             problems.addAll(td.traversalMethodCheck());
-            System.out.println("TypestateDecl traversal check number of consistencyProblems: " + problems.size());
             for (MethodDecl md: this.methods()) {
                 if (td.lookupMethod(md) == null) {
                     md.initialiseLocalSymbolTable();
@@ -33,7 +30,7 @@ aspect TypestateCheck {
                 }
             }
         }
-        if (!hasTypestateAnnotation()){
+        if (!hasTypestateAnnotation()) { // method with no typestate
             for (MethodDecl md: this.methods()) {
                 md.initialiseLocalSymbolTable();
                 problems.addAll(md.collectTypestateProblems());                
@@ -139,20 +136,20 @@ aspect TypestateCheck {
   		LinkedList<Problem> problems = new LinkedList<Problem>();
 
         //-------printing for debug-------//
-        System.out.println("---------checking------------");
-        System.out.println("MethodAccess name: " + name() + " /hostType: " + this.hostType() + " /Type: " + this.type() + " /decl hostType: " + decl().hostType()); 
-        if (((ClassDecl)hostType()).getSymbolTable()!= null){ 
-            System.out.println("SymbolTable info: globals size " + 
-            ((ClassDecl)hostType()).getSymbolTable().getGlobals().size() + " locals size: " + 
-            ((ClassDecl)hostType()).getSymbolTable().getLocals().size() + " current local size: " +
-            ((((ClassDecl)hostType()).getSymbolTable().getLocals().size() == 0) ? 0 : ((ClassDecl)hostType()).getSymbolTable().currentLocal().size()));
-        }
+        //System.out.println("---------checking------------");
+        //System.out.println("MethodAccess name: " + name() + " /hostType: " + this.hostType() + " /Type: " + this.type() + " /decl hostType: " + decl().hostType()); 
+        //if (((ClassDecl)hostType()).getSymbolTable()!= null){ 
+        //    System.out.println("SymbolTable info: globals size " + 
+        //    ((ClassDecl)hostType()).getSymbolTable().getGlobals().size() + " locals size: " + 
+        //    ((ClassDecl)hostType()).getSymbolTable().getLocals().size() + " current local size: " +
+        //    ((((ClassDecl)hostType()).getSymbolTable().getLocals().size() == 0) ? 0 : ((ClassDecl)hostType()).getSymbolTable().currentLocal().size()));
+        //}
         //-------end-------//
 
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol table
 
         if(hasPrevExpr()) { // avoid situation such as 1) implicit self reference 2) static method
-            System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
+            //System.out.println("MethodAccess preExpr: " + prevExpr() + " " + prevExpr().getClass());
             Expr va = prevExpr();
             if (va.hasTypestateState() && !va.hasState()) { // if va does not have state, report error
                 problems.add(error("No Init State found in VarAccess " + va));
@@ -198,7 +195,6 @@ aspect TypestateCheck {
                         problems.add(error("Cannot find state of variable " + variable + " in SymbolTable"));
                         return problems;                       
                     }
-                    System.out.println("MethodAccess variable state: " + stateMap);
                     //_____________
                     if (stateMap instanceof EndTypestate) {
                         // End of state error reporting
@@ -211,7 +207,6 @@ aspect TypestateCheck {
                         if (problems.size() != 0) {
                             return problems;
                         }
-                        System.out.println(this + " isSwitchStmtExpr? " + this.isSwitchStmtExpr());
                         if (this.isSwitchStmtExpr()) {
                             SwitchStmt hostSwitch = this.lookupExprSwitchStmt();
                             // init all the records and maps here
@@ -285,7 +280,6 @@ aspect TypestateCheck {
             SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // get the symbol table from the host ClassDecl
             if (!hasState()) { // getInit() : Expr
                 if ((getInit() != null ) && !(getInit() instanceof NullLiteral)) { // taking care of C c = null; and C c;
-                    System.out.println("Init: " + getInit().getClass() + " type: " + getInit().type()); 
                     if (getInit() instanceof ClassInstanceExpr) { // C c = new C();
                         ClassInstanceExpr ins = (ClassInstanceExpr) getInit();
                         setState(ins.getState()); // the state field in ASTNode is updated
@@ -461,7 +455,7 @@ aspect TypestateCheck {
     BreakStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> BreakStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("BreakStmt target: " + targetStmt());
+        //System.out.println("BreakStmt target: " + targetStmt());
         SwitchStmt switchStmt = lookupSwitch();
         if ((switchStmt != null) && switchStmt.hasTypestateDecl()) {
             HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
@@ -471,7 +465,7 @@ aspect TypestateCheck {
                 BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
                 // if target is labeled stmt, get the internal statement from it
                 if (targetStmt instanceof LabeledStmt) {
-                    System.out.println("Target is LabeledStmt: " + targetStmt);
+                    //System.out.println("Target is LabeledStmt: " + targetStmt);
                     Stmt stmt = ((LabeledStmt)targetStmt).getStmt();
                     if (stmt instanceof BranchTargetStmt) {
                         targetStmt = (BranchTargetStmt) stmt;
@@ -483,7 +477,7 @@ aspect TypestateCheck {
                 if (info.isLastStmt()) {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
-                    System.out.println("BreakStmt size check " + size);
+                    //System.out.println("BreakStmt size check " + size);
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -523,7 +517,7 @@ aspect TypestateCheck {
     ContinueStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> ContinueStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("ContinueStmt target: " + targetStmt());
+        //System.out.println("ContinueStmt target: " + targetStmt());
         SwitchStmt switchStmt = lookupSwitch();
         if ((switchStmt != null) && switchStmt.hasTypestateDecl()) {
             HashMap<Stmt, StmtInfo> infoMap = switchStmt.getStmtInfoMap();
@@ -533,7 +527,7 @@ aspect TypestateCheck {
                 BranchTargetStmt targetStmt = (BranchTargetStmt) this.targetStmt();
                 // if target is labeled stmt, get the internal statement from it
                 if (targetStmt instanceof LabeledStmt) {
-                    System.out.println("Target is LabeledStmt: " + targetStmt);
+                    //System.out.println("Target is LabeledStmt: " + targetStmt);
                     Stmt stmt = ((LabeledStmt)targetStmt).getStmt();
                     if (stmt instanceof BranchTargetStmt) {
                         targetStmt = (BranchTargetStmt) stmt;
@@ -545,7 +539,7 @@ aspect TypestateCheck {
                 if (info.isLastStmt()) {
                     // pop, check, store state
                     int size = switchStmt.caseMap().size();
-                    System.out.println("ContinueStmt size check " + size);
+                    //System.out.println("ContinueStmt size check " + size);
                     HashMap<Variable, Typestate> map = st.currentLocal();
                     for (Variable v : map.keySet()) {
                         if ((targetStmt.getVarList() == null) || (!targetStmt.getVarList().contains(v))) {
@@ -587,14 +581,12 @@ aspect TypestateCheck {
     SwitchStmt contributes each typestateProblems() to MethodDecl.collectTypestateProblems();
     syn Collection<Problem> SwitchStmt.typestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
-        System.out.println("SwitchStmt Typestate? " + hasTypestateDecl());
-        System.out.println("SwitchStmt branches? " + branches().size());
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable(); // load host class symbol tables 
         if (hasTypestateDecl()) {
             if (this.getRecordVariable() == null) {
                 this.initRecordVariable();
-                System.out.println("Record Variable: " + this.getRecordVariable() + " " + this.getRecordVariable().getClass());
-                System.out.println("Test variable typestate: " + this.getRecordVariable().getState());
+                //System.out.println("Record Variable: " + this.getRecordVariable() + " " + this.getRecordVariable().getClass());
+                //System.out.println("Test variable typestate: " + this.getRecordVariable().getState());
             }   
             if (this.getRecordVariable() == null) {
                 problems.add(error("Cannot find record variable of this typestate switch statement"));
@@ -630,8 +622,8 @@ aspect TypestateCheck {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         SymbolTable st = ((ClassDecl)this.hostType()).getSymbolTable();
         if (this.isLoopCondition()) {
-            System.out.println("Condition Expr: " + this);
-            System.out.println("Before Condition Expr local size: " + st.getLocals().size());
+            //System.out.println("Condition Expr: " + this);
+            //System.out.println("Before Condition Expr local size: " + st.getLocals().size());
             HashMap<Variable, Typestate> loopMap = st.exitLocal();
             BranchTargetStmt hostStmt = this.getHostStmt();
             if (hostStmt == null) {
@@ -649,7 +641,7 @@ aspect TypestateCheck {
                 }
             }           
             st.currentLocal().putAll(loopMap);
-            System.out.println("After Condition Expr local size: " + st.getLocals().size());
+            //System.out.println("After Condition Expr local size: " + st.getLocals().size());
         }        
         return problems;
     }
@@ -698,7 +690,7 @@ aspect TypestateCheck {
     syn Collection<Problem> Stmt.branchTypestateProblems() {
         LinkedList<Problem> problems = new LinkedList<Problem>();
         if (this.isIfElseLastStmt()) {
-            System.out.println("Last if-else stmt: " + this); 
+            //System.out.println("Last if-else stmt: " + this); 
         }                      
         return problems;
     }
