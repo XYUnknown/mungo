@@ -94,16 +94,14 @@ public class ExtensionMain extends JavaChecker {
                                     super.program.addCompilationUnit(cu);
                                     for (TypeDecl td: cu.getTypeDecls()){
                                         if (td instanceof TypestateDecl){
-                                            System.out.println("This is a TypestateDecl " + td.name());
                                             TypestateDecl tsd = (TypestateDecl) td;
-                                            System.out.println(tsd.getInitState());
                                         }
                                     }
                                 }                        
                             }                    
                         }
                     } catch (FileNotFoundException e){
-                        System.out.println("Cannot find protocol file");
+                        System.err.println("Cannot find protocol file");
                     } catch (Error e) {
                         System.err.println("Encountered error while processing " + unit.pathName());
                         throw e;
@@ -218,14 +216,13 @@ public class ExtensionMain extends JavaChecker {
     private CompilationUnit parseProtocol(String protocolFileName, String sourcePath) throws FileNotFoundException{
         int lastIdx = sourcePath.lastIndexOf('/');
         String dir = sourcePath.substring(0, lastIdx + 1);
-        System.out.println("Path: " + dir);
         String path = dir + protocolFileName;
         JavaParser parser = new JavaParser();
         CompilationUnit u = null;
         try{
             FileInputStream fileStream = new FileInputStream(path);
             u = (CompilationUnit) parser.parse(fileStream, path);
-            System.out.println("Typestate Protocol file is successfully parsed");
+            System.out.println("Typestate protocol file " + protocolFileName + " is successfully parsed");
         } catch(FileNotFoundException e) {
             throw e;
         } catch(IOException e) {

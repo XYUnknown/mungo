@@ -26,16 +26,16 @@ aspect SwitchCaseAnalysis {
 		for (HashMap<Variable, Typestate> map: this.breakStateMapList) {
 			for (Variable v: this.varList){
 				if (!map.containsKey(v)) {
-					System.out.println("not contains " + v);
 					return false;
 				} else {
 					if (!checkMap.containsKey(v)) {
 						checkMap.put(v, map.get(v));
 					} else {
 						if(!checkMap.get(v).equals(map.get(v))){
-							System.out.println(checkMap.get(v));
-							System.out.println(map.get(v));
-							System.out.println("mismatched");
+							// debug
+							//System.out.println(checkMap.get(v));
+							//System.out.println(map.get(v));
+							//System.out.println("mismatched");
 							return false;
 						}											
 					}
@@ -75,11 +75,9 @@ aspect SwitchCaseAnalysis {
 					return false;
 				} else {
 					if (!checkMap.containsKey(v)) {
-						System.out.println("not contains " + v);
 						checkMap.put(v, map.get(v));
 					} else {
 						if(!checkMap.get(v).equals(map.get(v))){
-							System.out.println("mismatched");
 							return false;
 						}
 					}
