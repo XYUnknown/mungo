@@ -56,11 +56,28 @@ When the method \texttt{processingCompilationUnit()} is called, all \texttt{ASTN
 %------------------------------------------------------------------------------------------------------------
 \subsection{General Information}
 Project website: \url{http://www.dcs.gla.ac.uk/research/mungo/index.html}. \\[0.2cm]
-More information can be found at \url{https://bitbucket.org/abcd-glasgow/mungo}.\\[0.2cm]
+More information can be found at \url{https://bitbucket.org/abcd-glasgow/mungo}. \\[0.2cm]
 Source code of previous version Mungo can be found at \url{https://github.com/Dimitris-Kouzapas/javatypestate}.
 
 \subsection{Code Reuse}
 In current version, the grammar and parser for typestate protocol files are adapted with modification from previous version. The algorithm of typestate protocol sematic checking is also from previous version but implemented using ExtendJ bottom-up problem reporting design. Moreover, helper methods for typestate \texttt{ASTNode} are adapted from previous version.
+
+\subsection{Changes in Protocol Specification}
+If a \texttt{TypestateMethod}'s parameters that have a class type with typestate specification, its state need to be explicitly stated in protocol file. The sytax is \texttt{Class<<State>>}. \\[0.2cm]
+Similarly, If the return type has typestate specification, its state also need to be specified.
+
+\subsection{Changes in Execution Command}
+Different from previous version, class path do not need to be included in command for parsing protocol. \\[0.2cm]
+Format of command to run current version:
+\begin{verbatim}
+java -jar Typestate.jar [filepath]
+\end{verbatim}
+The \texttt{[filepath]} is the same as \texttt{[filepath]} in Java compiler, which should include all relevant Java source files.\\[0.2cm]
+Here is an example command:
+\begin{verbatim}
+java -jar Typestate.jar testfiles/collection/*.java
+\end{verbatim}
+
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
@@ -91,7 +108,7 @@ Update of typestate state is done during typestate checking, i.e., problems repo
 %------------------------------------------------------------------------------------------------------------
 
 \subsection{Depth-First Search Traversing Typestate AST for Collecting Problems}
-Using the ExtendJ problems reporting design makes typestate checking slightly complex. As we disscussed in several meetings, the Visitor Pattern is more suitable for typestate checking. \\[0.2cm]
+Using the ExtendJ problems reporting design makes typestate checking slightly complex. As we discussed in several meetings, the Visitor Pattern is more suitable for typestate checking. \\[0.2cm]
 However, it is still possible to make some modification to this framework. One of the major modification is that instead of reporting problems according to the order of position in source code, performing typestate checking according to Depth-first search (DFS) traversal order is implemented. \\[0.2cm]
 The reason of forcing typestate checking into this order is that typestate consistency checking of field declarators within method declarations requires method declarations are checked according to correct transition order specified in protocol files. \\[0.2cm]
 Base on this modification, in current design, problems are collected by each \texttt{MethodDecl}. \texttt{MethodDecl}s report problems to the \texttt{CompilationUnit} according to the DFS traversal order in typestate protocol AST. 
