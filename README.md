@@ -39,6 +39,11 @@ later than the version that this repository links to.
 It is recommended that you use a test suite to ensure that your extension
 functionality is preserved after upgrading the core ExtendJ compiler.
 
+## Environment Setup
+* Gradle v4.8 is used for building this project.
+* It is difficult to set up a proper gradle project in IDE for this project. Please use a code editor and terminal for developing and building this project.
+* Note that there is no syntax highlighting for ExtendJ syntax in most code editor. Please use Java syntax highlighting or  write one by yourself.
+* JUnit test is not set up as I do not know how to properly set it up for this project. Please set it up if you manage to do so.
 
 ## README Documentation from Extension Base
 This project is a minimal working example of an extension to the extensible Java compiler ExtendJ. This should provide a useful base for creating your own extensions.
