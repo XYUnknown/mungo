@@ -26,21 +26,21 @@
 \definecolor{j_gray}{rgb}{0.5,0.5,0.5}
 \definecolor{j_mauve}{rgb}{0.58,0,0.82}
 \lstset{
-  frame=tb,
-  language=Java,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=none,
-  numberstyle=\tiny\color{j_gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{j_dkgreen},
-  stringstyle=\color{j_mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=4
+	frame=tb,
+	language=Java,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{j_gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{j_dkgreen},
+	stringstyle=\color{j_mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=4
 }
 
 \begin{document}
@@ -58,7 +58,7 @@
 
 \title{Java Typestate Checking Implementation Notes}
 \author{Xueying Qin}
-\date{\small\today}
+\date{\small August 17, 2018}
 
 \maketitle
 
@@ -77,7 +77,8 @@ ExtendJ syntax reference can be found at \url{http://jastadd.org/web/documentati
 
 \subsection{ExtendJ Problem-Reporting Features}
 ExtendJ uses bottom-up problem reporting design. \\[0.2cm]
-When the method \texttt{processingCompilationUnit()} is called, all \texttt{ASTNode}s in the Java abstact syntax tree (AST) contribute problems (including warnings and errors) such as type problems, name problems etc. to \texttt{CompilationUnit}. The order of problem reporting is according to node's position in source code. Root of Java AST, which is \texttt{Program}, processes each \texttt{CompilationUnit} to check whether there are problems need to be reported or not.
+When the method \texttt{processingCompilationUnit()} is called, all \texttt{ASTNode}s in the Java abstact syntax tree (AST) contribute problems (including warnings and errors) such as type problems, name problems etc. to \texttt{CompilationUnit}. The order of problem reporting is according to node's position in source code. The root of Java AST, which is \texttt{Program}, processes each \texttt{CompilationUnit} to check whether there are problems need to be reported or not. \\[0.2cm]
+One important feature of this framework design is that it is difficult to locate a specific child node of a parent node in an AST. However it is convenient to find the parent node of a child node. This feature adds in complexity to the implementation of typestate checking in branch statements.
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
@@ -93,8 +94,8 @@ Source code of previous version Mungo can be found at \url{https://github.com/Di
 In current version, the grammar and parser for typestate protocol files are adapted with modification from previous version. The algorithm of typestate protocol sematic checking is also from previous version but implemented using ExtendJ bottom-up problem reporting design. Moreover, helper methods for typestate \texttt{ASTNode} are adapted from previous version.
 
 \subsection{Changes in Protocol Specification}
-If a \texttt{TypestateMethod}'s parameters that have a class type with typestate specification, its state need to be explicitly stated in protocol file. The sytax is \texttt{Class<<State>>}. \\[0.2cm]
-Similarly, If the return type has typestate specification, its state also need to be specified.
+If a \texttt{TypestateMethod}'s parameters that have a class type with typestate specification, their states need to be explicitly stated in protocol file. The sytax is \texttt{Class<<State>>}. \\[0.2cm]
+Similarly, If a return type has typestate specification, its state also need to be specified.
 
 \subsection{Changes in Execution Command}
 Different from previous version, class path do not need to be included in command for parsing protocol. \\[0.2cm]
@@ -114,10 +115,10 @@ java -jar Typestate.jar testfiles/collection/*.java
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
 \subsection{Typestate Annotation Detecting}
-After Java source code parsed into AST, similar to collecting problems, the special typestate annotations are reported to \texttt{Program} by nodes in AST. If there are detected typestate annotations, before processing Java syntax checking, protocol files need to be located, parsed and varified.
+After Java source code parsed into AST, similar to reporting problems, the special typestate annotations are reported to \texttt{Program} by nodes in AST. If there are detected typestate annotations, before processing Java semantic checking, protocol files need to be located, parsed and checked.
 
 \subsection{Typestate Protocol File Parsing}
-A typestate protocol file contains only one Java class typestate declaration. It will be parsed into a \texttt{CompilationUnit} and added to \texttt{Program}. Then a semantic checking on the protocol AST will be performed. Semantic errors of protocol files will also be reported. Only if all the protocol files pass semantic checking, Java source files will be checked. \\[0.2cm]
+A typestate protocol file contains only one Java class typestate declaration. It will be parsed into a \texttt{CompilationUnit} and added to \texttt{Program}. After that semantic checking on the protocol AST will be performed. Semantic errors of protocol files will be reported in the same way as reporting Java semantic errors. Only if all the protocol files pass semantic checking, Java source files will be checked. \\[0.2cm]
 Notice that a protocol file is parsed as a part of the Java AST. If a traversal from \texttt{Program} is performed, all nodes in the subtree parsed from the protocol file will be visited.
 
 %------------------------------------------------------------------------------------------------------------
@@ -126,14 +127,14 @@ Notice that a protocol file is parsed as a part of the Java AST. If a traversal 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
 \subsection{Subclasses of Typestate}
-According to the grammar specifiation in previous version, \texttt{Typestate} is an abstract class, \texttt{TypestateMethodList}, \texttt{EndTypestate}, \texttt{TypestateMethod}, \texttt{TypestateSwitch}, \texttt{TypestateLabel}and \texttt{TTypestate} are all subclasses of it. \\[0.2cm]
-Therefore it is important to always make the down casting of variable's typestate is correct during typestate checking.
+According to the grammar specifiation in previous version, \texttt{Typestate} is an abstract class, \texttt{TypestateMethodList}, \texttt{EndTypestate}, \texttt{TypestateMethod}, \texttt{TypestateSwitch}, \texttt{TypestateLabel} and \texttt{TTypestate} are all subclasses of it. \\[0.2cm]
+Different subclasses represent different state types of a variable and have different fields, methods and attributes. Therefore it is important to always make sure that down casting of a variable's typestate is correct during the typestate checking process.
 
 \subsection{Storing and Updating Typestate Information}
 In current design, typestate information is stored in two formats. In an \texttt{ASTNode} with typestate specifcation, typestate information is stored as a field. In each \texttt{ClassDecl}, there will be a \texttt{SymbolTable} storing global and local variables' typestates.\\[0.2cm]
 The original idea was to only store typestate in field, however this design caused difficulties in nested switch statement checking. Using a \texttt{SymbolTable} to store typestate information is a good solution to this issue.\\[0.2cm]
-Although using \texttt{SymbolTable} could handle variable typestate checking and updating, storing information in \texttt{ASTNode} is still necessary in current design. Since some \texttt{ASTNode} with typestate cannot be stored in the \texttt{SymbolTable}. For instance, the return typestate of a \texttt{MethodDecl}, the typestate of a \texttt{Dot} and so on. \\[0.2cm]
-Update of typestate state is done during typestate checking, i.e., problems reporting. Although it is not a good design to perform typestate checking and state updating at the same time, it is the best way to implement this type checking under ExtendJ framework.
+Although using a \texttt{SymbolTable} could handle variable typestate checking and updating, storing information in \texttt{ASTNode} is still necessary in current design. Since some \texttt{ASTNode}s with typestate cannot be stored in the \texttt{SymbolTable}. For instance, the return typestate of a \texttt{MethodDecl}, the typestate of a \texttt{Dot} and so on. \\[0.2cm]
+Updating typestate state is done during typestate checking, i.e., problems reporting. Although it is not a good design to perform typestate checking and state updating at the same time, it is the best way to implement this type checking under ExtendJ framework.
 
 %------------------------------------------------------------------------------------------------------------
 %------------------------------------------------------------------------------------------------------------
@@ -143,9 +144,9 @@ Update of typestate state is done during typestate checking, i.e., problems repo
 
 \subsection{Depth-First Search Traversing Typestate AST for Collecting Problems}
 Using the ExtendJ problems reporting design makes typestate checking slightly complex. As we discussed in several meetings, the Visitor Pattern is more suitable for typestate checking. \\[0.2cm]
-However, it is still possible to make some modification to this framework. One of the major modification is that instead of reporting problems according to the order of position in source code, performing typestate checking according to Depth-first search (DFS) traversal order is implemented. \\[0.2cm]
+However, it is still possible to make some modification to this framework. One of the major modification is that instead of reporting problems according to the order of position in source code, performing typestate checking according to depth-first search (DFS) traversal order is implemented. \\[0.2cm]
 The reason of forcing typestate checking into this order is that typestate consistency checking of field declarators within method declarations requires method declarations are checked according to correct transition order specified in protocol files. \\[0.2cm]
-Base on this modification, in current design, problems are collected by each \texttt{MethodDecl}. \texttt{MethodDecl}s report problems to the \texttt{CompilationUnit} according to the DFS traversal order in typestate protocol AST. 
+Based on this modification, in current version, problems are collected by each \texttt{MethodDecl}. \texttt{MethodDecl}s report problems to the \texttt{CompilationUnit} according to the DFS traversal order in typestate protocol AST. 
 
 \subsection{Switch-Case Statements Typestate Checking}
 There are some restrictions in switch statements for typestate checking:
@@ -157,7 +158,7 @@ There are some restrictions in switch statements for typestate checking:
 The typestate checking works in this way:
 \begin{enumerate}
 	\item A \texttt{SwitchStmt} will push a new local symbol table on the local symbol stack.
-	\item All statements in the \texttt{SwitchStmt} will be labelled. Problem will be reported for invalid cases (violating above restrictions). The last break or continue statement will be labelled for consistency checking.
+	\item All statements in the \texttt{SwitchStmt} will be labelled. Problem will be reported for invalid cases (violating above restrictions 1 and 2). The last break or continue statement will be labelled for consistency checking.
 	\item Each \texttt{ConstCase} will push a new local symbol tabel on the local symbol stack.
 	\item Each \texttt{BreakStmt} or \texttt{ContinueStmt} will pop a symbol table from the local symbol table stack and store it in a field.
 	\item The last break or continue statement will check whether all variables have same typestate at break statemets with same target label at the end of \texttt{SwitchStmt} and report problems.
